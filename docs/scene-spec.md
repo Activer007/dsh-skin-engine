@@ -45,10 +45,12 @@ SceneSpec 是 `dsh.skin/v1` 的可选扩展。声明场景的包须设置 `entry
 
 `effects.json` 定义效果参数、渲染器和默认启用状态。场景预设只提供候选效果 ID，选择预设本身不会启用一个已关闭的效果。Scene 与 `theme.css` 的旧插画选择器互斥，旧包仍按原规则使用 CSS 插画。外部 URL、跨包路径、SVG、字体、脚本、Shader 和任意样式均不属于此契约。
 
+从 Engine API 1.2.0 起，场景应用或预览后可在 Skin Engine 的「Window effects → Scene motion preset」切换 Static、Light motion 或 Standard motion。依赖预设的包应将 `engineApi` 设为 `^1.2.0`。默认使用 Standard motion，选择只影响当前窗口。全局 Static、Off 或系统减少动效会使场景退为静态。Economy 将标准档限制到轻动效列表，并沿用窗口的低质量与静止策略。
+
 ## 装包与后续渲染
 
 作者打包、ZIP 导入与更新、Host 加载及包含素材的导出使用同一契约。导出时若省略素材，同时省略 `scene.json`、`entry.scene` 和 `scene` 能力，保留原包的 Engine API 范围。包的颜色、效果和保存的偏好仍走现有路径。
 
 插画在已识别的宿主对话背景层绘制，保持原生对话、输入、滚动和焦点布局。断点按窗口 CSS 宽度选取。图片先按对话区域等比 `fit` 和 `scale`，再把 `focalPoint` 对齐到锚点，`left`、`top` 对应 25%，`center` 对应 50%，`right`、`bottom` 对应 75%。声明 `safeArea` 时，左侧指定比例内只保留基色，插画在右侧渐入。在已审计的内容列和输入列范围内，插画最终透明度最高为 `0.16`。
 
-图片缺失、解码失败、宿主布局无法识别、区域过小，或系统启用减少透明度或强制颜色时，插画退回主题基色。旧皮肤的 CSS 插画仍沿用原先的铺放规则。预设的视觉对照、Reduced Motion 降级及发布级双端验收进入 G1 集成阶段。
+图片缺失、解码失败、宿主布局无法识别、区域过小，或系统启用减少透明度或强制颜色时，插画退回主题基色。旧皮肤的 CSS 插画仍沿用原先的铺放规则。三套预设及双端验收见 [场景样例](scene-samples.md)。

@@ -38,7 +38,7 @@ export function apply(ctx: ClientContext): void {
     mount(data, preferences, artwork) {
       const releaseTheme = theme.mount(data)
       try {
-        const releaseEffects = effects.mount(data.effects, data.tokens.colors.accent, preferences?.quality, artwork)
+        const releaseEffects = effects.mount(data.effects, data.tokens.colors.accent, preferences?.quality, artwork, data.scene?.presets)
         return () => { try { releaseEffects() } finally { releaseTheme() } }
       } catch (error) {
         releaseTheme()

@@ -4,6 +4,7 @@ import { AUDIT_PATH, type AuditStatus } from '../shared/audit.js'
 import { preferencesFor, qualityLevels, type QualityChoice } from '../shared/preferences.js'
 import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
 import { ImportSkin } from './package-controls.js'
+import { scenePresetLabels, type ScenePreset } from './scene/presets.js'
 import { SkinDetail } from './skin-detail.js'
 import type { createSkinSwitch } from './skin-switch.js'
 
@@ -22,6 +23,8 @@ export interface PanelProps {
 export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
   const effectMode = useSyncExternalStore(effects.subscribe, effects.getMode)
+  const scenePreset = useSyncExternalStore(effects.subscribe, effects.getScenePreset)
+  const effectiveScenePreset = useSyncExternalStore(effects.subscribe, effects.getEffectiveScenePreset)
   const quality = useSyncExternalStore(effects.subscribe, effects.getQuality)
   const effectiveQuality = useSyncExternalStore(effects.subscribe, effects.getEffectiveQuality)
   const refraction = useSyncExternalStore(effects.subscribe, effects.getRefraction)
@@ -178,7 +181,15 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
                 {qualityLevels.map(level => <option key={level} value={level}>{level}</option>)}
               </select>
             </label>
+            {scenePreset ? (
+              <label>Scene motion preset
+                <select value={scenePreset} onChange={event => effects.setScenePreset(event.currentTarget.value as ScenePreset)}>
+                  {Object.entries(scenePresetLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </label>
+            ) : null}
           </div>
+          {effectiveScenePreset ? <p className="dsh-skin-muted">Effective scene preset · {scenePresetLabels[effectiveScenePreset]}</p> : null}
           {state.rendered && effectMode !== 'off' ? (
             <p className="dsh-skin-muted">Effective quality · <strong data-dsh-skin-effective-quality>{effectiveQuality}</strong>
               {refraction !== 'off' ? <> · Liquid Refraction · {refraction === 'webgl' ? 'WebGL' : 'CSS fallback'}</> : null}

@@ -1,0 +1,37 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.night-navigator.scene",
+  "name": "夜航员 · 场景版",
+  "nameEn": "Night Navigator Scene",
+  "description": "靛蓝舷窗、冷蓝极光与轻浮尘。",
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.2.0",
+  "dshCompatibility": ">=0.2.0",
+  "colorScheme": "dark",
+  "tags": [
+    "dark",
+    "scene",
+    "character"
+  ],
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json",
+    "scene": "scene.json"
+  },
+  "preview": {
+    "dark": "preview/scene.webp"
+  },
+  "assets": [
+    "assets/navigator.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "scene",
+    "effects:css",
+    "effects:canvas2d"
+  ]
+}

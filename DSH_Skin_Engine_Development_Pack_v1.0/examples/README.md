@@ -6,6 +6,7 @@
 | 内置人物系列及对应 ZIP 样例 | [晨光温室](skins/morning-observatory/)、[青玉书库](skins/jade-archive/)、[雨夜列车](skins/rainline/) | `npm run pack:samples -- <输出目录>` |
 | 内置人物续集及对应 ZIP 样例 | [蓝弧远航](skins/blue-arc/)、[曙光航站](skins/dawn-station/)、[月窗余晖](skins/moonlit-horizon/)、[绯雨霓虹](skins/crimson-rain/) | `npm run pack:samples -- <输出目录>` |
 | 独立 ZIP 样例 | [`skins/ink-focus`](skins/ink-focus/)、[`skins/warm-dusk`](skins/warm-dusk/) | `npm run pack:skin -- <源码目录> <输出目录>` |
+| 三档 SceneSpec 样例 | [夜航员](scenes/night-navigator/)、[晨光温室](scenes/morning-observatory/)、[绯雨霓虹](scenes/crimson-rain/) | [复建 ZIP 与验收](../../docs/scene-samples.md) |
 | 作者起步模板 | [`templates/starter`](templates/starter/) | 复制并修改后运行 `npm run pack:skin -- <源码目录> <输出目录>` |
 
 内置皮肤由[引擎目录](../../src/host/built-in-skins.ts)显式登记。`pack:samples` 生成的内置示范包沿用 `.sample` ID。独立的 `pack:skin` 保留清单中的 ID，只将校验过的声明文件和资源写入 ZIP。使用该入口可交付额外的 ZIP 样例和自制皮肤。

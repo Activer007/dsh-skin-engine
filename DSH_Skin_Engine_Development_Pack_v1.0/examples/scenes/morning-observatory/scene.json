@@ -1,0 +1,41 @@
+{
+  "schema": "dsh.scene/v1",
+  "layout": {
+    "artwork": {
+      "asset": "assets/portrait.webp",
+      "fit": "contain",
+      "anchor": "right center",
+      "focalPoint": [
+        0.87,
+        0.33
+      ],
+      "scale": 0.93,
+      "opacity": 0.35
+    },
+    "safeArea": {
+      "contentLeftFraction": 0.64
+    },
+    "breakpoints": [
+      {
+        "maxWidth": 520,
+        "artworkScale": 0.74,
+        "opacity": 0.23
+      },
+      {
+        "maxWidth": 760,
+        "artworkScale": 0.84,
+        "opacity": 0.28
+      }
+    ]
+  },
+  "presets": {
+    "static": [],
+    "light": [
+      "light.flow"
+    ],
+    "dynamic": [
+      "light.flow",
+      "particles.dust"
+    ]
+  }
+}

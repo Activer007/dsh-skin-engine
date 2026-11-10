@@ -18,15 +18,32 @@ const { outputFiles: [module] } = await build({
       export { effectQuality } from './src/client/effects/quality.ts';
       export { applyPreferences } from './src/shared/preferences.ts';
       export { layoutArtwork, mountArtwork } from './src/client/scene/artwork.ts';
+      export { effectiveScenePreset, sceneEffects } from './src/client/scene/presets.ts';
     `,
     resolveDir: root,
   },
   write: false, bundle: true, format: 'esm',
 })
 const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createStarfield, createRipples, createHolographic,
-  createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork } = await import(
+  createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork, effectiveScenePreset, sceneEffects } = await import(
   `data:text/javascript;base64,${Buffer.from(module.contents).toString('base64')}`
 )
+
+test('scene presets narrow the enabled effects and honor window and system motion limits', () => {
+  const aurora = { id: 'ambient.aurora', enabled: true }
+  const dust = { id: 'particles.dust', enabled: false }
+  const flow = { id: 'light.flow', enabled: true }
+  const effects = [aurora, dust, flow]
+  const presets = { static: [], light: [aurora.id], dynamic: [aurora.id, dust.id] }
+  assert.deepEqual(sceneEffects(effects, presets, 'static'), [])
+  assert.deepEqual(sceneEffects(effects, presets, 'light'), [aurora])
+  assert.deepEqual(sceneEffects(effects, presets, 'dynamic'), [aurora])
+  assert.deepEqual(sceneEffects([aurora, { ...dust, enabled: true }], presets, 'dynamic').map(effect => effect.id), [aurora.id, dust.id])
+  assert.equal(effectiveScenePreset('dynamic', 'dynamic', false), 'dynamic')
+  assert.equal(effectiveScenePreset('dynamic', 'economy', false), 'light')
+  assert.equal(effectiveScenePreset('dynamic', 'dynamic', true), 'static')
+  for (const mode of ['off', 'static']) assert.equal(effectiveScenePreset('light', mode, false), 'static')
+})
 
 const illustrationLayout = {
   artwork: { asset: 'assets/portrait.webp', fit: 'contain', anchor: 'right center', focalPoint: [0.86, 0.36], scale: 1, opacity: 0.3 },

@@ -1,0 +1,37 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.morning-observatory.scene",
+  "name": "晨光温室 · 场景版",
+  "nameEn": "Morning Observatory Scene",
+  "description": "暖象牙温室、金色晨光与稀疏的空气微粒。",
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.2.0",
+  "dshCompatibility": ">=0.2.0",
+  "colorScheme": "light",
+  "tags": [
+    "light",
+    "scene",
+    "character"
+  ],
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json",
+    "scene": "scene.json"
+  },
+  "preview": {
+    "light": "preview/scene.webp"
+  },
+  "assets": [
+    "assets/portrait.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "scene",
+    "effects:css",
+    "effects:canvas2d"
+  ]
+}

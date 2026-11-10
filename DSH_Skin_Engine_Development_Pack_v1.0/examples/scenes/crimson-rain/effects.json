@@ -1,0 +1,36 @@
+{
+  "schema": "dsh.effects/v1",
+  "effects": [
+    {
+      "id": "light.flow",
+      "renderer": "css",
+      "enabled": true,
+      "params": {
+        "speed": 0.24,
+        "intensity": 0.24,
+        "width": 20,
+        "route": "edge",
+        "colorStops": [
+          "#ec6a9d00",
+          "#ec6a9d"
+        ],
+        "count": 1
+      }
+    },
+    {
+      "id": "particles.dust",
+      "renderer": "canvas2d",
+      "enabled": true,
+      "params": {
+        "density": 0.21,
+        "speed": 0.26,
+        "opacity": 0.39,
+        "drift": 0.31,
+        "sizeRange": [
+          0.75,
+          2
+        ]
+      }
+    }
+  ]
+}

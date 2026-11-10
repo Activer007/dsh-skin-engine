@@ -1,8 +1,10 @@
 import { auditedSurfaceStyles, hasAuditedSidebarTrack, resolveArtworkComposer, resolveEffectSurfaces } from '../../adapter/surface-map.js'
 import type { SkinEffect } from '../../core/effects.js'
+import type { SceneSpec } from '../../core/scene.js'
 import type { Quality, QualityChoice } from '../../shared/preferences.js'
 import type { PreparedArtwork } from '../../shared/skins.js'
 import { mountArtwork } from '../scene/artwork.js'
+import { effectiveScenePreset, sceneEffects, type ScenePreset } from '../scene/presets.js'
 import { mountAuroraPaint } from './aurora.js'
 import { createAutoQuality } from './auto-quality.js'
 import { mountCanvas } from './canvas.js'
@@ -51,7 +53,7 @@ function hasNativeCanvas(document: Document, view: Window) {
 
 function mountLayers(document: Document, effects: readonly SkinEffect[], accent: string, initialMode: EffectMode,
   initialQuality: Quality, scheduler: ReturnType<typeof createFrameScheduler>, reportRefraction: (status: RefractionStatus) => void,
-  artwork?: PreparedArtwork) {
+  artwork?: PreparedArtwork, preset?: ScenePreset) {
   const aurora = enabledEffect(effects, 'ambient.aurora')
   const flow = enabledEffect(effects, 'light.flow')
   const glass = enabledEffect(effects, 'glass.liquid')
@@ -78,6 +80,7 @@ function mountLayers(document: Document, effects: readonly SkinEffect[], accent:
   style.textContent = auditedSurfaceStyles.composer + CSS_EFFECTS_STYLES
   const scene = document.createElement('div')
   scene.setAttribute('aria-hidden', 'true')
+  if (preset) scene.setAttribute('data-dsh-skin-scene-preset', preset)
   scene.hidden = true
   const sidebarLayers: HTMLElement[] = []
   const flowNodes: HTMLElement[] = []
@@ -433,6 +436,8 @@ export function createEffectsRuntime(document: Document) {
   let skinQuality: QualityChoice = 'balanced'
   let refraction: RefractionStatus = 'off'
   let active: ReturnType<typeof mountLayers>
+  let skin: { update: () => void; dispose: () => void; preset: () => ScenePreset | undefined } | undefined
+  let scenePreset: ScenePreset = 'dynamic'
   const listeners = new Set<() => void>()
   const preference = () => qualityOverride ?? skinQuality
   function quality(): Quality {
@@ -460,6 +465,8 @@ export function createEffectsRuntime(document: Document) {
   }
   return {
     getMode: () => mode,
+    getScenePreset: () => skin?.preset() ? scenePreset : undefined,
+    getEffectiveScenePreset: () => skin?.preset(),
     getQuality: () => qualityOverride,
     getEffectiveQuality: () => mode === 'economy' ? 'low' : quality(),
     getRefraction: () => refraction,
@@ -467,7 +474,13 @@ export function createEffectsRuntime(document: Document) {
     setMode(next: EffectMode) {
       if (mode === next) return
       mode = next
-      active?.configure(mode, quality())
+      skin?.update()
+      notify()
+    },
+    setScenePreset(next: ScenePreset) {
+      if (scenePreset === next || !skin?.preset()) return
+      scenePreset = next
+      skin.update()
       notify()
     },
     setQuality(next: QualityChoice | undefined) {
@@ -477,19 +490,52 @@ export function createEffectsRuntime(document: Document) {
       active?.configure(mode, quality())
       notify()
     },
-    mount(effects: readonly SkinEffect[], accent = '#b9dcff', preferredQuality: QualityChoice = 'balanced', artwork?: PreparedArtwork) {
-      active?.dispose()
+    mount(effects: readonly SkinEffect[], accent = '#b9dcff', preferredQuality: QualityChoice = 'balanced', artwork?: PreparedArtwork,
+      presets?: SceneSpec['presets']) {
+      skin?.dispose()
       skinQuality = preferredQuality
-      resetAuto()
-      const mounted = mountLayers(document, effects, accent, mode, quality(), scheduler, reportRefraction, artwork)
-      active = mounted
-      notify()
-      return () => {
-        if (active !== mounted) return
+      const reducedMotion = presets && document.defaultView!.matchMedia('(prefers-reduced-motion: reduce)')
+      let applied: ScenePreset | undefined
+      let initialized = false
+
+      function update() {
+        const next = presets ? effectiveScenePreset(scenePreset, mode, !!reducedMotion?.matches) : undefined
+        if (initialized && next === applied) {
+          active?.configure(mode, quality())
+          return
+        }
+        active?.dispose()
+        active = undefined
+        applied = next
+        reportRefraction('off')
+        resetAuto()
+        const selected = presets && next ? sceneEffects(effects, presets, next) : effects
+        active = mountLayers(document, selected, accent, mode, quality(), scheduler, reportRefraction, artwork, next)
+        initialized = true
+      }
+      function onMotion() { update(); notify() }
+      function dispose() {
+        if (skin !== owner) return
+        skin = undefined
+        reducedMotion?.removeEventListener('change', onMotion)
+        const mounted = active
         active = undefined
         mounted?.dispose()
+        scheduler.observe(undefined)
         reportRefraction('off')
+        notify()
       }
+      const owner = { update, dispose, preset: () => applied }
+      skin = owner
+      try {
+        update()
+        reducedMotion?.addEventListener('change', onMotion)
+      } catch (error) {
+        dispose()
+        throw error
+      }
+      notify()
+      return dispose
     },
   }
 }

@@ -173,8 +173,8 @@ export async function checkPackages(sampleDir, profileDir, evidence, openWindow)
   }
 }
 
-async function contrast(locator, outline = false) {
-  return locator.evaluate((node, outline) => {
+export async function contrast(locator, outline = false, screenshot) {
+  return locator.evaluate(async (node, { outline, screenshot }) => {
     const canvas = document.createElement('canvas')
     canvas.width = canvas.height = 1
     const ctx = canvas.getContext('2d')
@@ -183,12 +183,22 @@ async function contrast(locator, outline = false) {
       ctx.fillStyle = color
       ctx.fillRect(0, 0, 1, 1)
     }
-    const layers = []
-    for (let parent = outline ? node.parentElement : node; parent; parent = parent.parentElement) {
-      layers.push(getComputedStyle(parent).backgroundColor)
+    if (screenshot) {
+      const image = new Image()
+      image.src = screenshot
+      await image.decode()
+      const box = node.getBoundingClientRect()
+      const x = Math.max(0, Math.floor(box.left) - 4)
+      const y = Math.floor(box.top + box.height / 2)
+      ctx.drawImage(image, x, y, 1, 1, 0, 0, 1, 1)
+    } else {
+      const layers = []
+      for (let parent = outline ? node.parentElement : node; parent; parent = parent.parentElement) {
+        layers.push(getComputedStyle(parent).backgroundColor)
+      }
+      paint(getComputedStyle(document.documentElement).colorScheme === 'dark' ? '#000' : '#fff')
+      layers.reverse().forEach(paint)
     }
-    paint(getComputedStyle(document.documentElement).colorScheme === 'dark' ? '#000' : '#fff')
-    layers.reverse().forEach(paint)
     const background = rgb()
     const style = getComputedStyle(node)
     paint(outline ? style.outlineColor : style.color)
@@ -200,7 +210,7 @@ async function contrast(locator, outline = false) {
     }, 0)
     const [dark, light] = [luminance(background), luminance(foreground)].sort((a, b) => a - b)
     return { foreground, background, ratio: (light + 0.05) / (dark + 0.05) }
-  }, outline)
+  }, { outline, screenshot })
 }
 
 export const palette = page => page.locator('body').evaluate(node => {

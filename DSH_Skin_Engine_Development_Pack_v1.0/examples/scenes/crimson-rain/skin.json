@@ -1,0 +1,37 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.crimson-rain.scene",
+  "name": "绯雨霓虹 · 场景版",
+  "nameEn": "Crimson Rain Scene",
+  "description": "梅红雨夜、车窗边缘灯带与柔和的霓虹反光。",
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.2.0",
+  "dshCompatibility": ">=0.2.0",
+  "colorScheme": "dark",
+  "tags": [
+    "dark",
+    "scene",
+    "character"
+  ],
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json",
+    "scene": "scene.json"
+  },
+  "preview": {
+    "dark": "preview/scene.webp"
+  },
+  "assets": [
+    "assets/portrait.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "scene",
+    "effects:css",
+    "effects:canvas2d"
+  ]
+}

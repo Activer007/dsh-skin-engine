@@ -9,7 +9,7 @@ const scene = '[data-dsh-skin-effect-scene]'
 const historyTitle = 'Skin Engine acceptance history'
 
 /** Seed an offline conversation in the official host's v4 log format. */
-export async function seedSurfaceHistory(directory, profileDir) {
+export async function seedSurfaceHistory(directory, profileDir, bilingual = false) {
   const documents = join(directory, 'documents')
   const cwd = join(documents, 'deepseek-harness', 'default-workspace')
   const id = 'skin-acceptance-history'
@@ -43,7 +43,7 @@ export async function seedSurfaceHistory(directory, profileDir) {
     { type: 'session/title', data: { title: historyTitle, messageSeqs: [2], source: { kind: 'fallback' } } },
     { type: 'assistant/message', surfaceOp: 'append', data: { turn: 1, step: 1, stream: [], message: {
       role: 'assistant', id: 'fixture-assistant', source: { kind: 'model', provider: 'deepseek-official', model: 'deepseek-v4-flash' },
-      content: [{ type: 'text', text: 'Fixture response.\n\n```js\nconst fixture = true\n```' }],
+      content: [{ type: 'text', text: (bilingual ? '中文场景验收。\n\n' : '') + 'Fixture response.\n\n```js\nconst fixture = true\n```' }],
     } } },
     { type: 'step/end', data: { turn: 1, step: 1 } },
     { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } },

@@ -80,7 +80,10 @@ test('SceneSpec is opt-in and preserves the compatibility of API 1.0-only packag
   for (const engineApi of ['*', '^1.0.0 || ^1.1.0', '>=1.1.0-rc.1']) {
     reject(() => parseSkinManifest({ ...sceneManifest, engineApi }), 'skin.json', 'engineApi', 'scene-engine-api')
   }
-  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.2.0' }), dshVersion).code, 'incompatible-engine')
+  for (const engineApi of ['1.1.0', '^1.2.0']) {
+    assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi }), dshVersion), undefined)
+  }
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.3.0' }), dshVersion).code, 'incompatible-engine')
   reject(() => parseSkinManifest({ ...sceneManifest, capabilities: manifest.capabilities }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: manifest.entry }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: { ...manifest.entry, scene: '../scene.json' } }), 'skin.json', 'entry.scene')
