@@ -98,7 +98,9 @@ async function uploadSkin<T extends { skinId: string }>(file: File, signal: Abor
 }
 
 export const skinApi = {
-  catalogue(signal: AbortSignal) { return request<SkinCatalogue>(SKINS_PATH, signal) },
+  catalogue(signal: AbortSignal, force = false) {
+    return request<SkinCatalogue>(force ? `${SKINS_PATH}?refresh=1` : SKINS_PATH, signal)
+  },
   read(signal: AbortSignal) { return request<SkinSelection>(SELECTION_PATH, signal) },
   load(choice: SkinChoice, signal: AbortSignal) { return request<SkinData>(choice.dataUrl, signal) },
   save(choice: SkinChoice | null, expectedRevision: number, signal: AbortSignal, preferences?: SkinPreferences | null) {

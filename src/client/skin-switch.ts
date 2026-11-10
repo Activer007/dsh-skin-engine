@@ -106,7 +106,7 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
   let active: { skin: PreparedSkin; scheme?: ColorScheme; mount: MountedSkin } | undefined
   let failedRender: { skin: PreparedSkin; scheme?: ColorScheme; reason: string } | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
-  let catalogueRefreshQueued = false
+  let catalogueRefreshQueued: boolean | 'force' = false
   let disposed = false
 
   function publish(change: Partial<SwitchState>) {
@@ -170,8 +170,9 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     operation = undefined
     publish({ pending: null, saving: false })
     if (catalogueRefreshQueued) {
+      const queued = catalogueRefreshQueued
       catalogueRefreshQueued = false
-      void refresh(true)
+      void refresh(queued)
     }
   }
 
@@ -231,10 +232,10 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     }
   }
 
-  async function refresh(reloadChoices = false) {
+  async function refresh(reloadChoices: boolean | 'force' = false) {
     if (disposed) return
     if (state.saving) {
-      if (reloadChoices) catalogueRefreshQueued = true
+      if (reloadChoices && catalogueRefreshQueued !== 'force') catalogueRefreshQueued = reloadChoices
       return
     }
     const signal = begin('refresh')
@@ -242,7 +243,7 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     restore()
     try {
       const [saved, catalogue] = await Promise.allSettled([
-        api.read(signal), reloadChoices || !state.catalogue ? api.catalogue(signal) : state.catalogue,
+        api.read(signal), reloadChoices || !state.catalogue ? api.catalogue(signal, reloadChoices === 'force') : state.catalogue,
       ])
       signal.throwIfAborted()
       if (catalogue.status === 'fulfilled') publish({ catalogue: catalogue.value, catalogueNotice: '' })

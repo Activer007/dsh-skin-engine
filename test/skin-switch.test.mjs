@@ -40,7 +40,7 @@ async function switchFixture({ initial = null, previewMs, prepare, onMount, onSa
   const writes = []
   const mounts = []
   const api = {
-    async catalogue() { return { skins: catalogue(), issues: [], placeholderUrl: 'placeholder.svg' } },
+    async catalogue(_signal, force) { return { skins: catalogue(force), issues: [], placeholderUrl: 'placeholder.svg' } },
     async read() { return disk },
     async load(choice, signal) { return prepare ? prepare(choice, signal) : dataFor(choice) },
     async save(choice, expected, _signal, preferences) {
@@ -103,14 +103,19 @@ test('preview stays window-local and cancellation or expiry reads the authoritat
 test('catalogue refresh preserves the mounted revision and adopts a real package update', async t => {
   let revision = 'a'
   let loads = 0
+  const refreshes = []
   const { controller, mounts, visual } = await switchFixture({
     initial: 'a',
-    catalogue: () => [{ ...choices[0], revision }],
+    catalogue(force) {
+      refreshes.push(force)
+      return [{ ...choices[0], revision }]
+    },
     prepare(choice) { loads++; return dataFor(choice) },
   })
   t.after(() => controller.dispose())
 
   await controller.refresh(true)
+  await controller.refresh('force')
   assert.equal(visual(), 'a')
   assert.equal(loads, 1)
   assert.deepEqual(mounts, ['a'])
@@ -119,6 +124,7 @@ test('catalogue refresh preserves the mounted revision and adopts a real package
   assert.equal(visual(), 'a')
   assert.equal(loads, 2)
   assert.deepEqual(mounts, ['a', 'a'])
+  assert.deepEqual(refreshes, [false, false, true, false])
 })
 
 test('late A → B → A loads and a response after disposal cannot replace the latest activation', async t => {

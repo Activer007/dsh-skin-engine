@@ -68,10 +68,18 @@ function launch(file, args, env, visible = false, killTree = false) {
         }
         child.kill()
       }
-      await done.catch(() => {})
       // A terminated native parent may leave children with inherited pipes.
       child.stdout.destroy()
       child.stderr.destroy()
+      const exited = await Promise.race([done.then(() => true, () => true), delay(5000, false)])
+      if (exited) return
+      try { process.kill(child.pid, 0) } catch (error) {
+        if (error.code !== 'ESRCH') throw error
+        // Windows may drop the process before libuv delivers the exit event.
+        child.unref()
+        return
+      }
+      throw Error(`Fixture PID ${child.pid} is still running after shutdown`)
     },
   }
 }
@@ -127,14 +135,14 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   const profileDir = join(home, 'profiles', profile)
   const userData = join(directory, 'electron-user-data')
 
-  async function startDesktop(lifecycle) {
+  async function startDesktop(lifecycle, userDirectory = userData) {
     const cdp = await port()
     const main = await port()
-    const flags = [`--user-data-dir=${userData}`, `--remote-debugging-port=${cdp}`, `--inspect=${loopback}:${main}`]
+    const flags = [`--user-data-dir=${userDirectory}`, `--remote-debugging-port=${cdp}`, `--inspect=${loopback}:${main}`]
     if (['artwork', 'scenes', 'tokens', 'dual-appearance', 'scene-motion'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
     if (lifecycle || options['desktop-disable-occlusion']) flags.push('--disable-features=CalculateNativeWinOcclusion')
     const app = launch(executable, flags, env, true)
-    const keepRendering = ['dual-appearance', 'effects-runtime', 'scene-motion'].includes(options.suite)
+    const keepRendering = ['dual-appearance', 'effects-runtime', 'scene-motion', 'catalogue-cache'].includes(options.suite)
     const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size, keepRendering }) {
       if (process.pid !== pid || process.env.DSH_HOME !== expectedHome) throw Error('Unexpected Desktop process')
       const load = process.mainModule?.require?.bind(process.mainModule)
@@ -180,7 +188,8 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   }
 
   if (desktop) {
-    const initial = await startDesktop(false)
+    const bootstrap = options.suite === 'catalogue-cache' ? join(directory, 'electron-bootstrap') : userData
+    const initial = await startDesktop(false, bootstrap)
     try {
       await initial.ready()
       await until(() => access(join(profileDir, 'package.json')).then(() => true, () => false), 'Desktop profile initialization')
@@ -241,12 +250,14 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       attempt.origin = new URL(launchUrl).origin
       attempt.stage = 'browser'
       let page
-      if (lifecycle) {
+      const catalogue = options.suite === 'catalogue-cache'
+      if (lifecycle || catalogue) {
         const cdp = await port()
         nativeChrome = launch(resolve(options.chrome), [
           `--user-data-dir=${join(directory, 'chrome-user-data')}`, `--remote-debugging-port=${cdp}`,
-          '--no-first-run', '--no-default-browser-check', '--disable-features=CalculateNativeWinOcclusion', 'about:blank',
-        ], env, true, true)
+          '--no-first-run', '--no-default-browser-check', '--disable-features=CalculateNativeWinOcclusion',
+          ...(catalogue ? ['--headless=new'] : []), 'about:blank',
+        ], env, !catalogue, true)
         const origin = `http://${loopback}:${cdp}`
         await until(async () => {
           nativeChrome.output()
@@ -255,6 +266,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
         browser = await chromium.connectOverCDP(origin, { noDefaults: true })
         page = browser.contexts()[0].pages().find(tab => tab.url() === 'about:blank')
         assert(page, 'Missing Chrome startup tab')
+        if (catalogue) await page.setViewportSize({ width: 1280, height: 820 })
       } else {
         browser = await chromium.launch({
           executablePath: resolve(options.chrome),
@@ -284,6 +296,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     }
     function close() {
       return closing ??= (async () => {
+        const stopped = app.stop()
         try {
           if (nativeChrome && browser?.isConnected()) {
             // The attached browser is a separate native process. Give it time
@@ -294,7 +307,8 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
             ])
           } else await browser?.close()
         } finally {
-          await Promise.all([nativeChrome?.stop(), app.stop()])
+          await Promise.all([nativeChrome?.stop(), stopped])
+          if (nativeChrome && browser?.isConnected()) await Promise.race([browser.close(), delay(2000)])
           attempt.closed = {
             code: app.child.exitCode, signal: app.child.signalCode, browserDisconnected: browser ? !browser.isConnected() : null,
           }

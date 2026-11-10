@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { readDshRuntimeVersion } from '../adapter/host-version.js'
 import { SkinValidationError } from '../core/validation.js'
 import { SKINS_PATH, SKIN_PATH, SKIN_ASSET_PATH } from '../shared/skins.js'
@@ -74,8 +75,11 @@ export function registerCatalogueRoutes(register: Register, profileDirectory: st
   }
 
   route(SKINS_PATH, ['GET'], async (request, signal) => {
-    queryOf(request, [])
-    const { skins, issues } = await registry.catalogue(signal)
+    const refresh = new URL(request.url).searchParams.size > 0
+    if (refresh && queryOf(request, ['refresh']).get('refresh') !== '1') {
+      throw new PackageFileError('invalid-query', 400)
+    }
+    const { skins, issues } = await registry.catalogue(signal, refresh)
     return Response.json({
       placeholderUrl: PREVIEW_PLACEHOLDER_PATH,
       skins: skins.map(({ manifest, revision, location, compatibility, previousVersion }) => {
@@ -113,10 +117,19 @@ export function registerCatalogueRoutes(register: Register, profileDirectory: st
     if (preview && scheme !== 'light' && scheme !== 'dark') throw new PackageFileError('invalid-query', 400)
     const selector = scheme === 'light' || scheme === 'dark' ? { scheme } as const : { path: query.get('path')! }
     const asset = await registry.asset(query.get('id')!, query.get('revision')!, selector, signal)
-    const headers = {
+    const headers = new Headers({
       ...privateHeaders,
       'content-type': asset?.type ?? 'image/svg+xml',
       ...(asset ? {} : { 'x-dsh-skin-placeholder': '1' }),
+    })
+    if (preview && asset) {
+      const etag = `"${createHash('sha256').update(asset.bytes).digest('hex')}"`
+      headers.set('etag', etag)
+      headers.set('cache-control', 'private, no-cache')
+      const validators = request.headers.get('if-none-match')?.split(',').map(value => value.trim())
+      if (validators?.some(value => value === '*' || value.replace(/^W\//, '') === etag)) {
+        return new Response(null, { status: 304, headers })
+      }
     }
     return new Response(request.method === 'HEAD' ? null : asset?.bytes ?? PREVIEW_PLACEHOLDER_SVG, { headers })
   })

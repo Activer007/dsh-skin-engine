@@ -94,6 +94,7 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
         const bytes = await readManifest({ anchor: contents, segments: [], source: 'local' }, signal)
         const next = await stagePackageVersion(installation, versions ?? null, contents, signal)
         const committed = await commitPackageVersion(installation, next, versions?.current ?? 'base', signal)
+        registry.invalidate()
         return versionResult(installation, manifest, bytes, committed.generation)
       }
       const catalogue = await registry.catalogue(signal, true)
@@ -107,6 +108,7 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
       const directory = await ensurePackageDirectory(profile, INSTALLED_ROOT)
       signal.throwIfAborted()
       await rename(contents, join(directory, `skin-${randomUUID()}`))
+      registry.invalidate()
     }))
 
   const inFlight = new Set<Promise<Response>>()
@@ -199,6 +201,7 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
       await registry.requireCompatibility(manifest)
       await validatePackageContents(location, manifest, signal)
       const committed = await commitPackageVersion(installation, versions.previous, null, signal)
+      registry.invalidate()
       return versionResult(installation, manifest, bytes, committed.generation)
     })
     return Response.json(result, { headers })
@@ -224,6 +227,7 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
       try {
         signal.throwIfAborted()
         await rename(installed.path, join(target, 'removed'))
+        registry.invalidate()
       } catch (error) {
         await rm(target, { force: true, recursive: true })
         throw error

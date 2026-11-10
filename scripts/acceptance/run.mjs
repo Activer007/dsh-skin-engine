@@ -7,6 +7,7 @@ import { parseArgs } from 'node:util'
 import { settings, switchSkins } from './browser.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
+import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
 import { checkDualAppearance } from './dual-appearance.mjs'
 import { checkEffectsRuntime } from './effects-runtime.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
@@ -26,6 +27,7 @@ const { values: options } = parseArgs({ options: {
   'from-archive': { type: 'string' },
   'sample-dir': { type: 'string' },
   'sample-zip': { type: 'string' },
+  'catalogue-baseline': { type: 'boolean', default: false },
   'host-version': { type: 'string' },
   'web-cli': { type: 'string' },
   chrome: { type: 'string' },
@@ -44,6 +46,7 @@ const suites = options.suite === 'all' ? supported : options.suite.split(',')
 const desktop = options.platform === 'desktop'
 const upgrade = options.suite === 'upgrade'
 const packages = options.suite === 'packages'
+const catalogueCache = options.suite === 'catalogue-cache'
 const packageUpdate = options.suite === 'package-update'
 const appearance = options.suite === 'appearance'
 const dual = options.suite === 'dual-appearance'
@@ -55,7 +58,7 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || packageUpdate || appearance || dual || artwork || scenes || sample || tokens || effects || sceneMotion || options.suite === 'surfaces'
+assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || sample || tokens || effects || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!(packages || scenes || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
@@ -79,7 +82,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const interruption = appearance || dual || artwork || scenes || tokens || effects || sceneMotion ? new AbortController() : undefined
+const interruption = appearance || dual || artwork || scenes || tokens || effects || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
 const includes = name => suites.includes(name)
@@ -98,7 +101,7 @@ if (interruption) {
 async function enter(open, lifecycle, appearance) {
   session = await open(lifecycle)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
-  if ((tokens || dual || effects || sceneMotion) && desktop) await session.show()
+  if ((tokens || dual || effects || sceneMotion || catalogueCache) && desktop) await session.show()
   return settings(session.page, desktop, appearance)
 }
 
@@ -182,6 +185,13 @@ try {
     run.packages = {}
     await checkPackages(resolve(options['sample-dir']), profileDir, run.packages, openInProfile)
   }
+  if (catalogueCache) {
+    if (!desktop) await seedCatalogue(profileDir, 0, 10)
+    run.catalogueCache = { baseline: options['catalogue-baseline'] }
+    await checkCatalogueCache(await openInProfile('dark'), profileDir, run.catalogueCache, options['catalogue-baseline'])
+    interruption.signal.throwIfAborted()
+    console.log('Verified 10/100-package catalogue reads and lazy previews')
+  }
   if (upgrade) {
     run.fromArtifact = firstArtifact
     ui = await enter(open, false)
@@ -241,9 +251,9 @@ try {
 } finally {
   try {
     try {
-      if (effects || sceneMotion) await save()
+      if (effects || sceneMotion || catalogueCache) await save()
     } finally { await session?.close() }
-    if ((artwork || scenes || tokens || dual || effects || sceneMotion) && session) run.browserDisconnected = !session.browser.isConnected()
+    if ((artwork || scenes || tokens || dual || effects || sceneMotion || catalogueCache) && session) run.browserDisconnected = !session.browser.isConnected()
   } finally {
     if (interruption) {
       process.off('SIGINT', interrupt)

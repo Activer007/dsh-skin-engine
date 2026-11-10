@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { addAbortListener } from 'node:events'
 import { opendir, realpath } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { checkSkinCompatibility, parseSkinManifest, type SkinManifest } from '../core/manifest.js'
@@ -15,6 +16,7 @@ import { validateSkinCss } from './skin-css.js'
 
 const LOCAL_ROOT = ['skin-engine', 'packages'] as const
 const MAX_LOCAL_ENTRIES = 256
+const CATALOGUE_TTL_MS = 5_000
 
 interface CatalogueIssue {
   source: PackageLocation['source']
@@ -51,6 +53,13 @@ export function skinRevision(location: PackageLocation, manifestHash: string, ge
   return digest(JSON.stringify(revision))
 }
 
+async function waitForScan(scan: Promise<void>, signal: AbortSignal) {
+  const { promise, reject } = Promise.withResolvers<never>()
+  const listener = addAbortListener(signal, () => reject(signal.reason))
+  try { await Promise.race([scan, promise]) } finally { listener[Symbol.dispose]() }
+  signal.throwIfAborted()
+}
+
 async function localLocations(profile: string, segments: readonly string[], managed: boolean, signal: AbortSignal,
   budget: { count: number }): Promise<PackageLocation[]> {
   const root = await checkedLocation(profile, segments)
@@ -70,8 +79,14 @@ export function createSkinRegistry(
   dshVersion: () => Promise<string | undefined>,
   lifetime: AbortSignal,
 ) {
-  let current: Catalogue | undefined
-  let scanning: Promise<Catalogue> | undefined
+  let current: { catalogue: Catalogue; expires: number } | undefined
+  let generation = 0
+  let scanning: Promise<void> | undefined
+
+  function invalidate() {
+    generation++
+    current = undefined
+  }
 
   async function scan(): Promise<Catalogue> {
     lifetime.throwIfAborted()
@@ -150,14 +165,19 @@ export function createSkinRegistry(
     return { skins, issues, localCount: budget.count }
   }
 
-  async function index(signal: AbortSignal, refresh = false): Promise<Catalogue> {
+  async function index(signal: AbortSignal): Promise<Catalogue> {
     signal.throwIfAborted()
-    if (!scanning && (!current || refresh)) {
-      scanning = scan().then(result => (current = result)).finally(() => { scanning = undefined })
+    lifetime.throwIfAborted()
+    while (!current || performance.now() >= current.expires) {
+      const startedAt = generation
+      scanning ??= scan().then(catalogue => {
+        lifetime.throwIfAborted()
+        // Discard an index built across a package commit or a forced refresh.
+        if (generation === startedAt) current = { catalogue, expires: performance.now() + CATALOGUE_TTL_MS }
+      }).finally(() => { scanning = undefined })
+      await waitForScan(scanning, signal)
     }
-    const result = scanning ? await scanning : current!
-    signal.throwIfAborted()
-    return result
+    return current.catalogue
   }
 
   async function resolveSkin(id: string, revision: string, signal: AbortSignal): Promise<IndexedSkin> {
@@ -165,10 +185,16 @@ export function createSkinRegistry(
     if (!skin || skin.revision !== revision) throw new PackageFileError('skin-not-found', 404)
     if (skin.installation) {
       const versions = await readPackageVersions(skin.installation, signal)
-      if (versions?.generation !== skin.versions?.generation) throw new PackageFileError('skin-changed', 409)
+      if (versions?.generation !== skin.versions?.generation) {
+        invalidate()
+        throw new PackageFileError('skin-changed', 409)
+      }
     }
     const bytes = await readPackageFile(skin.location, 'skin.json', MANIFEST_LIMIT, signal)
-    if (digest(bytes) !== skin.manifestHash) throw new PackageFileError('skin-changed', 409)
+    if (digest(bytes) !== skin.manifestHash) {
+      invalidate()
+      throw new PackageFileError('skin-changed', 409)
+    }
     return skin
   }
 
@@ -177,9 +203,11 @@ export function createSkinRegistry(
       const issue = checkSkinCompatibility(manifest, await dshVersion())
       if (issue) throw new PackageFileError(issue.code, 409)
     },
-    async catalogue(signal: AbortSignal, fresh = false) {
-      if (fresh && scanning) await scanning
-      const { skins, issues, localCount } = await index(signal, true)
+    invalidate,
+    async catalogue(signal: AbortSignal, refresh = false) {
+      signal.throwIfAborted()
+      if (refresh) invalidate()
+      const { skins, issues, localCount } = await index(signal)
       return { skins: [...skins.values()], issues, localCount, localLimit: MAX_LOCAL_ENTRIES }
     },
     resolveSkin,

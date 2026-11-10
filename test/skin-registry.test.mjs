@@ -92,13 +92,60 @@ test('100 local manifests index without entry files; malformed and colliding pac
   assert(issues.some(issue => issue.directory === 'junction' && issue.code === 'unsafe-path'))
 })
 
+test('ordinary reads reuse the index, while invalidation discards a scan and caller cancellation leaves peers running', async t => {
+  const { dir, packages, request } = await profileFixture(t, 'cache')
+  const lifetime = new AbortController()
+  const controller = new AbortController()
+  const started = Promise.withResolvers()
+  const release = Promise.withResolvers()
+  let scans = 0
+  const registry = createSkinRegistry(dir, async () => {
+    if (++scans === 2) {
+      started.resolve()
+      await release.promise
+    }
+    return '0.2.2-rc.1'
+  }, lifetime.signal)
+  const read = () => registry.catalogue(lifetime.signal)
+  const cold = await read()
+  await skin(join(packages, 'added'), 'test.added')
+  assert.deepEqual(await read(), cold)
+  assert.equal(scans, 1)
+
+  const cancelled = registry.catalogue(controller.signal, true)
+  await started.promise
+  const peer = read()
+  registry.invalidate()
+  controller.abort()
+  await assert.rejects(cancelled, { name: 'AbortError' })
+  release.resolve()
+  const refreshed = await peer
+  assert.equal(scans, 3)
+  assert(refreshed.skins.some(item => item.manifest.id === 'test.added'))
+  assert.deepEqual(await read(), refreshed)
+  assert.equal(scans, 3)
+
+  const catalogue = `${rootPath}/skins`
+  assert.equal((await request(catalogue)).status, 200)
+  await skin(join(packages, 'second'), 'test.second')
+  assert(!(await (await request(catalogue)).json()).skins.some(item => item.manifest.id === 'test.second'))
+  const forced = await request(`${catalogue}?refresh=1`)
+  assert((await forced.json()).skins.some(item => item.manifest.id === 'test.second'))
+  for (const query of ['refresh=0', 'refresh=1&refresh=1', 'other=1']) {
+    assert.equal((await request(`${catalogue}?${query}`)).status, 400)
+  }
+})
+
 test('asset authorization uses exact Manifest paths, canonical files and profile-bound revisions', async t => {
   const one = await profileFixture(t, 'one')
   const two = await profileFixture(t, 'two')
   for (const host of [one, two]) {
     const directory = join(host.packages, 'sample')
-    await skin(directory, 'test.sample', { assets: ['assets/ok.png', 'assets/fake.png', 'assets/huge.png', 'assets/link.png', 'assets/escape/leak.png'] })
+    await skin(directory, 'test.sample', { preview: { dark: 'preview/ok.png' },
+      assets: ['assets/ok.png', 'assets/fake.png', 'assets/huge.png', 'assets/link.png', 'assets/escape/leak.png'] })
     await mkdir(join(directory, 'assets'))
+    await mkdir(join(directory, 'preview'))
+    await writeFile(join(directory, 'preview', 'ok.png'), png)
     await writeFile(join(directory, 'assets', 'ok.png'), png)
     await writeFile(join(directory, 'assets', 'unlisted.png'), png)
     await writeFile(join(directory, 'assets', 'fake.png'), '<svg xmlns="http://www.w3.org/2000/svg"/>')
@@ -120,6 +167,20 @@ test('asset authorization uses exact Manifest paths, canonical files and profile
   assert.equal((await one.request(url, { method: 'HEAD' })).body, null)
   assert.equal((await two.request(url)).status, 404)
   assert.equal((await two.request(assetUrl(b, 'assets/ok.png'))).status, 200)
+  const preview = await one.request(a.previews.dark)
+  const etag = preview.headers.get('etag')
+  assert.equal(preview.headers.get('cache-control'), 'private, no-cache')
+  assert.match(etag, /^"[0-9a-f]{64}"$/)
+  const conditional = { headers: { 'if-none-match': `"unrelated", W/${etag}` } }
+  const unchanged = await one.request(a.previews.dark, conditional)
+  assert.equal(unchanged.status, 304)
+  assert.equal(unchanged.body, null)
+  assert.equal((await one.request(a.previews.dark, { ...conditional, method: 'HEAD' })).status, 304)
+  assert.equal((await two.request(a.previews.dark, conditional)).status, 404)
+  const imagePath = join(one.packages, 'sample', 'preview', 'ok.png')
+  await writeFile(imagePath, Buffer.concat([png, Buffer.from('replacement')]))
+  assert.equal((await one.request(a.previews.dark, conditional)).status, 200)
+  await writeFile(imagePath, png)
   for (const file of ['assets/unlisted.png', 'assets/../skin.json', 'assets/%2e%2e/skin.json', 'assets/link.png', 'assets/escape/leak.png']) {
     assert.equal((await one.request(assetUrl(a, file))).status, 404, file)
   }
@@ -128,7 +189,7 @@ test('asset authorization uses exact Manifest paths, canonical files and profile
   assert.equal((await one.request(`${url}&id=test.sample`)).status, 400)
 
   await skin(join(one.packages, 'sample'), 'test.sample', { version: '1.0.1', assets: ['assets/ok.png'] })
-  assert.equal((await one.request(url)).status, 409)
+  assert.equal((await one.request(a.previews.dark, conditional)).status, 409)
   const updated = (await (await one.request(`${rootPath}/skins`)).json()).skins.find(item => item.source === 'local')
   assert.equal((await one.request(assetUrl(updated, 'assets/ok.png'))).status, 200)
   assert.equal((await one.request(url)).status, 404)
@@ -143,9 +204,11 @@ test('missing previews return the placeholder and request or Host abort closes a
   await writeFile(path, Buffer.alloc(128 * 1024))
   const { skins, placeholderUrl } = await (await host.request(`${rootPath}/skins`)).json()
   const entry = skins.find(item => item.source === 'local')
-  const placeholder = await host.request(entry.previews.dark)
+  const placeholder = await host.request(entry.previews.dark, { headers: { 'if-none-match': '*' } })
   assert.equal(placeholder.status, 200)
   assert.equal(placeholder.headers.get('x-dsh-skin-placeholder'), '1')
+  assert.equal(placeholder.headers.get('cache-control'), 'no-store')
+  assert.equal(placeholder.headers.get('etag'), null)
   assert.match(placeholderUrl, /^plugins\/dsh-plugin-skin-engine\/assets\/preview-placeholder-[0-9a-f]{12}\.svg$/)
   assert.equal(await placeholder.text(), await readFile(new URL(`../lib/assets/${placeholderUrl.split('/').at(-1)}`, import.meta.url), 'utf8'))
 

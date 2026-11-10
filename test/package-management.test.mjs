@@ -310,6 +310,8 @@ test('version commits serialize and rollback restores the prior package without 
 
   assert.equal((await host.upload(first)).status, 201)
   const original = await installed()
+  const peer = createSkinRegistry(host.dir, async () => '0.2.2-rc.1', host.signal)
+  await peer.catalogue(host.signal)
   assert.equal((await apply(original.revision, 0, preferences)).status, 200)
   const saved = await read()
   assert.deepEqual(await (await host.upload(first, target(original.revision))).json(), { error: 'package-version-not-newer' })
@@ -329,6 +331,8 @@ test('version commits serialize and rollback restores the prior package without 
   assert.equal(updated.previousVersion, '1.0.0')
   assert.equal((await host.registry.load(skinId, updated.revision, host.signal)).tokens.colors.canvas, '#312418')
   await assert.rejects(host.registry.load(skinId, original.revision, host.signal), /skin-not-found/)
+  await assert.rejects(peer.load(skinId, original.revision, host.signal), /skin-(changed|not-found)/)
+  assert.equal((await peer.catalogue(host.signal)).skins.find(skin => skin.manifest.id === skinId).revision, updated.revision)
   assert.deepEqual(await read(), saved)
 
   const amended = { ...preferences, quality: 'balanced' }
@@ -336,8 +340,9 @@ test('version commits serialize and rollback restores the prior package without 
   const afterEdit = await read()
   assert.equal((await apply(updated.revision, afterEdit.revision, { ...amended, effects: { 'particles.dust': { strength: 0.5 } } })).status, 400)
   assert.equal((await rollback(original.revision)).status, 409)
-  const reverted = await rollback(updated.revision)
-  assert.equal(reverted.status, 200)
+  const rollbacks = await Promise.all([rollback(updated.revision), rollback(updated.revision)])
+  assert.deepEqual(rollbacks.map(response => response.status).sort(), [200, 409])
+  const reverted = rollbacks.find(response => response.ok)
   const current = await installed()
   assert.deepEqual(await reverted.json(), { skinId, version: '1.0.0', revision: current.revision })
   assert.notEqual(current.revision, original.revision)
@@ -345,6 +350,9 @@ test('version commits serialize and rollback restores the prior package without 
   assert.equal((await host.registry.load(skinId, current.revision, host.signal)).effects[0]?.id, 'particles.dust')
   assert.deepEqual(await read(), afterEdit)
   assert.equal((await rollback(current.revision)).status, 409)
+  const remove = root + '/packages/remove?' + new URLSearchParams(target(current.revision))
+  assert.equal((await host.request(remove, { method: 'POST' })).status, 200)
+  assert(!(await host.registry.catalogue(host.signal)).skins.some(item => item.manifest.id === skinId))
   assert.deepEqual(await host.staging(), [])
 })
 
@@ -403,6 +411,7 @@ test('failed or interrupted version commits preserve the authoritative directory
   })
   assert.equal(committed.current, 'base')
   assert.deepEqual(await readdir(versionDirectory), [])
+  await assert.rejects(host.registry.load(skinId, active.revision, host.signal), /skin-changed/)
   assert.equal((await installed()).manifest.version, '1.0.0')
 })
 

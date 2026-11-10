@@ -201,7 +201,7 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
             {state.catalogue?.issues.length ? <> ({state.catalogue.issues.length})</> : null}
           </summary>
           <div className="dsh-skin-actions">
-            <button type="button" disabled={state.saving} onClick={() => void controller.refresh(true)}>Reload skins</button>
+            <button type="button" disabled={state.saving} onClick={() => void controller.refresh('force')}>Reload skins</button>
             <button type="button" disabled={hostStatus === null} onClick={() => void checkHost()}>Check Host</button>
             <img src={PROBE_ASSET} alt="" width="28" height="28" />
           </div>
