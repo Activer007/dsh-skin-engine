@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { checkSkinCompatibility, parseSkinManifest, type SkinManifest } from '../core/manifest.js'
 import { SkinValidationError } from '../core/validation.js'
 import { builtInSkinDirectories } from './built-in-skins.js'
-import { bundledPreferences, installedDirectory, INSTALLED_ROOT, readSkinData } from './installed-package.js'
+import { bundledPreferences, installedDirectory, INSTALLED_ROOT, readSkinData, validateSceneArtwork } from './installed-package.js'
 import {
   checkedLocation, checkedProfile, FILE_LIMIT, fsErrorCode, MANIFEST_LIMIT, PackageFileError, parseJson, readPackageFile, utf8,
   type PackageLocation,
@@ -188,10 +188,12 @@ export function createSkinRegistry(
       if (skin.compatibility) throw new PackageFileError(skin.compatibility.code, 409)
       const { location, manifest } = skin
       const { parsed, files } = await readSkinData(location, manifest, signal)
+      if (parsed.scene) await validateSceneArtwork(location, parsed.scene, signal)
       const base = { ...parsed, css: location.source === 'built-in' ? utf8(files.css) : null,
         source: location.source, managed: Boolean(location.managed) }
       if (!location.managed) {
-        const art = base.css && manifest.assets?.length ? validateSkinCss(base.css, manifest).art : undefined
+        const art = parsed.scene || (base.css && manifest.assets?.length)
+          ? validateSkinCss(base.css ?? utf8(files.css), manifest).art : undefined
         return { ...base, art }
       }
       const { art, colors } = validateSkinCss(utf8(files.css), manifest)

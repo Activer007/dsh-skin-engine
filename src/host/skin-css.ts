@@ -1,6 +1,6 @@
 import generate from 'css-tree/generator'
 import parse from 'css-tree/parser'
-import type { SkinManifest } from '../core/manifest.js'
+import { isPackageImage, type SkinManifest } from '../core/manifest.js'
 import type { parseSkinTokens } from '../core/tokens.js'
 import type { SkinArtwork } from '../shared/skins.js'
 import { MANIFEST_LIMIT, PackageFileError } from './package-files.js'
@@ -25,6 +25,7 @@ export function validateSkinCss(source: string, manifest: SkinManifest) {
   } catch { return reject() }
   if (tree.type !== 'StyleSheet') return reject()
   const root = `:root[data-dsh-skin-id="${manifest.id}"]`
+  const artwork = `${root} [data-dsh-skin-package-art]`
   const colors: ReturnType<typeof parseSkinTokens>['colors'] = {}
   const art: SkinArtwork = { path: '', opacity: 0.2, size: 'cover' }
   const publicRules: string[] = []
@@ -32,7 +33,7 @@ export function validateSkinCss(source: string, manifest: SkinManifest) {
   for (const rule of tree.children) {
     if (rule.type !== 'Rule' || rule.prelude.type !== 'SelectorList') reject()
     const selector = generate(rule.prelude)
-    if (selector !== root && selector !== `${root} [data-dsh-skin-package-art]`) reject()
+    if (selector !== root && (selector !== artwork || manifest.entry.scene)) reject()
     for (const declaration of rule.block.children) {
       if (declaration.type !== 'Declaration' || declaration.important || declaration.value.type !== 'Value') reject()
       const { property } = declaration
@@ -53,7 +54,7 @@ export function validateSkinCss(source: string, manifest: SkinManifest) {
           // Appearance compatibility is determined by the Manifest.
         } else reject()
       } else if (property === 'background-image' && value.type === 'Url') {
-        if (!manifest.assets?.includes(value.value) || !/^assets\/.*\.(?:png|webp|jpe?g)$/i.test(value.value)) reject()
+        if (!manifest.assets?.includes(value.value) || !isPackageImage(value.value)) reject()
         art.path = value.value
       } else if (property === 'background-size' && value.type === 'Identifier'
         && (value.name === 'cover' || value.name === 'contain' || value.name === 'auto')) {

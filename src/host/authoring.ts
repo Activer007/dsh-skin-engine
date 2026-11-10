@@ -17,10 +17,11 @@ export async function readSkinSource(directory: string) {
   const signal = new AbortController().signal
   const manifest = parseSkinManifest(parseJson(await readPackageFile(location, 'skin.json', MANIFEST_LIMIT, signal)))
   const resources = packageResources(manifest)
-  if (resources.size + 4 > ZIP_ENTRIES) throw Error('Skin has too many ZIP entries')
+  const names = ['skin.json', ...Object.values(manifest.entry), ...resources]
+  if (names.length > ZIP_ENTRIES) throw Error('Skin has too many ZIP entries')
   const index = createZipPathIndex()
-  for (const name of ['skin.json', ...Object.values(manifest.entry), ...resources]) index.add(zipPathParts(name), false)
-  const { files: { tokens, effects, css } } = await readSkinData(location, manifest, signal)
+  for (const name of names) index.add(zipPathParts(name), false)
+  const { files: { tokens, effects, css, scene } } = await readSkinData(location, manifest, signal)
   validateSkinCss(utf8(css), manifest)
   const manifestBytes = Buffer.from(JSON.stringify(manifest, null, 2) + '\n')
   if (manifestBytes.length > MANIFEST_LIMIT) throw Error('Skin manifest exceeds the ZIP manifest size limit')
@@ -30,6 +31,7 @@ export async function readSkinSource(directory: string) {
     [manifest.entry.effects, effects],
     [manifest.entry.styles, css],
   ])
+  if (manifest.entry.scene && scene) files.set(manifest.entry.scene, scene)
   let expanded = [...files.values()].reduce((total, bytes) => total + bytes.length, 0)
   for (const path of resources) {
     const bytes = await readPackageFile(location, path, FILE_LIMIT, signal)

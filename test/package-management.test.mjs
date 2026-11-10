@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
 import { randomBytes, randomUUID } from 'node:crypto'
-import { cp, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buffer } from 'node:stream/consumers'
@@ -14,6 +14,7 @@ import { fromBufferPromise } from 'yauzl'
 import { ZipFile } from 'yazl'
 import { commitPackageVersion, createSelectionStore, createSkinRegistry, registerPackageRoutes, registerSelectionRoutes,
   stagePackageVersion } from '../lib/host.js'
+import { readSkinSource } from '../lib/authoring.js'
 import { packageVersionPair, versionedSkin } from './fixtures/package-versions.mjs'
 
 const root = '/api/dsh-skin-engine'
@@ -195,6 +196,88 @@ test('the local update fixtures load independently and ordinary import rejects t
       assert.deepEqual(await host.staging(), [])
     })
   }
+})
+
+test('standalone Ink Focus and Warm Dusk packages still install and load without a SceneSpec', async t => {
+  const host = await fixture(t)
+  for (const name of ['ink-focus', 'warm-dusk']) {
+    const source = fileURLToPath(new URL(`../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/${name}/`, import.meta.url))
+    const { manifest, files } = await readSkinSource(source)
+    assert.equal((await host.upload(await zip(files))).status, 201)
+    const item = (await host.registry.catalogue(host.signal)).skins.find(skin => skin.manifest.id === manifest.id)
+    assert.equal(item.compatibility, undefined)
+    assert(!Object.hasOwn(await host.registry.load(manifest.id, item.revision, host.signal), 'scene'))
+  }
+})
+
+test('SceneSpec authoring, updates, exports, and rollback share the production package contract', async t => {
+  const host = await fixture(t)
+  const find = async () => (await host.registry.catalogue(host.signal)).skins.find(skin => skin.manifest.id === skinId)
+  const key = item => new URLSearchParams({ id: skinId, revision: item.revision }).toString()
+  assert.equal((await host.upload(await zip(packageFiles()))).status, 201)
+  const old = await find()
+  const files = packageFiles(`${skinScope}{--dsh-skin-canvas:#182431}`)
+  const manifest = JSON.parse(files.get('skin.json'))
+  manifest.version = '1.1.0'
+  manifest.engineApi = '^1.1.0'
+  manifest.entry.scene = 'scene.json'
+  manifest.capabilities.push('scene')
+  const scene = {
+    schema: 'dsh.scene/v1',
+    layout: { artwork: { asset: pngPath, fit: 'contain', anchor: 'right center', focalPoint: [1, 0], scale: 1, opacity: 0.35 } },
+    presets: { static: [], light: [], dynamic: ['particles.dust'] },
+  }
+  files.set('skin.json', json(manifest))
+  files.set('scene.json', json(scene))
+  const target = { id: skinId, revision: old.revision }
+  for (const [name, value, status] of [
+    ['scene.json', null, 422], ['scene.json', Buffer.alloc(65 * 1024), 413],
+    ['theme.css', Buffer.from(rules), 422], [pngPath, Buffer.from('<svg/>'), 415],
+  ]) {
+    const bad = new Map(files)
+    if (value) bad.set(name, value)
+    else bad.delete(name)
+    assert.equal((await host.upload(await zip(bad), target)).status, status)
+  }
+  assert.equal((await find()).revision, old.revision)
+  assert.deepEqual(await host.staging(), [])
+
+  const source = join(host.dir, 'scene-source')
+  await mkdir(join(source, 'assets'), { recursive: true })
+  for (const [name, bytes] of files) await writeFile(join(source, name), bytes)
+  const script = fileURLToPath(new URL('../scripts/pack-samples.mjs', import.meta.url))
+  const output = join(host.dir, 'scene-output')
+  await promisify(execFile)(process.execPath, [script, '--source', source, output])
+  const archive = await readFile(join(output, `${skinId}.dshskin.zip`))
+  assert.equal((await host.upload(archive, target)).status, 200)
+  const item = await find()
+  const loaded = await host.registry.load(skinId, item.revision, host.signal)
+  assert.deepEqual(loaded.scene, scene)
+  assert.equal(loaded.art, undefined)
+
+  const exportZip = async suffix => {
+    const response = await host.request(root + '/packages/export?' + key(item) + suffix)
+    assert.equal(response.status, 200)
+    return Buffer.from(await response.arrayBuffer())
+  }
+  const full = await unzip(await exportZip('&assets=1'))
+  assert.deepEqual(full.get('scene.json'), files.get('scene.json'))
+  assert.deepEqual(full.get(pngPath), png)
+  const stripped = await exportZip('')
+  const strippedFiles = await unzip(stripped)
+  assert(!strippedFiles.has('scene.json'))
+  const strippedManifest = JSON.parse(strippedFiles.get('skin.json'))
+  assert.equal(strippedManifest.entry.scene, undefined)
+  assert(!strippedManifest.capabilities.includes('scene'))
+  assert.equal(strippedManifest.engineApi, manifest.engineApi)
+
+  assert.equal((await host.request(root + '/packages/rollback?' + key(item), { method: 'POST' })).status, 200)
+  const rolledBack = await find()
+  assert.notEqual(rolledBack.revision, item.revision)
+  assert.deepEqual((await host.registry.load(skinId, rolledBack.revision, host.signal)).art,
+    { path: pngPath, opacity: 0.25, size: 'contain' })
+  assert.equal((await host.request(root + '/packages/remove?' + key(rolledBack), { method: 'POST' })).status, 200)
+  assert.equal((await host.upload(stripped)).status, 201)
 })
 
 test('version commits serialize and rollback restores the prior package without losing saved preferences', async t => {

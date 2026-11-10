@@ -87,6 +87,10 @@
         "effects": {
           "type": "string",
           "const": "effects.json"
+        },
+        "scene": {
+          "type": "string",
+          "const": "scene.json"
         }
       }
     },
@@ -114,7 +118,8 @@
           "assets",
           "effects:css",
           "effects:canvas2d",
-          "effects:webgl"
+          "effects:webgl",
+          "scene"
         ]
       }
     },
@@ -126,5 +131,22 @@
         "maxLength": 180
       }
     }
+  },
+  "if": {
+    "properties": { "entry": { "required": ["scene"] } }
+  },
+  "then": {
+    "$comment": "The Host validates that engineApi requires at least 1.1.0.",
+    "properties": {
+      "capabilities": {
+        "allOf": [
+          { "contains": { "const": "scene" } },
+          { "contains": { "const": "assets" } }
+        ]
+      }
+    }
+  },
+  "else": {
+    "properties": { "capabilities": { "not": { "contains": { "const": "scene" } } } }
   }
 }

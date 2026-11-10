@@ -1,5 +1,6 @@
 import * as z from 'zod/mini'
 import { parseSkinManifest, skinIdSchema, type SkinManifest } from '../core/manifest.js'
+import type { SceneSpec } from '../core/scene.js'
 import { parseSkinPackage } from '../core/skin-package.js'
 import type { SkinPreferences } from '../shared/preferences.js'
 import { FILE_LIMIT, MANIFEST_LIMIT, PackageFileError, parseJson, readPackageFile, utf8,
@@ -26,13 +27,19 @@ export function packageResources(manifest: SkinManifest) {
 }
 
 export async function readSkinData(location: PackageLocation, manifest: SkinManifest, signal: AbortSignal) {
-  const [tokens, effects, css] = await Promise.all([
+  const [tokens, effects, css, scene] = await Promise.all([
     readPackageFile(location, manifest.entry.tokens, FILE_LIMIT, signal),
     readPackageFile(location, manifest.entry.effects, FILE_LIMIT, signal),
     readPackageFile(location, manifest.entry.styles, location.source === 'local' ? MANIFEST_LIMIT : FILE_LIMIT, signal),
+    manifest.entry.scene && readPackageFile(location, manifest.entry.scene, MANIFEST_LIMIT, signal),
   ])
-  const parsed = parseSkinPackage({ manifest, tokens: parseJson(tokens), effects: parseJson(effects) })
-  return { parsed, files: { tokens, effects, css } }
+  const parsed = parseSkinPackage({ manifest, tokens: parseJson(tokens), effects: parseJson(effects), scene: scene && parseJson(scene) })
+  return { parsed, files: { tokens, effects, css, scene } }
+}
+
+export async function validateSceneArtwork(location: PackageLocation, scene: SceneSpec, signal: AbortSignal) {
+  const { asset } = scene.layout.artwork
+  resourceType(asset, await readPackageFile(location, asset, FILE_LIMIT, signal))
 }
 
 export async function bundledPreferences(location: PackageLocation, data: ReturnType<typeof parseSkinPackage>,

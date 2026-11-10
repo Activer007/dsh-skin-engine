@@ -1,20 +1,22 @@
-import { satisfies, valid, validRange } from 'semver'
+import { gte, minVersion, satisfies, valid, validRange } from 'semver'
 import * as z from 'zod/mini'
 import { SUPPORTED_DSH_VERSION } from '../shared/compatibility.js'
 import { invalid, parseFile, type SkinDiagnostic } from './validation.js'
 
-export const ENGINE_API_VERSION = '1.0.0'
+const LEGACY_API_VERSION = '1.0.0'
+const SCENE_API_VERSION = '1.1.0'
+export const ENGINE_API_VERSION = SCENE_API_VERSION
 
-const capabilities = ['tokens', 'css', 'assets', 'effects:css', 'effects:canvas2d', 'effects:webgl'] as const
+const capabilities = ['tokens', 'css', 'assets', 'effects:css', 'effects:canvas2d', 'effects:webgl', 'scene'] as const
 const segment = /^[a-z0-9_-][a-z0-9_.-]*$/i
 const device = /^(?:con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\.|$)/i
-const image = /\.(?:png|webp|jpe?g)$/i
+export const isPackageImage = (path: string) => /\.(?:png|webp|jpe?g)$/i.test(path)
 
 function resourcePath(value: string, folder: 'preview' | 'assets'): boolean {
   const parts = value.split('/')
   return parts[0] === folder && parts.length >= 2 && parts.length <= 8
     && parts.every(part => segment.test(part) && !part.endsWith('.') && !device.test(part))
-    && (image.test(value) || (folder === 'assets' && /\.woff2$/i.test(value)))
+    && (isPackageImage(value) || (folder === 'assets' && /\.woff2$/i.test(value)))
 }
 
 const range = z.string().check(z.minLength(1), z.maxLength(64), z.refine(
@@ -46,6 +48,7 @@ const manifestSchema = z.strictObject({
     tokens: z.literal('tokens.json'),
     styles: z.literal('theme.css'),
     effects: z.literal('effects.json'),
+    scene: z.optional(z.literal('scene.json')),
   }),
   preview: z.optional(z.strictObject({ light: z.optional(previewPath), dark: z.optional(previewPath) })),
   capabilities: z.array(z.enum(capabilities)).check(z.maxLength(capabilities.length)),
@@ -74,6 +77,18 @@ export function parseSkinManifest(value: unknown): SkinManifest {
   if ((assets.length > 0 || light || dark) && !manifest.capabilities.includes('assets')) {
     invalid('skin.json', 'capabilities', 'missing-capability', 'Resources require the assets capability')
   }
+  if (Boolean(manifest.entry.scene) !== manifest.capabilities.includes('scene')) {
+    invalid('skin.json', 'capabilities', 'scene-capability-mismatch', 'entry.scene and the scene capability must be declared together')
+  }
+  if (manifest.entry.scene) {
+    if (!manifest.capabilities.includes('assets')) {
+      invalid('skin.json', 'capabilities', 'missing-capability', 'Scene artwork requires the assets capability')
+    }
+    const minimum = minVersion(manifest.engineApi)
+    if (!minimum || !gte(minimum, SCENE_API_VERSION)) {
+      invalid('skin.json', 'engineApi', 'scene-engine-api', `Scenes require Engine API ${SCENE_API_VERSION} or later`)
+    }
+  }
   return manifest
 }
 
@@ -84,7 +99,9 @@ export function checkSkinCompatibility(manifest: SkinManifest, dshVersion: strin
       message: `DSH ${dshVersion ?? '(unknown)'} has no verified adapter`,
     }
   }
-  if (!satisfies(ENGINE_API_VERSION, manifest.engineApi)) {
+  const compatible = satisfies(ENGINE_API_VERSION, manifest.engineApi)
+    || (!manifest.entry.scene && satisfies(LEGACY_API_VERSION, manifest.engineApi))
+  if (!compatible) {
     return {
       file: 'skin.json', path: 'engineApi', code: 'incompatible-engine',
       message: `Engine API ${ENGINE_API_VERSION} does not satisfy ${manifest.engineApi}`,

@@ -17,6 +17,23 @@ const tokens = { schema: 'dsh.tokens/v1' }
 const effects = { schema: 'dsh.effects/v1', effects: [] }
 const files = { manifest, tokens, effects }
 const dshVersion = '0.2.2-rc.1'
+const sceneManifest = {
+  ...manifest, engineApi: '^1.1.0', entry: { ...manifest.entry, scene: 'scene.json' },
+  assets: ['assets/art.webp', 'assets/ui.woff2'], capabilities: [...manifest.capabilities, 'scene'],
+}
+const scene = {
+  schema: 'dsh.scene/v1',
+  layout: {
+    artwork: { asset: 'assets/art.webp', fit: 'contain', anchor: 'right center', focalPoint: [0.86, 0.36], scale: 1, opacity: 0.3 },
+    safeArea: { contentLeftFraction: 0.7 },
+    breakpoints: [{ maxWidth: 760, artworkScale: 0.82, opacity: 0.22 }],
+  },
+  presets: { static: [], light: ['ambient.aurora'], dynamic: ['ambient.aurora'] },
+}
+const sceneFiles = {
+  ...files, manifest: sceneManifest, scene,
+  effects: { ...effects, effects: [{ id: 'ambient.aurora', renderer: 'css', enabled: false, params: {} }] },
+}
 
 function reject(operation, file, path, code) {
   assert.throws(operation, error => error.name === 'SkinValidationError'
@@ -46,7 +63,58 @@ test('the exact Host artifact reads and validates the packaged examples', async 
   for (const example of examples) {
     assert.deepEqual(example.diagnostics, [])
     assert.equal(checkSkinCompatibility(example.manifest, dshVersion), undefined)
+    assert(!Object.hasOwn(example, 'scene'))
   }
+})
+
+test('SceneSpec is opt-in and preserves the compatibility of API 1.0-only packages', () => {
+  for (const engineApi of ['1.0.0', '~1.0.0', '^1.0.0']) {
+    const legacy = parseSkinPackage({ ...files, manifest: { ...manifest, engineApi } })
+    assert.equal(checkSkinCompatibility(legacy.manifest, dshVersion), undefined)
+    assert(!Object.hasOwn(legacy, 'scene'))
+  }
+  const parsed = parseSkinPackage(sceneFiles)
+  assert.deepEqual(parsed.scene, scene)
+  assert.equal(parsed.effects[0].enabled, false)
+  assert.equal(checkSkinCompatibility(parsed.manifest, dshVersion), undefined)
+  for (const engineApi of ['*', '^1.0.0 || ^1.1.0', '>=1.1.0-rc.1']) {
+    reject(() => parseSkinManifest({ ...sceneManifest, engineApi }), 'skin.json', 'engineApi', 'scene-engine-api')
+  }
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.2.0' }), dshVersion).code, 'incompatible-engine')
+  reject(() => parseSkinManifest({ ...sceneManifest, capabilities: manifest.capabilities }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
+  reject(() => parseSkinManifest({ ...sceneManifest, entry: manifest.entry }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
+  reject(() => parseSkinManifest({ ...sceneManifest, entry: { ...manifest.entry, scene: '../scene.json' } }), 'skin.json', 'entry.scene')
+  reject(() => parseSkinPackage({ ...sceneFiles, scene: undefined }), 'scene.json', '')
+  reject(() => parseSkinPackage({ ...files, scene }), 'scene.json', '', 'undeclared-scene')
+})
+
+test('SceneSpec refuses unowned assets, layout outside its bounds, and invalid effect references', () => {
+  const { artwork, breakpoints } = scene.layout
+  const withLayout = fields => ({ ...scene, layout: { ...scene.layout, ...fields } })
+  const withPresets = fields => ({ ...scene, presets: { ...scene.presets, ...fields } })
+  for (const [field, value] of [
+    ['asset', '../art.webp'], ['asset', 'https://example.test/art.webp'], ['asset', 'assets/ui.woff2'],
+    ['asset', 'assets/Art.webp'], ['asset', 'assets/art.svg'], ['fit', 'auto'], ['anchor', 'right 30%'],
+    ['focalPoint', [1.01, 0]], ['scale', 1.51], ['opacity', 0.36],
+  ]) {
+    const path = `layout.artwork.${field}${field === 'focalPoint' ? '.0' : ''}`
+    reject(() => parseSkinPackage({ ...sceneFiles, scene: withLayout({ artwork: { ...artwork, [field]: value } }) }), 'scene.json', path)
+  }
+  for (const [value, path] of [
+    [withLayout({ artwork: { ...artwork, shader: 'shader.glsl' } }), 'layout.artwork'],
+    [withLayout({ safeArea: { contentLeftFraction: 0.95 } }), 'layout.safeArea.contentLeftFraction'],
+    [withLayout({ breakpoints: [...breakpoints, ...breakpoints] }), 'layout.breakpoints.1.maxWidth'],
+    [withLayout({ breakpoints: [{ ...breakpoints[0], maxWidth: 319 }] }), 'layout.breakpoints.0.maxWidth'],
+    [withPresets({ static: ['ambient.aurora'] }), 'presets.static'],
+    [withPresets({ light: [{ id: 'ambient.aurora', enabled: true }] }), 'presets.light.0'],
+    [withPresets({ dynamic: ['particles.dust'] }), 'presets.dynamic.0'],
+    [withPresets({ light: ['ambient.aurora', 'ambient.aurora'] }), 'presets.light.1'],
+  ]) {
+    reject(() => parseSkinPackage({ ...sceneFiles, scene: value }), 'scene.json', path)
+  }
+  const unregistered = { id: 'future.effect', renderer: 'css', enabled: true, params: {} }
+  reject(() => parseSkinPackage({ ...sceneFiles, effects: { ...effects, effects: [unregistered] },
+    scene: withPresets({ light: [], dynamic: [unregistered.id] }) }), 'scene.json', 'presets.dynamic.0', 'undeclared-effect')
 })
 
 test('manifest version, runtime adapter, and data API requirements are independent', () => {

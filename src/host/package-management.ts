@@ -144,8 +144,11 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
       [manifest.entry.effects, files.effects],
       [manifest.entry.styles, Buffer.from(query.has('assets') ? files.css : css.publicCss)],
     ] as [string, Buffer][])
-    let total = files.tokens.length + files.effects.length + files.css.length
-    if (query.has('assets')) {
+    const includeAssets = query.has('assets')
+    const { scene, ...entries } = manifest.entry
+    if (includeAssets && scene && files.scene) output.set(scene, files.scene)
+    let total = files.tokens.length + files.effects.length + files.css.length + (includeAssets ? files.scene?.length ?? 0 : 0)
+    if (includeAssets) {
       for (const path of packageResources(manifest)) {
         let bytes: Buffer
         try { bytes = await readPackageFile(location, path, FILE_LIMIT, signal) } catch (error) {
@@ -162,7 +165,9 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
     const light = manifest.preview?.light
     const dark = manifest.preview?.dark
     output.set('skin.json', jsonBytes({
-      ...manifest, assets: manifest.assets?.filter(path => included.has(path)),
+      ...manifest, entry: includeAssets ? manifest.entry : entries,
+      capabilities: !includeAssets && scene ? manifest.capabilities.filter(capability => capability !== 'scene') : manifest.capabilities,
+      assets: manifest.assets?.filter(path => included.has(path)),
       preview: { light: light && included.has(light) ? light : undefined, dark: dark && included.has(dark) ? dark : undefined },
     }))
     if (query.has('preferences')) {

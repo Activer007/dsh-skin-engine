@@ -76,7 +76,8 @@ export async function extractSkinZip(archive: string, destination: string, signa
         const { path, parts, directory } = entryPath(entry)
         index.add(parts, directory)
         if (directory) continue
-        const limit = parts.at(-1) === 'skin.json' ? MANIFEST_LIMIT : FILE_LIMIT
+        const name = parts.at(-1)
+        const limit = name === 'skin.json' || name === 'scene.json' ? MANIFEST_LIMIT : FILE_LIMIT
         total += entry.uncompressedSize
         if (entry.uncompressedSize > limit || total > EXPANDED_BYTES
           || entry.uncompressedSize > entry.compressedSize * MAX_RATIO) {
