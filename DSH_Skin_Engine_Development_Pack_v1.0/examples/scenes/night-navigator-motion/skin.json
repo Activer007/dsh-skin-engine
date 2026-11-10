@@ -1,0 +1,17 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.night-navigator.motion",
+  "name": "夜航员 · 轻量视差",
+  "nameEn": "Night Navigator Motion",
+  "description": "沿用夜航员的靛蓝舷窗原画，加入轻量指针视差与冷蓝环境光。",
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.4.0",
+  "dshCompatibility": ">=0.2.0",
+  "colorScheme": "dark",
+  "tags": ["dark", "scene", "character", "parallax"],
+  "entry": { "tokens": "tokens.json", "styles": "theme.css", "effects": "effects.json", "scene": "scene.json" },
+  "preview": { "dark": "preview/scene.webp" },
+  "assets": ["assets/navigator.webp"],
+  "capabilities": ["tokens", "css", "assets", "scene", "effects:css"]
+}

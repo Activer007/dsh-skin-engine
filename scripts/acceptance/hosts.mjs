@@ -131,10 +131,10 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     const cdp = await port()
     const main = await port()
     const flags = [`--user-data-dir=${userData}`, `--remote-debugging-port=${cdp}`, `--inspect=${loopback}:${main}`]
-    if (['artwork', 'scenes', 'tokens', 'dual-appearance'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
+    if (['artwork', 'scenes', 'tokens', 'dual-appearance', 'scene-motion'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
     if (lifecycle || options['desktop-disable-occlusion']) flags.push('--disable-features=CalculateNativeWinOcclusion')
     const app = launch(executable, flags, env, true)
-    const keepRendering = ['dual-appearance', 'effects-runtime'].includes(options.suite)
+    const keepRendering = ['dual-appearance', 'effects-runtime', 'scene-motion'].includes(options.suite)
     const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size, keepRendering }) {
       if (process.pid !== pid || process.env.DSH_HOME !== expectedHome) throw Error('Unexpected Desktop process')
       const load = process.mainModule?.require?.bind(process.mainModule)
@@ -258,7 +258,8 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       } else {
         browser = await chromium.launch({
           executablePath: resolve(options.chrome),
-          headless: ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance', 'artwork', 'scenes', 'scene-previews', 'tokens', 'dual-appearance'].includes(options.suite),
+          headless: ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance', 'artwork', 'scenes', 'scene-previews',
+            'tokens', 'dual-appearance', 'scene-motion'].includes(options.suite),
           ...(signal ? { handleSIGINT: false, handleSIGTERM: false } : {}),
           ignoreDefaultArgs: ['--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'],
         })

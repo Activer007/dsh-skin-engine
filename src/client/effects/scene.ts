@@ -101,7 +101,7 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
   const fallback = refraction ? layer('refraction-fallback', scene) : undefined
   fallback?.style.setProperty('--dsh-refraction-accent', accent)
 
-  const art = artwork && mountArtwork(layer('artwork', scene), artwork, reconcile)
+  const art = artwork && mountArtwork(layer('artwork', scene), artwork, reconcile, scheduler)
 
   const [auroraNear, auroraFar] = aurora?.params.palette === 'aurora' ? ['#37e2a7', '#7867ff'] : ['#28cbe2', '#7361ee']
   const auroraLayers = aurora ? [layer('aurora', scene), layer('aurora', scene)] : []
@@ -204,6 +204,7 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     updateCssPlayback()
     const replacedInput = bindInput(p1Motion && canvas && (stars || ripples) ? conversationSurface : undefined,
       p1Motion && holographic?.params.pointerInfluence ? holographicSurface : undefined)
+    art?.configureMotion?.(p1Motion && preset !== 'static' ? conversationSurface : undefined, preset === 'dynamic')
     syncCanvas()
     syncRefraction()
     if (wasVisible && visible && (wasMotion !== p1Motion || replacedInput)) canvas?.redraw()

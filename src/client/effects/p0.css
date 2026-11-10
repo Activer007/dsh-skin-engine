@@ -47,6 +47,22 @@
   max-height: none;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  [data-dsh-skin-scene-artwork][data-dsh-skin-artwork-parallax] > img {
+    transform: translate(var(--dsh-art-shift-x, 0px), var(--dsh-art-shift-y, 0px));
+    transition: transform var(--dsh-art-settle) ease-out;
+  }
+
+  [data-dsh-skin-scene-artwork][data-dsh-skin-artwork-light]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 65% 53% at 76% 43%, var(--dsh-art-light-color), transparent);
+    opacity: var(--dsh-art-light-opacity);
+  }
+}
+
 [data-dsh-skin-effect-layer="refraction"],
 [data-dsh-skin-effect-layer="refraction-fallback"] {
   position: absolute;

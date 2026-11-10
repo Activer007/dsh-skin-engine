@@ -19,6 +19,7 @@ const { outputFiles: [module] } = await build({
       export { effectQuality } from './src/client/effects/quality.ts';
       export { applyPreferences } from './src/shared/preferences.ts';
       export { layoutArtwork, mountArtwork } from './src/client/scene/artwork.ts';
+      export { limitArtworkTravel, mountArtworkMotion } from './src/client/scene/artwork-motion.ts';
       export { effectiveScenePreset, sceneEffects } from './src/client/scene/presets.ts';
     `,
     resolveDir: root,
@@ -26,7 +27,8 @@ const { outputFiles: [module] } = await build({
   write: false, bundle: true, format: 'esm',
 })
 const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createStarfield, createRipples, createHolographic, mountRefraction,
-  createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork, effectiveScenePreset, sceneEffects } = await import(
+  createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork, limitArtworkTravel, mountArtworkMotion,
+  effectiveScenePreset, sceneEffects } = await import(
   `data:text/javascript;base64,${Buffer.from(module.contents).toString('base64')}`
 )
 
@@ -170,6 +172,71 @@ function frameClock() {
   }
   return { clock, step, pending: () => frames.size + timers.size }
 }
+
+test('artwork motion respects clip edges and coalesces only eligible input on the shared clock', () => {
+  assert.equal(limitArtworkTravel(8, 250, -500, 760, 0.86), 8)
+  assert.equal(limitArtworkTravel(8, 250, -10, 262, 0.86), 2)
+  assert.equal(limitArtworkTravel(8, 250, 0, 260, 0.86), 0)
+  assert.equal(limitArtworkTravel(8, 250, -40, 350, 0.14), 0)
+
+  const { clock, step, pending } = frameClock()
+  const scheduler = createFrameScheduler(clock)
+  const styles = new Map()
+  const attributes = new Set()
+  const handlers = new Map()
+  class Element { closest() { return null } }
+  let selected = 'None'
+  const document = { defaultView: { Element, innerWidth: 1200, innerHeight: 800 }, getSelection: () => ({ type: selected }) }
+  const surface = {
+    ownerDocument: document,
+    addEventListener(name, callback, { signal, passive }) {
+      assert(passive)
+      handlers.set(name, callback)
+      signal.addEventListener('abort', () => handlers.delete(name), { once: true })
+    },
+  }
+  const node = {
+    style: { setProperty: (key, value) => styles.set(key, value), removeProperty: key => styles.delete(key) },
+    setAttribute: key => attributes.add(key), removeAttribute: key => attributes.delete(key),
+  }
+  const configure = mountArtworkMotion(node, {
+    parallax: { maxX: 8, maxY: 4, settleMs: 260 }, ambientLight: { color: '#77aaff', opacity: 0.22 },
+  }, scheduler)
+  configure(surface)
+  assert(attributes.has('data-dsh-skin-artwork-light'))
+  assert.equal(handlers.size + pending(), 0)
+  configure(surface, { x: 8, y: 4 })
+  const target = new Element()
+  const event = { target, clientX: 1600, clientY: -100, isPrimary: true, pointerType: 'mouse', isTrusted: true }
+  const point = override => handlers.get('pointermove')({ ...event, ...override })
+  point({ isTrusted: false })
+  point({ pointerType: 'touch' })
+  point({ target: { closest: () => true } })
+  point({ clientX: Infinity })
+  selected = 'Range'
+  point({})
+  selected = 'None'
+  target.closest = () => target
+  point({})
+  target.closest = () => null
+  assert.equal(pending(), 0)
+  const particleTask = scheduler.add(() => {})
+  point({ clientX: 0 })
+  point({})
+  assert.equal(pending(), 1)
+  step(17)
+  assert.equal(styles.get('--dsh-art-shift-x'), '8.00px')
+  assert.equal(styles.get('--dsh-art-shift-y'), '-4.00px')
+  particleTask()
+  assert.equal(pending(), 0)
+  handlers.get('pointerleave')()
+  step(34)
+  assert.equal(styles.get('--dsh-art-shift-x'), '0.00px')
+  point({})
+  configure()
+  configure()
+  assert.equal(handlers.size + styles.size + attributes.size + pending(), 0)
+})
 
 test('shared clock draws at the Balanced cadence and stops while hidden or idle', () => {
   const { clock, step, pending } = frameClock()

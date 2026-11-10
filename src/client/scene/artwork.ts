@@ -1,11 +1,14 @@
 import type { SceneSpec } from '../../core/scene.js'
 import type { PreparedArtwork } from '../../shared/skins.js'
+import type { createFrameScheduler } from '../effects/frame-scheduler.js'
+import { limitArtworkTravel, mountArtworkMotion } from './artwork-motion.js'
 
 type Bounds = Pick<DOMRectReadOnly, 'left' | 'top' | 'right' | 'bottom'>
 type Size = { width: number; height: number }
 const clamp = (value: number, low: number, high: number) => Math.max(low, Math.min(value, high))
 const alignment = { left: 0.25, top: 0.25, center: 0.5, right: 0.75, bottom: 0.75 } as const
 const CONTENT_OPACITY = 0.16
+const MOTION_MIN_WIDTH = 1000
 
 export function layoutArtwork(layout: SceneSpec['layout'], viewport: Size, content: Bounds, composer: Bounds, image: Size) {
   const { artwork, breakpoints, safeArea } = layout
@@ -39,7 +42,14 @@ export function layoutArtwork(layout: SceneSpec['layout'], viewport: Size, conte
   }
 }
 
-export function mountArtwork(node: HTMLElement, artwork: PreparedArtwork, reconcile: () => void) {
+interface ArtworkMount {
+  update(visible: boolean, content?: Element, composer?: Element): boolean
+  configureMotion?(surface?: Element, parallax?: boolean): void
+  dispose(): void
+}
+
+export function mountArtwork(node: HTMLElement, artwork: PreparedArtwork, reconcile: () => void,
+  scheduler?: ReturnType<typeof createFrameScheduler>): ArtworkMount {
   const { image } = artwork
   node.append(image)
   if (artwork.kind === 'legacy') {
@@ -50,6 +60,9 @@ export function mountArtwork(node: HTMLElement, artwork: PreparedArtwork, reconc
 
   const view = node.ownerDocument.defaultView!
   const { layout } = artwork
+  const { motion } = layout.artwork
+  const configure = motion && scheduler && mountArtworkMotion(node, motion, scheduler)
+  let position: ReturnType<typeof layoutArtwork> | undefined
   node.setAttribute('data-dsh-skin-scene-artwork', '')
   node.toggleAttribute('data-dsh-skin-artwork-fade', !!layout.safeArea)
   const observer = new view.ResizeObserver(reconcile)
@@ -72,9 +85,10 @@ export function mountArtwork(node: HTMLElement, artwork: PreparedArtwork, reconc
     update(visible: boolean, content?: Element, composer?: Element) {
       watch(visible ? content : undefined, visible ? composer : undefined)
       const bounds = composer?.getBoundingClientRect()
-      const position = visible && content && bounds && bounds.width > 0 && bounds.height > 0 && layoutArtwork(layout,
-        { width: view.innerWidth, height: view.innerHeight }, content.getBoundingClientRect(), bounds,
-        { width: image.naturalWidth, height: image.naturalHeight })
+      position = visible && content && bounds && bounds.width > 0 && bounds.height > 0
+        ? layoutArtwork(layout, { width: view.innerWidth, height: view.innerHeight }, content.getBoundingClientRect(), bounds,
+          { width: image.naturalWidth, height: image.naturalHeight })
+        : undefined
       node.hidden = !position
       if (!position) return false
       const { left, top, width, height, opacity, imageX, imageY, imageWidth, imageHeight, columnStart, columnEnd, columnAlpha } = position
@@ -85,7 +99,21 @@ export function mountArtwork(node: HTMLElement, artwork: PreparedArtwork, reconc
       node.style.setProperty('--dsh-art-content-alpha', String(columnAlpha))
       return true
     },
+    configureMotion(surface, parallax) {
+      if (!configure) return
+      if (!surface || !position || view.innerWidth < MOTION_MIN_WIDTH || position.width < 128 || position.height < 128) {
+        configure()
+        return
+      }
+      const limits = parallax && motion?.parallax
+      const [focalX, focalY] = layout.artwork.focalPoint
+      configure(surface, limits ? {
+        x: limitArtworkTravel(limits.maxX, position.width, position.imageX, position.imageWidth, focalX),
+        y: limitArtworkTravel(limits.maxY, position.height, position.imageY, position.imageHeight, focalY),
+      } : undefined)
+    },
     dispose() {
+      configure?.()
       observer.disconnect()
       image.remove()
     },

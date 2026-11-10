@@ -1,0 +1,23 @@
+{
+  "schema": "dsh.scene/v1",
+  "layout": {
+    "artwork": {
+      "asset": "assets/navigator.webp",
+      "fit": "contain",
+      "anchor": "right center",
+      "focalPoint": [0.86, 0.38],
+      "scale": 0.95,
+      "opacity": 0.35,
+      "motion": {
+        "parallax": { "maxX": 8, "maxY": 4, "settleMs": 260 },
+        "ambientLight": { "color": "#77aaff", "opacity": 0.22 }
+      }
+    },
+    "safeArea": { "contentLeftFraction": 0.65 },
+    "breakpoints": [
+      { "maxWidth": 520, "artworkScale": 0.74, "opacity": 0.23 },
+      { "maxWidth": 760, "artworkScale": 0.84, "opacity": 0.28 }
+    ]
+  },
+  "presets": { "static": [], "light": [], "dynamic": [] }
+}

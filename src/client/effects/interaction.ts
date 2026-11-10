@@ -4,6 +4,24 @@ import type { createStarfield } from './starfield.js'
 
 const INTERACTIVE = 'a, button, input, textarea, select, label, summary, [contenteditable]:not([contenteditable="false"]),'
   + ' [role="button"], [role="link"], [role="dialog"], [role="menu"], [role="menuitem"], [role="listbox"], [role="textbox"]'
+const ARTWORK_INPUT = INTERACTIVE + ', [data-composer-card]'
+
+export function bindArtworkPointer(surface: Element, point: (x: number, y: number) => void, center: () => void) {
+  const document = surface.ownerDocument
+  const view = document.defaultView!
+  const abort = new AbortController()
+  const options = { passive: true, signal: abort.signal }
+  surface.addEventListener('pointermove', event => {
+    const { clientX, clientY, isPrimary, pointerType, isTrusted, target } = event as PointerEvent
+    if (!isTrusted || !isPrimary || (pointerType !== 'mouse' && pointerType !== 'pen')
+      || !(target instanceof view.Element) || target.closest(ARTWORK_INPUT) || document.getSelection()?.type === 'Range'
+      || !Number.isFinite(clientX) || !Number.isFinite(clientY)) return
+    point(clientX * 2 / Math.max(1, view.innerWidth) - 1, clientY * 2 / Math.max(1, view.innerHeight) - 1)
+  }, options)
+  surface.addEventListener('pointerleave', center, options)
+  surface.addEventListener('pointercancel', center, options)
+  return () => abort.abort()
+}
 
 interface InputEffects {
   stars?: ReturnType<typeof createStarfield>

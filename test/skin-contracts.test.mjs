@@ -80,10 +80,10 @@ test('SceneSpec is opt-in and preserves the compatibility of API 1.0-only packag
   for (const engineApi of ['*', '^1.0.0 || ^1.1.0', '>=1.1.0-rc.1']) {
     reject(() => parseSkinManifest({ ...sceneManifest, engineApi }), 'skin.json', 'engineApi', 'scene-engine-api')
   }
-  for (const engineApi of ['1.1.0', '1.2.0', '^1.2.0']) {
+  for (const engineApi of ['1.1.0', '1.2.0', '^1.2.0', '1.3.0']) {
     assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi }), dshVersion), undefined)
   }
-  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.4.0' }), dshVersion).code, 'incompatible-engine')
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.5.0' }), dshVersion).code, 'incompatible-engine')
   reject(() => parseSkinManifest({ ...sceneManifest, capabilities: manifest.capabilities }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: manifest.entry }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: { ...manifest.entry, scene: '../scene.json' } }), 'skin.json', 'entry.scene')
@@ -119,6 +119,31 @@ test('dual appearance keeps the v1 base, gates variants on API 1.3, and validate
     reject(() => parseSkinPackage({ ...dual, scene: { ...scene, layout: { ...scene.layout, artwork } } }),
       'scene.json', 'layout.artwork.variants.light', 'invalid-artwork-asset')
   }
+})
+
+test('artwork motion requires an audited safe area, the CSS capability, and bounded package data', () => {
+  const motion = { parallax: { maxX: 8, maxY: 4, settleMs: 180 }, ambientLight: { color: '#77aaff', opacity: 0.24 } }
+  const layout = { ...scene.layout, artwork: { ...scene.layout.artwork, motion } }
+  const manifest = { ...sceneManifest, engineApi: '^1.4.0' }
+  const files = { ...sceneFiles, manifest, scene: { ...scene, layout } }
+  assert.deepEqual(parseSkinPackage(files).scene.layout.artwork.motion, motion)
+  reject(() => parseSkinPackage({ ...files, manifest: sceneManifest }), 'skin.json', 'engineApi', 'artwork-motion-engine-api')
+  reject(() => parseSkinPackage({ ...files, manifest: { ...manifest, capabilities: manifest.capabilities.filter(x => x !== 'effects:css') },
+    effects: { schema: 'dsh.effects/v1', effects: [] }, scene: { ...files.scene, presets: { static: [], light: [], dynamic: [] } } }),
+  'skin.json', 'capabilities', 'missing-capability')
+  reject(() => parseSkinPackage({ ...files, scene: { ...scene, layout: { ...layout, safeArea: undefined } } }),
+    'scene.json', 'layout.safeArea', 'missing-artwork-safe-area')
+  const parseMotion = value => parseSkinPackage({ ...files, scene: { ...scene, layout: { ...layout, artwork: { ...layout.artwork, motion: value } } } })
+  for (const [key, value] of [['maxX', 9], ['maxY', -1], ['settleMs', 179], ['settleMs', 501]]) {
+    reject(() => parseMotion({ ...motion, parallax: { ...motion.parallax, [key]: value } }),
+      'scene.json', `layout.artwork.motion.parallax.${key}`)
+  }
+  reject(() => parseMotion({ ...motion, ambientLight: { color: 'url(https://example.test/a)', opacity: 0.1 } }),
+    'scene.json', 'layout.artwork.motion.ambientLight.color')
+  reject(() => parseMotion({ ...motion, ambientLight: { ...motion.ambientLight, opacity: 0.25 } }),
+    'scene.json', 'layout.artwork.motion.ambientLight.opacity')
+  reject(() => parseMotion({ ...motion, parallax: { ...motion.parallax, target: 'body' } }),
+    'scene.json', 'layout.artwork.motion.parallax')
 })
 
 test('SceneSpec refuses unowned assets, layout outside its bounds, and invalid effect references', () => {

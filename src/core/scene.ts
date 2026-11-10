@@ -1,6 +1,8 @@
+import { gte, minVersion } from 'semver'
 import * as z from 'zod/mini'
 import type { SkinEffect } from './effects.js'
-import { isPackageImage, type SkinManifest } from './manifest.js'
+import { ARTWORK_MOTION_API_VERSION, isPackageImage, type SkinManifest } from './manifest.js'
+import { hexColor } from './tokens.js'
 import { invalid, parseFile } from './validation.js'
 
 const file = 'scene.json'
@@ -25,6 +27,14 @@ const sceneSchema = z.strictObject({
       focalPoint: z.tuple([unit, unit]),
       scale,
       opacity,
+      motion: z.optional(z.strictObject({
+        parallax: z.optional(z.strictObject({
+          maxX: bounded(0, 8),
+          maxY: bounded(0, 4),
+          settleMs: z.int().check(z.minimum(180), z.maximum(500)),
+        })),
+        ambientLight: z.optional(z.strictObject({ color: hexColor, opacity: bounded(0, 0.24) })),
+      })),
     }),
     safeArea: z.optional(z.strictObject({ contentLeftFraction: bounded(0.5, 0.9) })),
     breakpoints: z.optional(z.array(z.strictObject({
@@ -42,7 +52,19 @@ export type SceneSpec = z.output<typeof sceneSchema>
 
 export function parseScene(value: unknown, manifest: SkinManifest, effects: readonly SkinEffect[]): SceneSpec {
   const scene = parseFile(sceneSchema, value, file)
-  const { asset, variants } = scene.layout.artwork
+  const { asset, variants, motion } = scene.layout.artwork
+  if (motion) {
+    const minimum = minVersion(manifest.engineApi)
+    if (!minimum || !gte(minimum, ARTWORK_MOTION_API_VERSION)) {
+      invalid('skin.json', 'engineApi', 'artwork-motion-engine-api', `Artwork motion requires Engine API ${ARTWORK_MOTION_API_VERSION} or later`)
+    }
+    if (!manifest.capabilities.includes('effects:css')) {
+      invalid('skin.json', 'capabilities', 'missing-capability', 'Artwork motion requires the effects:css capability')
+    }
+    if (!scene.layout.safeArea) {
+      invalid(file, 'layout.safeArea', 'missing-artwork-safe-area', 'Artwork motion requires a reserved conversation area')
+    }
+  }
   const references = { asset, ...Object.fromEntries(Object.entries(variants ?? {}).map(([scheme, path]) => [`variants.${scheme}`, path])) }
   for (const [field, path] of Object.entries(references)) {
     if (!manifest.assets?.includes(path) || !isPackageImage(path)) {
