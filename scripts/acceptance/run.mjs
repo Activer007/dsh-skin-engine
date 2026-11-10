@@ -8,6 +8,7 @@ import { settings, switchSkins } from './browser.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
 import { checkDualAppearance } from './dual-appearance.mjs'
+import { checkEffectsRuntime } from './effects-runtime.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
 import { checkPackages, checkSample } from './packages.mjs'
 import { performanceComparison, visibilityCycle } from './rendering.mjs'
@@ -45,13 +46,14 @@ const packages = options.suite === 'packages'
 const packageUpdate = options.suite === 'package-update'
 const appearance = options.suite === 'appearance'
 const dual = options.suite === 'dual-appearance'
+const effects = options.suite === 'effects-runtime'
 const artwork = options.suite === 'artwork'
 const tokens = options.suite === 'tokens'
 const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || packageUpdate || appearance || dual || artwork || scenes || sample || tokens || options.suite === 'surfaces'
+assert(upgrade || packages || packageUpdate || appearance || dual || artwork || scenes || sample || tokens || effects || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!(packages || scenes || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
@@ -75,7 +77,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const interruption = appearance || dual || artwork || scenes || tokens ? new AbortController() : undefined
+const interruption = appearance || dual || artwork || scenes || tokens || effects ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
 const includes = name => suites.includes(name)
@@ -94,7 +96,7 @@ if (interruption) {
 async function enter(open, lifecycle, appearance) {
   session = await open(lifecycle)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
-  if ((tokens || dual) && desktop) await session.show()
+  if ((tokens || dual || effects) && desktop) await session.show()
   return settings(session.page, desktop, appearance)
 }
 
@@ -127,6 +129,13 @@ try {
     await checkDualAppearance(openInProfile, directory, run.dualAppearance, desktop)
     interruption.signal.throwIfAborted()
     console.log('Verified dual appearance, decoded artwork, saved preferences, restart, and Default')
+  }
+  if (effects) {
+    const effectsUi = await enter(open, true)
+    run.effects = {}
+    await checkEffectsRuntime(session, effectsUi, seconds, run.effects)
+    interruption.signal.throwIfAborted()
+    console.log('Verified the eight-effect scene, native visibility, GPU fallback, and Default')
   }
   if (scenes) {
     const scenesUi = await enter(open, false)
@@ -222,8 +231,10 @@ try {
   process.exitCode = 1
 } finally {
   try {
-    await session?.close()
-    if ((artwork || scenes || tokens || dual) && session) run.browserDisconnected = !session.browser.isConnected()
+    try {
+      if (effects) await save()
+    } finally { await session?.close() }
+    if ((artwork || scenes || tokens || dual || effects) && session) run.browserDisconnected = !session.browser.isConnected()
   } finally {
     if (interruption) {
       process.off('SIGINT', interrupt)

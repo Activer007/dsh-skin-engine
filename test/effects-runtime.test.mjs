@@ -14,6 +14,7 @@ const { outputFiles: [module] } = await build({
       export { createStarfield } from './src/client/effects/starfield.ts';
       export { createRipples } from './src/client/effects/ripple.ts';
       export { createHolographic } from './src/client/effects/holographic.ts';
+      export { mountRefraction } from './src/client/effects/refraction.ts';
       export { createAutoQuality } from './src/client/effects/auto-quality.ts';
       export { effectQuality } from './src/client/effects/quality.ts';
       export { applyPreferences } from './src/shared/preferences.ts';
@@ -24,7 +25,7 @@ const { outputFiles: [module] } = await build({
   },
   write: false, bundle: true, format: 'esm',
 })
-const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createStarfield, createRipples, createHolographic,
+const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createStarfield, createRipples, createHolographic, mountRefraction,
   createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork, effectiveScenePreset, sceneEffects } = await import(
   `data:text/javascript;base64,${Buffer.from(module.contents).toString('base64')}`
 )
@@ -194,8 +195,79 @@ test('shared clock draws at the Balanced cadence and stops while hidden or idle'
   step(301200)
   assert.equal(first.at(-1), 0.05)
   removeFirst()
+  removeFirst()
   assert.equal(pending(), 1)
   removeSecond()
+  removeSecond()
+  assert.equal(pending(), 0)
+})
+
+test('refraction shares the clock, releases a lost context, restores it, and tolerates unavailable WebGL', () => {
+  const { clock, step, pending } = frameClock()
+  const scheduler = createFrameScheduler(clock)
+  const draws = []
+  const rendering = []
+  const deleted = []
+  let supported = false
+  let lost = false
+  let disconnected = 0
+  let detached = 0
+  let releasedContext = 0
+  const gl = {
+    NO_ERROR: 0, getError: () => 0, isContextLost: () => lost,
+    createProgram: () => 'program', createBuffer: () => 'buffer', createTexture: () => 'texture', createShader: () => 'shader',
+    deleteProgram: value => deleted.push(value), deleteBuffer: value => deleted.push(value),
+    deleteTexture: value => deleted.push(value), deleteShader() {},
+    shaderSource() {}, compileShader() {}, getShaderParameter: () => true, attachShader() {}, linkProgram() {},
+    getProgramParameter: () => true, useProgram() {}, bindBuffer() {}, bufferData() {}, getAttribLocation: () => 0,
+    enableVertexAttribArray() {}, vertexAttribPointer() {}, activeTexture() {}, bindTexture() {}, texParameteri() {}, texImage2D() {},
+    getUniformLocation: name => name, uniform1i() {}, uniform1f() {}, uniform3f() {}, viewport() {},
+    drawArrays() { draws.push(clock.performance.now()) },
+    getExtension: () => ({ loseContext() { releasedContext++ } }),
+  }
+  const canvas = Object.assign(new EventTarget(), {
+    width: 300, height: 150, setAttribute() {}, getContext: () => supported ? gl : null, remove() { detached++ },
+  })
+  const view = { ResizeObserver: class { observe() {} disconnect() { disconnected++ } } }
+  const scene = { clientWidth: 1920, clientHeight: 1080, prepend() {}, ownerDocument: { createElement: () => canvas, defaultView: view } }
+  const params = { distortion: 0.52, dispersion: 0.18, flowSpeed: 0.28, refractionScale: 0.65, quality: 'balanced' }
+  const mount = () => mountRefraction(scene, scheduler, params, '#6dc7ff', 'high', active => rendering.push(active))
+  assert.equal(mount(), undefined)
+  assert.equal(pending(), 0)
+  assert.deepEqual(rendering, [])
+
+  supported = true
+  const particles = scheduler.add(() => {})
+  const effect = mount()
+  assert(effect)
+  assert(canvas.width * canvas.height <= 524288)
+  assert.equal(pending(), 1)
+  step(17)
+  assert(draws.length >= 2)
+
+  lost = true
+  const event = new Event('webglcontextlost', { cancelable: true })
+  canvas.dispatchEvent(event)
+  assert(event.defaultPrevented)
+  assert.deepEqual([canvas.width, canvas.height], [0, 0])
+  assert.deepEqual(rendering, [true, false])
+  assert.equal(pending(), 1)
+  const before = draws.length
+  step(67)
+  assert.equal(draws.length, before)
+
+  lost = false
+  canvas.dispatchEvent(new Event('webglcontextrestored'))
+  assert.deepEqual(rendering, [true, false, true])
+  assert.equal(pending(), 1)
+  assert(draws.length > before)
+  effect.dispose()
+  effect.dispose()
+  canvas.dispatchEvent(new Event('webglcontextrestored'))
+  assert.deepEqual(rendering, [true, false, true, false])
+  assert.deepEqual(deleted.sort(), ['buffer', 'program', 'texture'])
+  assert.deepEqual([disconnected, detached, releasedContext], [1, 1, 1])
+  particles()
   assert.equal(pending(), 0)
 })
 

@@ -43,13 +43,13 @@ async function until(check, label) {
   throw Error(`Timed out waiting for ${label}`)
 }
 
-function launch(file, args, env, visible = false) {
+function launch(file, args, env, visible = false, killTree = false) {
   const child = spawn(file, args, { env, windowsHide: !visible, stdio: ['ignore', 'pipe', 'pipe'] })
   let output = ''
   const append = chunk => { output = (output + chunk).slice(-32_768) }
   child.stdout.on('data', append)
   child.stderr.on('data', append)
-  const done = once(child, 'close')
+  const done = once(child, 'exit')
   // Startup failures also need a handler before the caller awaits the exit.
   void done.catch(() => {})
   return {
@@ -60,8 +60,18 @@ function launch(file, args, env, visible = false) {
       return output
     },
     async stop() {
-      if (child.exitCode === null && child.signalCode === null) child.kill()
+      if (child.exitCode === null && child.signalCode === null) {
+        if (killTree && process.platform === 'win32' && child.pid !== undefined) {
+          try {
+            execFileSync('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true, timeout: 5000 })
+          } catch { /* The native process may already have exited. */ }
+        }
+        child.kill()
+      }
       await done.catch(() => {})
+      // A terminated native parent may leave children with inherited pipes.
+      child.stdout.destroy()
+      child.stderr.destroy()
     },
   }
 }
@@ -124,7 +134,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     if (['artwork', 'scenes', 'tokens', 'dual-appearance'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
     if (lifecycle || options['desktop-disable-occlusion']) flags.push('--disable-features=CalculateNativeWinOcclusion')
     const app = launch(executable, flags, env, true)
-    const keepRendering = options.suite === 'dual-appearance'
+    const keepRendering = ['dual-appearance', 'effects-runtime'].includes(options.suite)
     const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size, keepRendering }) {
       if (process.pid !== pid || process.env.DSH_HOME !== expectedHome) throw Error('Unexpected Desktop process')
       const load = process.mainModule?.require?.bind(process.mainModule)
@@ -134,8 +144,11 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       if (action === 'exit') { setTimeout(() => app.quit(), 0); return true }
       const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().startsWith('dsh-app://app/'))
       if (!window) return false
-      if (action === 'hide') { window.minimize(); window.hide() }
-      else {
+      if (action === 'hide') {
+        if (keepRendering) window.webContents.setBackgroundThrottling(true)
+        window.minimize()
+        window.hide()
+      } else {
         if (keepRendering) window.webContents.setBackgroundThrottling(false)
         window.restore()
         const area = screen.getPrimaryDisplay().workArea
@@ -203,7 +216,11 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
         assert(page, 'Missing Desktop renderer')
         return { browser, page, logs: app.logs, hide: () => app.invoke('hide'), show: () => app.invoke('show'),
           resize: (width, height) => app.invoke('show', { width, height }),
-          async close() { try { await browser.close() } finally { await app.close() } } }
+          async close() {
+            try { await app.close() } finally {
+              if (browser.isConnected()) await Promise.race([browser.close(), delay(2000)])
+            }
+          } }
       } catch (error) { await app.close(); throw error }
     }
     const signal = options.signal
@@ -229,7 +246,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
         nativeChrome = launch(resolve(options.chrome), [
           `--user-data-dir=${join(directory, 'chrome-user-data')}`, `--remote-debugging-port=${cdp}`,
           '--no-first-run', '--no-default-browser-check', '--disable-features=CalculateNativeWinOcclusion', 'about:blank',
-        ], env, true)
+        ], env, true, true)
         const origin = `http://${loopback}:${cdp}`
         await until(async () => {
           nativeChrome.output()
@@ -266,7 +283,16 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     }
     function close() {
       return closing ??= (async () => {
-        try { await browser?.close() } finally {
+        try {
+          if (nativeChrome && browser?.isConnected()) {
+            // The attached browser is a separate native process. Give it time
+            // to close gracefully before stopping the owned process below.
+            await Promise.race([
+              browser.newBrowserCDPSession().then(cdp => cdp.send('Browser.close')).catch(() => {}),
+              delay(2000),
+            ])
+          } else await browser?.close()
+        } finally {
           await Promise.all([nativeChrome?.stop(), app.stop()])
           attempt.closed = {
             code: app.child.exitCode, signal: app.child.signalCode, browserDisconnected: browser ? !browser.isConnected() : null,

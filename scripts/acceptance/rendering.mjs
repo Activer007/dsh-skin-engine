@@ -140,12 +140,17 @@ export async function performanceComparison(ui, evidence, foreground) {
     .filter(key => rounds.every(round => round.p0MinusDefaultMs[key] > 16.7))
 }
 
-export async function visibilityCycle(session, ui, seconds, evidence) {
+export async function visibilityCycle(session, ui, seconds, evidence, {
+  prepare = () => showMode(ui, 'p0', session.show), minimizeWindow = false,
+} = {}) {
   const { page } = session
-  await showMode(ui, 'p0', session.show)
+  const sampleInRenderer = minimizeWindow && !session.hide
+  const hiddenNotice = sampleInRenderer ? Promise.withResolvers() : undefined
+  if (hiddenNotice) await page.exposeFunction('__skinAcceptanceDidHide', hiddenNotice.resolve)
+  await prepare()
   await page.locator('[data-composer-input]:visible').first().focus()
   await ui.cdp.send('Emulation.setFocusEmulationEnabled', { enabled: false })
-  await page.evaluate(() => {
+  await page.evaluate(sampleInRenderer => {
     const selector = 'canvas[data-dsh-skin-effect-layer="canvas"]'
     const originalCanvas = document.querySelector(selector)
     const originalScene = document.querySelector('[data-dsh-skin-effect-scene]')
@@ -159,6 +164,8 @@ export async function visibilityCycle(session, ui, seconds, evidence) {
     let position
     let lastHiddenPosition
     let firstResumedPosition
+    let hiddenSample
+    let beforeResume
     prototype.clearRect = function (...args) {
       if (this.canvas.matches(selector)) { draws++; first = true }
       return clear.apply(this, args)
@@ -171,22 +178,34 @@ export async function visibilityCycle(session, ui, seconds, evidence) {
       }
       return arc.call(this, x, y, radius, ...args)
     }
+    if (sampleInRenderer) document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && hiddenSample) {
+        beforeResume = { elapsedMs: performance.now() - hiddenSample.at, draws }
+      }
+    }, { capture: true, signal: events.signal })
     document.addEventListener('visibilitychange', () => {
       changes.push(document.visibilityState)
-      if (document.visibilityState === 'hidden') lastHiddenPosition = position
+      if (document.visibilityState === 'hidden') {
+        lastHiddenPosition = position
+        if (sampleInRenderer) {
+          hiddenSample = { ...window.__skinAcceptanceCycle.read(), at: performance.now() }
+          void window.__skinAcceptanceDidHide()
+        }
+      }
     }, { signal: events.signal })
     window.__skinAcceptanceCycle = {
       read() {
         const canvas = document.querySelector(selector)
         const scene = document.querySelector('[data-dsh-skin-effect-scene]')
         return {
-          visibility: document.visibilityState, changes, draws, position, lastHiddenPosition, firstResumedPosition,
+          visibility: document.visibilityState, changes: [...changes], draws, position, lastHiddenPosition, firstResumedPosition,
           viewport: [innerWidth, innerHeight], canvas: canvas ? [canvas.width, canvas.height] : null,
           sameCanvas: canvas === originalCanvas, sameScene: scene === originalScene,
           aurora: document.querySelectorAll('[data-dsh-skin-aurora-image]').length,
           animations: scene?.getAnimations({ subtree: true }).map(animation => animation.playState),
         }
       },
+      nativeSamples: () => ({ hiddenSample, beforeResume }),
       clean() {
         prototype.clearRect = clear
         prototype.arc = arc
@@ -194,7 +213,7 @@ export async function visibilityCycle(session, ui, seconds, evidence) {
         delete window.__skinAcceptanceCycle
       },
     }
-  })
+  }, sampleInRenderer)
   const read = () => page.evaluate(() => window.__skinAcceptanceCycle.read())
   evidence.source = session.hide ? 'Electron native minimize and hide' : 'Chrome native tab switch'
   evidence.hidden = []
@@ -209,44 +228,61 @@ export async function visibilityCycle(session, ui, seconds, evidence) {
       await page.keyboard.press('Shift')
       const browserCdp = await session.browser.newBrowserCDPSession()
       const { targetInfo: original } = await ui.cdp.send('Target.getTargetInfo')
-      foreground = await page.context().newPage()
-      const control = await page.context().newCDPSession(foreground)
-      await control.send('Emulation.setFocusEmulationEnabled', { enabled: false })
-      await foreground.goto('about:blank')
-      const { targetInfo: sibling } = await control.send('Target.getTargetInfo')
       const { windowId } = await browserCdp.send('Browser.getWindowForTarget', { targetId: original.targetId })
-      const { windowId: siblingWindow } = await browserCdp.send('Browser.getWindowForTarget', { targetId: sibling.targetId })
-      evidence.sameBrowserWindow = windowId === siblingWindow
-      await foreground.bringToFront()
-      assert.equal(await foreground.evaluate(() => document.visibilityState), 'visible')
-      await delay(800)
-      if ((await read()).visibility === 'visible') {
+      if (!minimizeWindow) {
+        foreground = await page.context().newPage()
+        const control = await page.context().newCDPSession(foreground)
+        await control.send('Emulation.setFocusEmulationEnabled', { enabled: false })
+        await foreground.goto('about:blank')
+        const { targetInfo: sibling } = await control.send('Target.getTargetInfo')
+        const { windowId: siblingWindow } = await browserCdp.send('Browser.getWindowForTarget', { targetId: sibling.targetId })
+        evidence.sameBrowserWindow = windowId === siblingWindow
+        await foreground.bringToFront()
+        assert.equal(await foreground.evaluate(() => document.visibilityState), 'visible')
+        await delay(800)
+      }
+      if (minimizeWindow || (await read()).visibility === 'visible') {
         await browserCdp.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'minimized' } })
         restoreBrowserWindow = () => browserCdp.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'normal' } })
         evidence.source = 'Chrome native window minimize'
       }
     }
     const deadline = performance.now() + 10_000
-    let snapshot = await read()
-    while (snapshot.visibility !== 'hidden' || snapshot.canvas?.some(Boolean) || snapshot.aurora !== 0) {
-      assert(performance.now() < deadline, `Host did not pause: ${JSON.stringify(snapshot)}`)
-      await delay(100)
-      snapshot = await read()
-    }
-    const hiddenDraws = snapshot.draws
-    const start = performance.now()
-    for (let step = 0; step <= 5; step++) {
-      const target = seconds * 1000 * step / 5
-      await delay(Math.max(0, target - (performance.now() - start)))
-      snapshot = await read()
-      assert.equal(snapshot.visibility, 'hidden', `Host became visible at ${Math.round(performance.now() - start)} ms: ${JSON.stringify(snapshot)}`)
+    function assertHidden(snapshot, hiddenDraws) {
+      assert.equal(snapshot.visibility, 'hidden', `Host became visible: ${JSON.stringify(snapshot)}`)
       assert.equal(snapshot.draws, hiddenDraws)
       assert.equal(snapshot.aurora, 0)
       assert.deepEqual(snapshot.canvas, [0, 0])
       assert(snapshot.animations?.length && snapshot.animations.every(mode => mode === 'paused'))
       assert(snapshot.sameCanvas && snapshot.sameScene && snapshot.lastHiddenPosition)
-      evidence.hidden.push({ elapsedMs: Math.round(performance.now() - start), ...snapshot })
-      console.log(`Native background pause: ${Math.round(target / 1000)} s`)
+    }
+    if (hiddenNotice) {
+      // Observe native visibility in the page. Avoid renderer queries while minimized.
+      let timer
+      try {
+        await Promise.race([
+          hiddenNotice.promise,
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Chrome did not report native hiding')), 30_000) }),
+        ])
+      } finally { clearTimeout(timer) }
+      await delay(seconds * 1000 + 100)
+    } else {
+      let snapshot = await read()
+      while (snapshot.visibility !== 'hidden' || snapshot.canvas?.some(Boolean) || snapshot.aurora !== 0) {
+        assert(performance.now() < deadline, `Host did not pause: ${JSON.stringify(snapshot)}`)
+        await delay(100)
+        snapshot = await read()
+      }
+      const hiddenDraws = snapshot.draws
+      const start = performance.now()
+      for (let step = 0; step <= 5; step++) {
+        const target = seconds * 1000 * step / 5
+        await delay(Math.max(0, target - (performance.now() - start)))
+        snapshot = await read()
+        assertHidden(snapshot, hiddenDraws)
+        evidence.hidden.push({ elapsedMs: Math.round(performance.now() - start), ...snapshot })
+        console.log(`Native background pause: ${Math.round(target / 1000)} s`)
+      }
     }
     if (session.show) await session.show()
     else {
@@ -259,6 +295,14 @@ export async function visibilityCycle(session, ui, seconds, evidence) {
         && state.animations?.length > 0 && state.animations.every(mode => mode === 'running')
     }, undefined, { polling: 100 })
     evidence.resumed = await read()
+    if (sampleInRenderer) {
+      const { hiddenSample, beforeResume } = await page.evaluate(() => window.__skinAcceptanceCycle.nativeSamples())
+      assert(hiddenSample && beforeResume, 'Missing the native Chrome visibility events')
+      assertHidden(hiddenSample, beforeResume.draws)
+      assert(beforeResume.elapsedMs >= seconds * 1000, `Chrome resumed after ${Math.round(beforeResume.elapsedMs)} ms`)
+      evidence.hidden.push(hiddenSample)
+      evidence.beforeResume = beforeResume
+    }
     await delay(1200)
     evidence.settled = await read()
     assert.deepEqual(evidence.settled.changes, ['hidden', 'visible'])
