@@ -188,8 +188,16 @@ export function createSkinRegistry(
       if (skin.compatibility) throw new PackageFileError(skin.compatibility.code, 409)
       const { location, manifest } = skin
       const { parsed, files } = await readSkinData(location, manifest, signal)
-      if (parsed.scene) await validateSceneArtwork(location, parsed.scene, signal)
-      const base = { ...parsed, css: location.source === 'built-in' ? utf8(files.css) : null,
+      let sceneArtwork: string | undefined
+      if (parsed.scene) {
+        try {
+          await validateSceneArtwork(location, parsed.scene, signal)
+          sceneArtwork = parsed.scene.layout.artwork.asset
+        } catch (error) {
+          if (fsErrorCode(error) !== 'ENOENT') throw error
+        }
+      }
+      const base = { ...parsed, ...(sceneArtwork && { sceneArtwork }), css: location.source === 'built-in' ? utf8(files.css) : null,
         source: location.source, managed: Boolean(location.managed) }
       if (!location.managed) {
         const art = parsed.scene || (base.css && manifest.assets?.length)

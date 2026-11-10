@@ -121,6 +121,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     const cdp = await port()
     const main = await port()
     const flags = [`--user-data-dir=${userData}`, `--remote-debugging-port=${cdp}`, `--inspect=${loopback}:${main}`]
+    if (options.suite === 'artwork') flags.push('--force-device-scale-factor=1')
     if (lifecycle || options['desktop-disable-occlusion']) flags.push('--disable-features=CalculateNativeWinOcclusion')
     const app = launch(executable, flags, env, true)
     const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size }) {
@@ -234,7 +235,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
         assert(page, 'Missing Chrome startup tab')
       } else {
         browser = await chromium.launch({
-          executablePath: resolve(options.chrome), headless: ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance'].includes(options.suite),
+          executablePath: resolve(options.chrome), headless: ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance', 'artwork'].includes(options.suite),
           ...(signal ? { handleSIGINT: false, handleSIGTERM: false } : {}),
           ignoreDefaultArgs: ['--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'],
         })

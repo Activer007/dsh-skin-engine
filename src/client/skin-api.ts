@@ -30,6 +30,7 @@ export type SkinData = ReturnType<typeof parseSkinPackage> & {
   source: 'built-in' | 'local'
   managed?: boolean
   art?: SkinArtwork & { url: string }
+  sceneArtworkUrl?: string
   bundledPreferences?: SkinPreferences
 }
 

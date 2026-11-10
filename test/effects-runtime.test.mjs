@@ -17,15 +17,68 @@ const { outputFiles: [module] } = await build({
       export { createAutoQuality } from './src/client/effects/auto-quality.ts';
       export { effectQuality } from './src/client/effects/quality.ts';
       export { applyPreferences } from './src/shared/preferences.ts';
+      export { layoutArtwork, mountArtwork } from './src/client/scene/artwork.ts';
     `,
     resolveDir: root,
   },
   write: false, bundle: true, format: 'esm',
 })
 const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createStarfield, createRipples, createHolographic,
-  createAutoQuality, effectQuality, applyPreferences } = await import(
+  createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork } = await import(
   `data:text/javascript;base64,${Buffer.from(module.contents).toString('base64')}`
 )
+
+const illustrationLayout = {
+  artwork: { asset: 'assets/portrait.webp', fit: 'contain', anchor: 'right center', focalPoint: [0.86, 0.36], scale: 1, opacity: 0.3 },
+  safeArea: { contentLeftFraction: 0.7 },
+  breakpoints: [{ maxWidth: 1280, artworkScale: 0.8, opacity: 0.2 }],
+}
+
+test('artwork layout keeps its focal point in the composition and protects the content column', () => {
+  const viewport = { width: 1280, height: 820 }
+  const content = { left: 280, top: 76, right: 1280, bottom: 820 }
+  const composer = { left: 301, top: 692, right: 1253, bottom: 790 }
+  const image = { width: 1672, height: 941 }
+  const position = layoutArtwork(illustrationLayout, viewport, content, composer, image)
+  assert.equal(position.left, 980)
+  assert.equal(position.width, 300)
+  assert.equal(position.opacity, 0.2)
+  assert.equal(Math.round(position.imageWidth), 800)
+  assert.equal(Math.round(position.imageX + position.imageWidth * 0.86), 225)
+  assert.equal(Math.round(position.imageY + position.imageHeight * 0.36), 372)
+  assert.equal(position.columnEnd, 281)
+  assert(Math.abs(position.columnAlpha * position.opacity - 0.16) < 1e-8)
+  const wide = layoutArtwork(illustrationLayout, { ...viewport, width: 1440 }, { ...content, right: 1440 }, composer, image)
+  assert.equal(wide.opacity, 0.3)
+  assert.equal(Math.round(wide.imageWidth), 1160)
+  assert.equal(layoutArtwork(illustrationLayout, viewport, { ...content, right: 420 }, composer, image), undefined)
+})
+
+test('the artwork layer watches only its active surfaces and disconnects and detaches on release', () => {
+  const watched = new Set()
+  const attributes = new Set()
+  const root = {}
+  const document = { documentElement: root, defaultView: { innerWidth: 1280, innerHeight: 820, ResizeObserver: class {
+    observe(node) { watched.add(node) }
+    disconnect() { watched.clear() }
+  } } }
+  const content = { getBoundingClientRect: () => ({ left: 280, top: 76, right: 1280, bottom: 820 }) }
+  const composer = { getBoundingClientRect: () => ({ left: 301, top: 692, right: 1253, bottom: 790, width: 952, height: 98 }) }
+  let removed = false
+  const image = { naturalWidth: 1672, naturalHeight: 941, style: {}, remove() { removed = true } }
+  const node = { ownerDocument: document, style: { setProperty() {} }, append(child) { assert.equal(child, image) },
+    setAttribute(key) { attributes.add(key) }, toggleAttribute(key, value) { if (value) attributes.add(key) } }
+  const layer = mountArtwork(node, { kind: 'scene', image, layout: illustrationLayout }, () => {})
+  assert.equal(layer.update(true, content, composer), true)
+  assert.deepEqual(watched, new Set([root, content, composer]))
+  assert.equal(layer.update(true, content), false)
+  assert(node.hidden)
+  assert.equal(watched.size, 0)
+  assert.equal(layer.update(true, content, composer), true)
+  layer.dispose()
+  assert.equal(watched.size, 0)
+  assert(removed)
+})
 
 test('aurora uses the decoded size and blur and releases obsolete images', async () => {
   const style = new Map()

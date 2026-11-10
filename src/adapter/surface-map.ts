@@ -68,7 +68,14 @@ export function resolveEffectSurfaces(document: Document) {
     : conversationSlot?.querySelectorAll(':scope > [data-phase] > [data-conversation-content][data-conversation-region="chat"]')
   const conversation = content?.length === 1 ? content[0].parentElement : undefined
   return {
-    root, rootSlot, frame, center, main, mainSlot, conversationSlot, conversation, sidebar, sidebarSlot,
+    root, rootSlot, frame, center, main, mainSlot, conversationSlot, conversation,
+    conversationContent: conversation ? content?.[0] : undefined, sidebar, sidebarSlot,
     sidebarContent: sidebarSlot?.children.length === 1 ? sidebarSlot.firstElementChild : undefined,
   }
+}
+
+/** The audited composer shares the transcript column's center and is wider than its body. */
+export function resolveArtworkComposer(content?: Element) {
+  const cards = content?.querySelectorAll('[data-composer-seat][data-conversation-region="composer"] [data-composer-card]:has([data-composer-input])')
+  return cards?.length === 1 ? cards[0] : undefined
 }

@@ -31,6 +31,8 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 将任一端示例加上 `--suite surfaces`，可专项复跑设置页宽度和输入框适配。夹具写入一份隔离的 v4 会话记录，用新会话与已保存会话核对输入卡片。测试记录两个窗口尺寸的设置页宽度、Deep Ocean 底色、两项系统回退、键盘输入和菜单。浏览器插件不可用时，此流程使用仓库已有的 Playwright 入口，截图保存在相应运行目录。
 
+将任一端命令加上 `--suite artwork`，可复跑 SceneSpec 插画专项。脚本在隔离 profile 中导入使用蓝弧远航原图的静态测试包，核对 1920、1440、1280、760、520 CSS 像素下的对话、焦点和输入区域。记录原生窗口尺寸或受窗口边界限制时的渲染器尺寸，以及缺图、减少透明度、旧插画、预览取消、Default 和停用的结果。截图和关闭状态随 `result.json` 保存。
+
 用 `npm run pack:samples -- .cache/acceptance-samples` 生成发布样例。将任一端命令加上 `--suite packages --sample-dir .cache/acceptance-samples`，可复跑三套基线 ZIP 往返及 10/100 包目录扫描。脚本通过真实设置页导入、预览及应用，再通过同一登录会话调用导出路由。完整重启宿主后核对已存选择与实际应用的皮肤，再卸载、重新导入导出包并检查 Default 清理。Web 的此项测试使用无界面的 Chrome。目录夹具只放 Manifest 和预览图，记录目录请求耗时、画廊首图解码时间以及滚动前后发出的独立预览请求数。
 
 将任一端命令加上 `--suite static-sample --sample-zip <样例.zip>`，可复跑有画布和侧栏配色、单一明暗模式及真实缩略图的静态样例。脚本核对导入、预览取消、应用、切换明暗、重启恢复、恢复 Default 及卸载。传入 `pack:samples` 生成的 `.sample` 包时，先核对同名内置皮肤的实际配色和缩略图。明暗切换同时核对保存状态、作用域和实际生效的宿主令牌。新旧会话截图保存在结果目录，正文、代码块默认前景和输入文字的对比度根据计算样式中的纯色底层合成取样。Web 使用无界面 Chrome。

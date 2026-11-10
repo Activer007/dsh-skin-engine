@@ -42,7 +42,7 @@ function samePackageRevision(previous: SkinChoice, next: SkinChoice) {
     && previous.dataUrl === next.dataUrl
 }
 
-async function prepareArtwork(art: NonNullable<SkinData['art']>, signal: AbortSignal): Promise<PreparedArtwork> {
+async function decodeArtwork(url: string, signal: AbortSignal) {
   signal.throwIfAborted()
   const image = new Image()
   image.alt = ''
@@ -50,15 +50,32 @@ async function prepareArtwork(art: NonNullable<SkinData['art']>, signal: AbortSi
   const abort = () => image.removeAttribute('src')
   signal.addEventListener('abort', abort, { once: true })
   try {
-    image.src = new URL(art.url, document.baseURI).href
+    image.src = new URL(url, document.baseURI).href
     await image.decode()
     signal.throwIfAborted()
-    return { image, style: art }
+    return image
+  } finally {
+    signal.removeEventListener('abort', abort)
+  }
+}
+
+async function prepareArtwork(data: SkinData, signal: AbortSignal): Promise<PreparedArtwork | undefined> {
+  if (data.scene) {
+    if (!data.sceneArtworkUrl) return
+    try {
+      const image = await decodeArtwork(data.sceneArtworkUrl, AbortSignal.any([signal, AbortSignal.timeout(10_000)]))
+      return { kind: 'scene', image, layout: data.scene.layout }
+    } catch {
+      signal.throwIfAborted()
+      return // A scene's canvas remains usable if its decorative image cannot decode.
+    }
+  }
+  if (!data.art) return
+  try {
+    return { kind: 'legacy', image: await decodeArtwork(data.art.url, signal), style: data.art }
   } catch (error) {
     signal.throwIfAborted()
     throw new Error('The skin background could not be loaded.', { cause: error })
-  } finally {
-    signal.removeEventListener('abort', abort)
   }
 }
 
@@ -152,7 +169,7 @@ export function createSkinSwitch({ api, blockReason, switchAppearance, mount, pr
     }
     const data = await loadDetails(choice, signal)
     signal.throwIfAborted()
-    const artwork = data.art ? await prepareArtwork(data.art, signal) : undefined
+    const artwork = await prepareArtwork(data, signal)
     return { choice, data, preferences, artwork }
   }
 

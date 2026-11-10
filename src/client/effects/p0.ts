@@ -1,7 +1,8 @@
-import { auditedSurfaceStyles, hasAuditedSidebarTrack, resolveEffectSurfaces } from '../../adapter/surface-map.js'
+import { auditedSurfaceStyles, hasAuditedSidebarTrack, resolveArtworkComposer, resolveEffectSurfaces } from '../../adapter/surface-map.js'
 import type { SkinEffect } from '../../core/effects.js'
 import type { Quality, QualityChoice } from '../../shared/preferences.js'
 import type { PreparedArtwork } from '../../shared/skins.js'
+import { mountArtwork } from '../scene/artwork.js'
 import { mountAuroraPaint } from './aurora.js'
 import { createAutoQuality } from './auto-quality.js'
 import { mountCanvas } from './canvas.js'
@@ -68,6 +69,7 @@ function mountLayers(document: Document, effects: readonly SkinEffect[], accent:
 
   const view = document.defaultView!
   const transparency = view.matchMedia('(prefers-reduced-transparency: reduce)')
+  const forcedColors = artwork?.kind === 'scene' ? view.matchMedia('(forced-colors: active)') : undefined
   const reducedMotion = view.matchMedia('(prefers-reduced-motion: reduce)')
   const filterSupported = view.CSS.supports('color', 'color-mix(in srgb, black, transparent)')
     && (view.CSS.supports('backdrop-filter', 'blur(1px)') || view.CSS.supports('-webkit-backdrop-filter', 'blur(1px)'))
@@ -114,12 +116,7 @@ function mountLayers(document: Document, effects: readonly SkinEffect[], accent:
   const fallback = refraction ? layer('refraction-fallback', scene) : undefined
   fallback?.style.setProperty('--dsh-refraction-accent', accent)
 
-  if (artwork) {
-    const node = layer('artwork', scene)
-    node.style.opacity = String(artwork.style.opacity)
-    artwork.image.style.objectFit = artwork.style.size === 'auto' ? 'none' : artwork.style.size
-    node.append(artwork.image)
-  }
+  const art = artwork && mountArtwork(layer('artwork', scene), artwork, reconcile)
 
   const [auroraNear, auroraFar] = aurora?.params.palette === 'aurora' ? ['#37e2a7', '#7867ff'] : ['#28cbe2', '#7361ee']
   const auroraLayers = aurora ? [layer('aurora', scene), layer('aurora', scene)] : []
@@ -301,7 +298,8 @@ function mountLayers(document: Document, effects: readonly SkinEffect[], accent:
     if (disposed) return
     observer.disconnect()
     const next = new Map<Element, string>()
-    const { root, rootSlot, frame, center, main, mainSlot, conversationSlot, conversation, sidebar, sidebarContent, sidebarSlot } = resolveEffectSurfaces(document)
+    const { root, rootSlot, frame, center, main, mainSlot, conversationSlot, conversation, conversationContent,
+      sidebar, sidebarContent, sidebarSlot } = resolveEffectSurfaces(document)
     const surface = frame && center && conversation && hasNativeCanvas(document, view)
       && [frame, center, conversation].every(element => canMark(element) && view.getComputedStyle(element).backgroundImage === 'none')
     const available = mode !== 'off' && surface
@@ -311,7 +309,10 @@ function mountLayers(document: Document, effects: readonly SkinEffect[], accent:
     const showGlass = Boolean(glass && sidebarGrid && filterSupported && mode !== 'economy' && !transparency.matches)
     const showHolo = Boolean(holoNode && sidebarGrid && !transparency.matches)
     const showFlow = Boolean(flow && available && mode !== 'economy' && (flow.params.route === 'background' || sidebarGrid))
-    const showScene = Boolean((surface && artwork)
+    const composer = forcedColors ? resolveArtworkComposer(conversationContent) : undefined
+    const showArtwork = art?.update(Boolean(surface && (!forcedColors || (!transparency.matches && !forcedColors.matches))),
+      conversationContent, composer)
+    const showScene = Boolean(showArtwork
       || (available && (aurora || showFlow || showGlass || showHolo || canvas || (refraction && !transparency.matches))))
 
     if (showScene && frame && center && conversation) {
@@ -355,6 +356,12 @@ function mountLayers(document: Document, effects: readonly SkinEffect[], accent:
     }
     if (main) observer.observe(main, { childList: true, attributeFilter: ['data-global-panel'] })
     if (frame) observer.observe(frame, { childList: true, attributeFilter: ['data-sidebar-drawer', 'data-sidebar-collapsed'] })
+    if (forcedColors && conversationContent) {
+      observer.observe(conversationContent, { childList: true, attributeFilter: ['data-conversation-content', 'data-conversation-region'] })
+      const scroll = conversationContent.querySelector(':scope > [data-conversation-scroll]')
+      if (scroll) observer.observe(scroll, { childList: true })
+      if (composer) observer.observe(composer, { childList: true, attributeFilter: ['data-composer-card'] })
+    }
   }
 
   const observer = new view.MutationObserver(reconcile)
@@ -367,12 +374,14 @@ function mountLayers(document: Document, effects: readonly SkinEffect[], accent:
     document.removeEventListener('keydown', deferCssMotion, true)
     view.clearTimeout(interactionTimer)
     transparency.removeEventListener('change', reconcile)
+    forcedColors?.removeEventListener('change', reconcile)
     reducedMotion.removeEventListener('change', playback)
     bindInput()
     scheduler.trackCss(false)
     auroraPaint?.dispose()
     canvas?.dispose()
     refractor?.dispose()
+    art?.dispose()
     setMarks(new Map())
     scene.remove()
     for (const node of sidebarLayers) node.remove()
@@ -399,6 +408,7 @@ function mountLayers(document: Document, effects: readonly SkinEffect[], accent:
       document.addEventListener('keydown', deferCssMotion, { capture: true, passive: true })
     }
     transparency.addEventListener('change', reconcile)
+    forcedColors?.addEventListener('change', reconcile)
     reducedMotion.addEventListener('change', playback)
     reconcile()
   } catch (error) {

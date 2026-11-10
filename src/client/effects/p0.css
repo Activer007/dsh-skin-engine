@@ -24,6 +24,29 @@
   height: 100%;
 }
 
+[data-dsh-skin-effect-layer="artwork"][data-dsh-skin-scene-artwork] {
+  right: auto;
+  bottom: auto;
+  overflow: hidden;
+  --dsh-art-edge: #000;
+  --dsh-art-column: rgb(0 0 0 / var(--dsh-art-content-alpha));
+  mask-image: linear-gradient(to right, var(--dsh-art-edge), #000 24px), linear-gradient(to right,
+    #000 max(0px, var(--dsh-art-content-start) - 24px),
+    var(--dsh-art-column) var(--dsh-art-content-start) var(--dsh-art-content-end),
+    #000 calc(var(--dsh-art-content-end) + 24px));
+  mask-composite: intersect;
+}
+
+[data-dsh-skin-scene-artwork][data-dsh-skin-artwork-fade] {
+  --dsh-art-edge: transparent;
+}
+
+[data-dsh-skin-scene-artwork] > img {
+  position: absolute;
+  max-width: none;
+  max-height: none;
+}
+
 [data-dsh-skin-effect-layer="refraction"],
 [data-dsh-skin-effect-layer="refraction-fallback"] {
   position: absolute;

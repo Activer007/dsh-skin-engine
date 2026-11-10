@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import { settings, switchSkins } from './browser.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
+import { checkArtwork } from './artwork.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
 import { checkPackages, checkSample } from './packages.mjs'
 import { performanceComparison, visibilityCycle } from './rendering.mjs'
@@ -39,9 +40,10 @@ const upgrade = options.suite === 'upgrade'
 const packages = options.suite === 'packages'
 const packageUpdate = options.suite === 'package-update'
 const appearance = options.suite === 'appearance'
+const artwork = options.suite === 'artwork'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || packageUpdate || appearance || sample || options.suite === 'surfaces'
+assert(upgrade || packages || packageUpdate || appearance || artwork || sample || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!packages || options['sample-dir'], 'Package acceptance needs --sample-dir')
@@ -65,7 +67,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const interruption = appearance ? new AbortController() : undefined
+const interruption = appearance || artwork ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
 const includes = name => suites.includes(name)
@@ -76,7 +78,7 @@ function interrupt(signal) {
   interruption.abort(new Error(`Acceptance interrupted by ${signal}`))
   void session?.close().catch(() => {})
 }
-if (appearance) {
+if (interruption) {
   process.on('SIGINT', interrupt)
   process.on('SIGTERM', interrupt)
 }
@@ -92,7 +94,7 @@ try {
   run.artifact = await identify(options.archive, run.hostVersion)
   const firstArchive = upgrade ? resolve(options['from-archive']) : options.archive
   const firstArtifact = upgrade ? await identify(firstArchive, run.hostVersion) : run.artifact
-  if (appearance) run.gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+  if (appearance || artwork) run.gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
   const { open, install, profileDir } = await prepareHost(
     { ...options, archive: firstArchive, signal: interruption?.signal }, directory, firstArtifact, run.web,
   )
@@ -101,7 +103,13 @@ try {
     const ui = await enter(open, cssSample && appearance !== null, appearance)
     return { ui, foreground: session.show, hide: session.hide, browser: session.browser, resize: session.resize }
   }
-  if (includes('surfaces') || sample) await seedSurfaceHistory(directory, profileDir)
+  if (includes('surfaces') || sample || artwork) await seedSurfaceHistory(directory, profileDir)
+  if (artwork) {
+    const artworkUi = await enter(open, false)
+    run.artwork = {}
+    await checkArtwork(session, artworkUi, directory, profileDir, run.artwork, desktop)
+    interruption.signal.throwIfAborted()
+  }
   if (appearance) {
     await checkAppearance(run.appearance, openInProfile, interruption.signal)
     await session.close()
@@ -185,8 +193,9 @@ try {
 } finally {
   try {
     await session?.close()
+    if (artwork && session) run.browserDisconnected = !session.browser.isConnected()
   } finally {
-    if (appearance) {
+    if (interruption) {
       process.off('SIGINT', interrupt)
       process.off('SIGTERM', interrupt)
     }

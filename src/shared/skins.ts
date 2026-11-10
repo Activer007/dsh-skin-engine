@@ -1,3 +1,4 @@
+import type { SceneSpec } from '../core/scene.js'
 import type { SkinPreferences } from './preferences.js'
 
 const ROOT = 'api/dsh-skin-engine'
@@ -38,7 +39,6 @@ export interface SkinArtwork {
   size: 'cover' | 'contain' | 'auto'
 }
 
-export interface PreparedArtwork {
-  image: HTMLImageElement
-  style: SkinArtwork
-}
+export type PreparedArtwork = { image: HTMLImageElement } & (
+  { kind: 'legacy'; style: SkinArtwork } | { kind: 'scene'; layout: SceneSpec['layout'] }
+)

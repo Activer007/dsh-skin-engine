@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
 import { randomBytes, randomUUID } from 'node:crypto'
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buffer } from 'node:stream/consumers'
@@ -254,6 +254,7 @@ test('SceneSpec authoring, updates, exports, and rollback share the production p
   const loaded = await host.registry.load(skinId, item.revision, host.signal)
   assert.deepEqual(loaded.scene, scene)
   assert.equal(loaded.art, undefined)
+  assert.equal(loaded.sceneArtwork, pngPath)
 
   const exportZip = async suffix => {
     const response = await host.request(root + '/packages/export?' + key(item) + suffix)
@@ -270,6 +271,16 @@ test('SceneSpec authoring, updates, exports, and rollback share the production p
   assert.equal(strippedManifest.entry.scene, undefined)
   assert(!strippedManifest.capabilities.includes('scene'))
   assert.equal(strippedManifest.engineApi, manifest.engineApi)
+
+  const { location } = await host.registry.resolveSkin(skinId, item.revision, host.signal)
+  const installedImage = join(location.anchor, ...location.segments, pngPath)
+  await unlink(installedImage)
+  const withoutArtwork = await host.registry.load(skinId, item.revision, host.signal)
+  assert.equal(withoutArtwork.sceneArtwork, undefined)
+  assert.equal(withoutArtwork.tokens.colors.canvas, loaded.tokens.colors.canvas)
+  await writeFile(installedImage, Buffer.from('<svg/>'))
+  await assert.rejects(host.registry.load(skinId, item.revision, host.signal), { code: 'invalid-resource-type' })
+  await writeFile(installedImage, png)
 
   assert.equal((await host.request(root + '/packages/rollback?' + key(item), { method: 'POST' })).status, 200)
   const rolledBack = await find()
