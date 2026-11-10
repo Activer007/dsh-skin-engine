@@ -1,0 +1,9 @@
+/* Skin-local tokens only. Host surface styling is applied by the versioned DSH Adapter. */
+:root[data-dsh-skin-id="com.dsh.skin.deep-ocean"] {
+  --dsh-skin-canvas: #0b1220;
+  --dsh-skin-surface: #111d2d;
+  --dsh-skin-text: #edf4ff;
+  --dsh-skin-accent: #6dc7ff;
+  --dsh-skin-panel-radius: 18px;
+  color-scheme: dark;
+}

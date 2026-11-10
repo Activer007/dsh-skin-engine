@@ -1,0 +1,8 @@
+:root[data-dsh-skin-id="com.dsh.skin.aurora"] {
+  --dsh-skin-canvas: #080f1c;
+  --dsh-skin-surface: #101a2b;
+  --dsh-skin-text: #eef6ff;
+  --dsh-skin-accent: #66e0d0;
+  --dsh-skin-panel-radius: 20px;
+  color-scheme: dark;
+}

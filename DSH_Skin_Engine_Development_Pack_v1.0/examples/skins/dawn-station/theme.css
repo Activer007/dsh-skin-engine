@@ -1,0 +1,9 @@
+:root[data-dsh-skin-id="com.dsh.skin.dawn-station"] {
+  color-scheme: light;
+}
+
+:root[data-dsh-skin-id="com.dsh.skin.dawn-station"] [data-dsh-skin-package-art] {
+  background-image: url("assets/portrait.webp");
+  background-size: contain;
+  opacity: 0.35;
+}

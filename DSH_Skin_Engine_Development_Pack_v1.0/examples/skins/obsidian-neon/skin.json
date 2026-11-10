@@ -1,0 +1,33 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.obsidian-neon",
+  "name": "Obsidian Neon",
+  "nameEn": "Obsidian Neon",
+  "author": "DSH Skin Engine",
+  "description": "深色石墨底色，搭配克制的霓虹边缘与虹彩玻璃。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": [
+    "dark",
+    "neon",
+    "holographic",
+    "space"
+  ],
+  "colorScheme": "dark",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": {
+    "dark": "preview/dark.png"
+  },
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "effects:css",
+    "effects:canvas2d"
+  ]
+}

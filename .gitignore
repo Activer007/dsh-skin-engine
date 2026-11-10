@@ -1,0 +1,45 @@
+# OS-generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE and editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Dependency and build output (for future implementation work)
+node_modules/
+dist/
+/lib/
+build/
+coverage/
+.next/
+.turbo/
+.cache/
+out/
+
+# Logs and temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Python tooling caches (if used by documentation or asset tooling)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/

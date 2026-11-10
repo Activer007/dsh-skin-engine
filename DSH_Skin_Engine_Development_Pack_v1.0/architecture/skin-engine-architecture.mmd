@@ -1,0 +1,16 @@
+flowchart TB
+  UI[Skin Manager UI] --> REG[Skin Registry]
+  UI --> RT[Skin Runtime]
+  REG --> HOST[DSH Host Adapter]
+  RT --> THEME[Theme Runtime]
+  RT --> FX[Visual Effects Runtime]
+  THEME --> TOK[Token Mapper]
+  FX --> SCHED[Animation Scheduler]
+  SCHED --> CSS[CSS Renderer]
+  SCHED --> CANVAS[Canvas 2D Renderer]
+  SCHED --> WEBGL[Optional WebGL Renderer]
+  HOST --> STORAGE[Skin Package Storage]
+  HOST --> ROUTES[Static Asset / API Routes]
+  PKG[Data-only Skin Packages] --> REG
+  PKG --> THEME
+  PKG --> FX

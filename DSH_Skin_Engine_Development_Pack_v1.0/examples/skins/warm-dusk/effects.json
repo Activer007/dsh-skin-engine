@@ -1,0 +1,23 @@
+{
+  "schema": "dsh.effects/v1",
+  "effects": [
+    {
+      "id": "glass.liquid",
+      "enabled": true,
+      "renderer": "css",
+      "params": { "blur": 10, "tintAlpha": 0.14, "saturation": 1.1, "edgeLight": 0.2, "frost": 0.2 }
+    },
+    {
+      "id": "light.flow",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "speed": 0.16,
+        "intensity": 0.18,
+        "width": 6,
+        "colorStops": ["#e9a35e00", "#e9a35e", "#e9a35e00"],
+        "route": "edge"
+      }
+    }
+  ]
+}

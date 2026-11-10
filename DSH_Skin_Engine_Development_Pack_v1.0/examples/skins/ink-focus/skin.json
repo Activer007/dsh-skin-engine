@@ -1,0 +1,20 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.ink-focus",
+  "name": "静墨",
+  "nameEn": "Ink Focus",
+  "author": "DSH Skin Engine",
+  "description": "石墨色画布与低对比侧栏分区，适合专注阅读和编程。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": ["dark", "static", "focus"],
+  "colorScheme": "dark",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": { "dark": "preview/dark.png" },
+  "capabilities": ["tokens", "css", "assets"]
+}

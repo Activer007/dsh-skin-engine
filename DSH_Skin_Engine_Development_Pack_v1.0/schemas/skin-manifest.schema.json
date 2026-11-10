@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsh.local/schemas/skin-manifest-v1.schema.json",
+  "title": "DSH Skin Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "name",
+    "version",
+    "engineApi",
+    "entry",
+    "capabilities"
+  ],
+  "properties": {
+    "schema": {
+      "const": "dsh.skin/v1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+      "maxLength": 96
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "nameEn": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "author": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1200
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "engineApi": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "dshCompatibility": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "string",
+        "maxLength": 24
+      }
+    },
+    "colorScheme": {
+      "enum": [
+        "light",
+        "dark",
+        "both"
+      ]
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tokens",
+        "styles",
+        "effects"
+      ],
+      "properties": {
+        "tokens": {
+          "type": "string",
+          "const": "tokens.json"
+        },
+        "styles": {
+          "type": "string",
+          "const": "theme.css"
+        },
+        "effects": {
+          "type": "string",
+          "const": "effects.json"
+        }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "light": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "dark": {
+          "type": "string",
+          "maxLength": 160
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "tokens",
+          "css",
+          "assets",
+          "effects:css",
+          "effects:canvas2d",
+          "effects:webgl"
+        ]
+      }
+    },
+    "assets": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "maxLength": 180
+      }
+    }
+  }
+}

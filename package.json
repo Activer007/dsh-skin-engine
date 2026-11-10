@@ -1,0 +1,73 @@
+{
+  "name": "dsh-plugin-skin-engine",
+  "version": "1.5.0",
+  "description": "Declarative skin engine for DeepSeek Harness",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.9",
+    "dsh": "0.2.2-rc.1"
+  },
+  "exports": {
+    ".": "./lib/host.js",
+    "./client": "./lib/client.js",
+    "./assets/*": "./lib/assets/*"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "lib/host.js",
+    "lib/client.js",
+    "lib/THIRD-PARTY-NOTICES.txt",
+    "lib/assets",
+    "lib/skins",
+    "docs/release-asset-notes.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "lint": "oxlint src scripts test",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "verify:local": "node scripts/verify-local.mjs",
+    "pack:samples": "npm run build && node scripts/pack-samples.mjs",
+    "pack:skin": "npm run build && node scripts/pack-samples.mjs --source",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-app-boot": "0.2.2-rc.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-app-boot": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-atomic-write": "0.2.2-rc.1",
+    "@types/css-tree": "3.2.0",
+    "@types/node": "^24.9.0",
+    "@types/react": "^19.0.0",
+    "@types/semver": "7.8.0",
+    "@types/yauzl": "3.4.0",
+    "@types/yazl": "3.3.1",
+    "css-tree": "3.2.1",
+    "esbuild": "^0.27.0",
+    "oxlint": "^1.25.0",
+    "playwright-core": "1.65.0",
+    "semver": "7.8.6",
+    "typescript": "^5.9.3",
+    "yauzl": "3.4.0",
+    "yazl": "3.3.1",
+    "zod": "^4.1.0"
+  }
+}

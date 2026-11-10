@@ -1,0 +1,32 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.jade-archive",
+  "name": "青玉书库",
+  "nameEn": "Jade Archive",
+  "author": "DSH Skin Engine",
+  "description": "浅灰青底色，配青色版画笔触和立领亚麻衣。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": [
+    "light",
+    "static",
+    "character",
+    "ink"
+  ],
+  "colorScheme": "light",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": { "light": "preview/light.webp" },
+  "assets": [
+    "assets/portrait.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets"
+  ]
+}

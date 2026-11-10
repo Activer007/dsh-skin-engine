@@ -1,0 +1,20 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.warm-dusk",
+  "name": "暖暮",
+  "nameEn": "Warm Dusk",
+  "author": "DSH Skin Engine",
+  "description": "暖棕色画布、低强度琥珀流光与轻玻璃侧栏。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": ["dark", "warm", "glass"],
+  "colorScheme": "dark",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": { "dark": "preview/dark.png" },
+  "capabilities": ["tokens", "css", "assets", "effects:css"]
+}

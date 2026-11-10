@@ -1,0 +1,15 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "example.starter-light",
+  "name": "Starter Light",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "colorScheme": "light",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "capabilities": ["tokens", "css"]
+}

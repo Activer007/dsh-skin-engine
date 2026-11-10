@@ -1,0 +1,32 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.blue-arc",
+  "name": "蓝弧远航",
+  "nameEn": "Blue Arc",
+  "author": "DSH Skin Engine",
+  "description": "冷蓝舷窗旁的领航员，窗外是行星的蓝色弧光。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": [
+    "dark",
+    "static",
+    "character",
+    "space"
+  ],
+  "colorScheme": "dark",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": { "dark": "preview/dark.webp" },
+  "assets": [
+    "assets/portrait.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets"
+  ]
+}

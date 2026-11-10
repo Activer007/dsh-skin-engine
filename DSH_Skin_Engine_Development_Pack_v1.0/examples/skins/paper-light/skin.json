@@ -1,0 +1,22 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.paper-light",
+  "name": "纸白",
+  "nameEn": "Paper Light",
+  "author": "DSH Skin Engine",
+  "description": "暖白纸面与浅米色侧栏，适合阅读和写作。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": ["light", "static", "paper"],
+  "colorScheme": "light",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": {
+    "light": "preview/light.png"
+  },
+  "capabilities": ["tokens", "css", "assets"]
+}

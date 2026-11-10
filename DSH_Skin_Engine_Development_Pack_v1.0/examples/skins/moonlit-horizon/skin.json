@@ -1,0 +1,32 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.moonlit-horizon",
+  "name": "月窗余晖",
+  "nameEn": "Moonlit Horizon",
+  "author": "DSH Skin Engine",
+  "description": "深靛色舷窗旁，月轮与云海地平线映着领航员制服的金边。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": [
+    "dark",
+    "static",
+    "character",
+    "space"
+  ],
+  "colorScheme": "dark",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": { "dark": "preview/dark.webp" },
+  "assets": [
+    "assets/portrait.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets"
+  ]
+}

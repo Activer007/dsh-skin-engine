@@ -1,0 +1,9 @@
+:root[data-dsh-skin-id="com.dsh.skin.jade-archive"] {
+  color-scheme: light;
+}
+
+:root[data-dsh-skin-id="com.dsh.skin.jade-archive"] [data-dsh-skin-package-art] {
+  background-image: url("assets/portrait.webp");
+  background-size: contain;
+  opacity: 0.35;
+}

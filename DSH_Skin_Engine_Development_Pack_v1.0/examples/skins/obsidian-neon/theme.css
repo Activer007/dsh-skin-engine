@@ -1,0 +1,8 @@
+:root[data-dsh-skin-id="com.dsh.skin.obsidian-neon"] {
+  --dsh-skin-canvas: #090b12;
+  --dsh-skin-surface: #111520;
+  --dsh-skin-text: #f2f4ff;
+  --dsh-skin-accent: #8b9cff;
+  --dsh-skin-panel-radius: 14px;
+  color-scheme: dark;
+}

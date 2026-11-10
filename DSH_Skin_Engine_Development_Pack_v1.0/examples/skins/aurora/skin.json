@@ -1,0 +1,33 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.aurora",
+  "name": "Aurora",
+  "nameEn": "Aurora",
+  "author": "DSH Skin Engine",
+  "description": "以冷色极光和轻量透明面板为主的动态主题。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": [
+    "dark",
+    "aurora",
+    "ambient",
+    "blue"
+  ],
+  "colorScheme": "dark",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": {
+    "dark": "preview/dark.png"
+  },
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "effects:css",
+    "effects:canvas2d"
+  ]
+}

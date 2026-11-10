@@ -1,0 +1,36 @@
+{
+  "schema": "dsh.effects/v1",
+  "effects": [
+    {
+      "id": "glass.liquid",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "blur": 14,
+        "tintAlpha": 0.14,
+        "saturation": 1.3,
+        "edgeLight": 0.28
+      }
+    },
+    {
+      "id": "ambient.aurora",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "speed": 0.3,
+        "intensity": 0.65,
+        "palette": "aurora"
+      }
+    },
+    {
+      "id": "particles.dust",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "density": 0.25,
+        "speed": 0.2,
+        "opacity": 0.28
+      }
+    }
+  ]
+}

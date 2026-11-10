@@ -1,0 +1,32 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.night-navigator",
+  "name": "夜航员",
+  "nameEn": "Night Navigator",
+  "description": "右侧舷窗旁的原创太空领航员，搭配低饱和靛蓝和琥珀点缀。",
+  "colorScheme": "dark",
+  "tags": [
+    "dark",
+    "static",
+    "character",
+    "space"
+  ],
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": { "dark": "preview/dark.webp" },
+  "assets": [
+    "assets/navigator.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets"
+  ]
+}

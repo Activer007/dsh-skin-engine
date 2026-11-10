@@ -1,0 +1,28 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.mist-pine",
+  "name": "雾松",
+  "nameEn": "Mist Pine",
+  "description": "浅灰绿画布与柔和的松灰色侧栏，适合白天阅读和写作。",
+  "colorScheme": "light",
+  "tags": [
+    "light",
+    "static",
+    "nature"
+  ],
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": { "light": "preview/light.webp" },
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "dsh.effects/v1",
+  "effects": [
+    {
+      "id": "glass.liquid",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "blur": 18,
+        "tintAlpha": 0.12,
+        "saturation": 1.35,
+        "edgeLight": 0.55
+      }
+    },
+    {
+      "id": "glass.holographic",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "iridescence": 0.5,
+        "edgeWidth": 1,
+        "pointerInfluence": 0.2,
+        "intensity": 0.58
+      }
+    },
+    {
+      "id": "particles.starfield",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "starCount": 64,
+        "twinkle": 0.22,
+        "parallax": 0.12,
+        "brightness": 0.65
+      }
+    },
+    {
+      "id": "interaction.ripple",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "durationMs": 620,
+        "maxRadius": 135,
+        "ringCount": 3,
+        "color": "#a4b7ff"
+      }
+    }
+  ]
+}

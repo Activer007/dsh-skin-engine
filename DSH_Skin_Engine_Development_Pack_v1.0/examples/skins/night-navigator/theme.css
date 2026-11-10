@@ -1,0 +1,9 @@
+:root[data-dsh-skin-id="com.dsh.skin.night-navigator"] {
+  color-scheme: dark;
+}
+
+:root[data-dsh-skin-id="com.dsh.skin.night-navigator"] [data-dsh-skin-package-art] {
+  background-image: url("assets/navigator.webp");
+  background-size: contain;
+  opacity: 0.35;
+}

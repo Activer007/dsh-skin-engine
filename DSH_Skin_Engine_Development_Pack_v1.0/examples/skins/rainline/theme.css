@@ -1,0 +1,9 @@
+:root[data-dsh-skin-id="com.dsh.skin.rainline"] {
+  color-scheme: dark;
+}
+
+:root[data-dsh-skin-id="com.dsh.skin.rainline"] [data-dsh-skin-package-art] {
+  background-image: url("assets/portrait.webp");
+  background-size: contain;
+  opacity: 0.35;
+}

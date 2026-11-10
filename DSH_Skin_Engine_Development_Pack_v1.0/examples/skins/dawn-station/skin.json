@@ -1,0 +1,32 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.dawn-station",
+  "name": "曙光航站",
+  "nameEn": "Dawn Station",
+  "author": "DSH Skin Engine",
+  "description": "银灰舱内的领航员穿着浅色制服，金色晨光照亮窗外的轨道站。",
+  "version": "1.0.0",
+  "engineApi": "^1.0.0",
+  "dshCompatibility": ">=0.2.0",
+  "tags": [
+    "light",
+    "static",
+    "character",
+    "space"
+  ],
+  "colorScheme": "light",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": { "light": "preview/light.webp" },
+  "assets": [
+    "assets/portrait.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets"
+  ]
+}
