@@ -1,5 +1,6 @@
 import type { SkinManifest } from '../core/manifest.js'
 import type { parseSkinPackage } from '../core/skin-package.js'
+import type { ColorScheme } from '../core/tokens.js'
 import type { SkinPreferences } from '../shared/preferences.js'
 import { APPLY_SKIN_PATH, EXPORT_SKIN_PATH, IMPORT_SKIN_PATH, REMOVE_SKIN_PATH, ROLLBACK_SKIN_PATH, SELECTION_PATH,
   SKINS_PATH, UPDATE_SKIN_PATH, UPLOAD_CHUNK_BYTES, ZIP_BYTES,
@@ -31,6 +32,7 @@ export type SkinData = ReturnType<typeof parseSkinPackage> & {
   managed?: boolean
   art?: SkinArtwork & { url: string }
   sceneArtworkUrl?: string
+  sceneArtworkVariants?: Partial<Record<ColorScheme, string>>
   bundledPreferences?: SkinPreferences
 }
 

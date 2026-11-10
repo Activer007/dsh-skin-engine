@@ -9,12 +9,14 @@ const scale = bounded(0.5, 1.5)
 const opacity = bounded(0, 0.35)
 const unit = bounded(0, 1)
 const effectId = z.string().check(z.minLength(1), z.maxLength(96))
+const artworkAsset = z.string().check(z.minLength(1), z.maxLength(180))
 
 const sceneSchema = z.strictObject({
   schema: z.literal('dsh.scene/v1'),
   layout: z.strictObject({
     artwork: z.strictObject({
-      asset: z.string().check(z.minLength(1), z.maxLength(180)),
+      asset: artworkAsset,
+      variants: z.optional(z.strictObject({ light: z.optional(artworkAsset), dark: z.optional(artworkAsset) })),
       fit: z.enum(['contain', 'cover']),
       anchor: z.enum([
         'left top', 'left center', 'left bottom', 'center top', 'center center', 'center bottom',
@@ -40,9 +42,12 @@ export type SceneSpec = z.output<typeof sceneSchema>
 
 export function parseScene(value: unknown, manifest: SkinManifest, effects: readonly SkinEffect[]): SceneSpec {
   const scene = parseFile(sceneSchema, value, file)
-  const { asset } = scene.layout.artwork
-  if (!manifest.assets?.includes(asset) || !isPackageImage(asset)) {
-    invalid(file, 'layout.artwork.asset', 'invalid-artwork-asset', 'Artwork must reference a declared package image')
+  const { asset, variants } = scene.layout.artwork
+  const references = { asset, ...Object.fromEntries(Object.entries(variants ?? {}).map(([scheme, path]) => [`variants.${scheme}`, path])) }
+  for (const [field, path] of Object.entries(references)) {
+    if (!manifest.assets?.includes(path) || !isPackageImage(path)) {
+      invalid(file, `layout.artwork.${field}`, 'invalid-artwork-asset', 'Artwork must reference a declared package image')
+    }
   }
   let previousWidth = 0
   for (const [index, { maxWidth }] of (scene.layout.breakpoints ?? []).entries()) {

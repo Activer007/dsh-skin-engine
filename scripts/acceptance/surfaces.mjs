@@ -9,7 +9,7 @@ const scene = '[data-dsh-skin-effect-scene]'
 const historyTitle = 'Skin Engine acceptance history'
 
 /** Seed an offline conversation in the official host's v4 log format. */
-export async function seedSurfaceHistory(directory, profileDir, bilingual = false) {
+export async function seedSurfaceHistory(directory, profileDir, { bilingual = false, secondTurn = false } = {}) {
   const documents = join(directory, 'documents')
   const cwd = join(documents, 'deepseek-harness', 'default-workspace')
   const id = 'skin-acceptance-history'
@@ -48,6 +48,18 @@ export async function seedSurfaceHistory(directory, profileDir, bilingual = fals
     { type: 'step/end', data: { turn: 1, step: 1 } },
     { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } },
   ]
+  if (secondTurn) events.push(
+    { type: 'turn/start', data: { turn: 2 } },
+    { type: 'step/start', data: { turn: 2, step: 1 } },
+    { type: 'user/message', surfaceOp: 'append', data: { role: 'user', id: 'fixture-user-two',
+      source: { kind: 'user', rpcId: 'fixture-rpc-two' }, content: [{ type: 'text', text: 'Token audit second turn.' }] } },
+    { type: 'assistant/message', surfaceOp: 'append', data: { turn: 2, step: 1, stream: [], message: {
+      role: 'assistant', id: 'fixture-assistant-two', source: { kind: 'model', provider: 'deepseek-official', model: 'deepseek-v4-flash' },
+      content: [{ type: 'text', text: 'Second turn response.\n\n```js\nconst audit = true\n```' }],
+    } } },
+    { type: 'step/end', data: { turn: 2, step: 1 } },
+    { type: 'turn/end', data: { turn: 2, reason: { kind: 'completed' } } },
+  )
   const header = { type: 'session', version: 4, id, createdAt, cwd, isSeeded: false, delegationDepth: 0, agentPreset: 'standard' }
   const lines = events.map((event, seq) => JSON.stringify({ ...event, seq, time: createdAt + seq + 1 }))
   await writeFile(join(path, 'session.v4.jsonl.zstd'), Buffer.concat([

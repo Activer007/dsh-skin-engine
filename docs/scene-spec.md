@@ -45,6 +45,8 @@ SceneSpec 是 `dsh.skin/v1` 的可选扩展。声明场景的包须设置 `entry
 
 `effects.json` 定义效果参数、渲染器和默认启用状态。场景预设只提供候选效果 ID，选择预设本身不会启用一个已关闭的效果。Scene 与 `theme.css` 的旧插画选择器互斥，旧包仍按原规则使用 CSS 插画。外部 URL、跨包路径、SVG、字体、脚本、Shader 和任意样式均不属于此契约。
 
+从 Engine API 1.3.0 起，`colorScheme: both` 的皮肤可在 `layout.artwork.variants` 声明浅色和深色插画路径。图像继承同一组布局，路径及基础图按 [双明暗契约](dual-appearance.md#插画) 校验和回退。
+
 从 Engine API 1.2.0 起，场景应用或预览后可在 Skin Engine 的「Window effects → Scene motion preset」切换 Static、Light motion 或 Standard motion。依赖预设的包应将 `engineApi` 设为 `^1.2.0`。默认使用 Standard motion，选择只影响当前窗口。全局 Static、Off 或系统减少动效会使场景退为静态。Economy 将标准档限制到轻动效列表，并沿用窗口的低质量与静止策略。
 
 ## 装包与后续渲染

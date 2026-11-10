@@ -97,10 +97,13 @@ export function registerCatalogueRoutes(register: Register, profileDirectory: st
     const query = queryOf(request, ['id', 'revision'])
     const key = { id: query.get('id')!, revision: query.get('revision')! }
     const { sceneArtwork, ...data } = await registry.load(key.id, key.revision, signal)
+    const assetUrl = (path: string) => reference(SKIN_ASSET_PATH, { ...key, path })
     const art = 'art' in data && data.art
-      ? { ...data.art, url: reference(SKIN_ASSET_PATH, { ...key, path: data.art.path }) } : undefined
-    const sceneArtworkUrl = sceneArtwork && reference(SKIN_ASSET_PATH, { ...key, path: sceneArtwork })
-    return Response.json({ ...data, art, sceneArtworkUrl }, { headers: privateHeaders })
+      ? { ...data.art, url: assetUrl(data.art.path) } : undefined
+    const sceneArtworkUrl = sceneArtwork && assetUrl(sceneArtwork)
+    const { light, dark } = data.scene?.layout.artwork.variants ?? {}
+    const sceneArtworkVariants = light || dark ? { light: light && assetUrl(light), dark: dark && assetUrl(dark) } : undefined
+    return Response.json({ ...data, art, sceneArtworkUrl, sceneArtworkVariants }, { headers: privateHeaders })
   })
 
   route(SKIN_ASSET_PATH, ['GET', 'HEAD'], async (request, signal) => {

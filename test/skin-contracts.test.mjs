@@ -80,15 +80,45 @@ test('SceneSpec is opt-in and preserves the compatibility of API 1.0-only packag
   for (const engineApi of ['*', '^1.0.0 || ^1.1.0', '>=1.1.0-rc.1']) {
     reject(() => parseSkinManifest({ ...sceneManifest, engineApi }), 'skin.json', 'engineApi', 'scene-engine-api')
   }
-  for (const engineApi of ['1.1.0', '^1.2.0']) {
+  for (const engineApi of ['1.1.0', '1.2.0', '^1.2.0']) {
     assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi }), dshVersion), undefined)
   }
-  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.3.0' }), dshVersion).code, 'incompatible-engine')
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.4.0' }), dshVersion).code, 'incompatible-engine')
   reject(() => parseSkinManifest({ ...sceneManifest, capabilities: manifest.capabilities }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: manifest.entry }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: { ...manifest.entry, scene: '../scene.json' } }), 'skin.json', 'entry.scene')
   reject(() => parseSkinPackage({ ...sceneFiles, scene: undefined }), 'scene.json', '')
   reject(() => parseSkinPackage({ ...files, scene }), 'scene.json', '', 'undeclared-scene')
+})
+
+test('dual appearance keeps the v1 base, gates variants on API 1.3, and validates both assets', () => {
+  const dual = {
+    ...sceneFiles,
+    manifest: { ...sceneManifest, colorScheme: 'both', engineApi: '^1.3.0', assets: [...sceneManifest.assets, 'assets/night.webp'] },
+    tokens: { ...tokens, colors: { canvas: '#eee', surface: '#abc' }, variants: { dark: { canvas: '#111' } } },
+    scene: { ...scene, layout: { ...scene.layout, artwork: { ...scene.layout.artwork, variants: { dark: 'assets/night.webp' } } } },
+  }
+  const parsed = parseSkinPackage(dual)
+  assert.deepEqual(parsed.tokens.colors, dual.tokens.colors)
+  assert.deepEqual(parsed.tokens.variants, dual.tokens.variants)
+  assert.deepEqual(parsed.scene, dual.scene)
+  assert.equal(checkSkinCompatibility(parsed.manifest, dshVersion), undefined)
+  assert.equal(parseSkinPackage({ ...files, manifest: { ...manifest, colorScheme: 'both' } }).tokens.variants, undefined)
+  reject(() => parseSkinPackage({ ...dual, manifest: { ...dual.manifest, colorScheme: 'light' } }),
+    'skin.json', 'colorScheme', 'dual-appearance-scheme')
+  reject(() => parseSkinPackage({ ...dual, manifest: { ...dual.manifest, engineApi: '^1.2.0 || ^1.3.0' } }),
+    'skin.json', 'engineApi', 'dual-appearance-engine-api')
+  reject(() => parseSkinPackage({ ...dual, tokens: { ...dual.tokens, variants: { dark: { canvas: 'red' } } } }),
+    'tokens.json', 'variants.dark.canvas')
+  reject(() => parseSkinPackage({ ...dual, tokens: { ...dual.tokens, variants: { system: {} } } }),
+    'tokens.json', 'variants')
+  reject(() => parseSkinPackage({ ...dual, tokens: { ...dual.tokens, colors: {} } }),
+    'tokens.json', 'variants.light.canvas', 'incomplete-surface-pair')
+  for (const asset of ['assets/Night.webp', 'assets/ui.woff2', 'https://example.test/art.webp']) {
+    const artwork = { ...scene.layout.artwork, variants: { light: asset } }
+    reject(() => parseSkinPackage({ ...dual, scene: { ...scene, layout: { ...scene.layout, artwork } } }),
+      'scene.json', 'layout.artwork.variants.light', 'invalid-artwork-asset')
+  }
 })
 
 test('SceneSpec refuses unowned assets, layout outside its bounds, and invalid effect references', () => {

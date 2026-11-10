@@ -1,8 +1,9 @@
 import type { ComponentType } from 'react'
 import { observeAppearance } from '../adapter/coexistence.js'
 import { createSkinTheme, SKIN_ATTRIBUTE, type ThemeService } from '../adapter/skin-theme.js'
+import type { PreparedArtwork } from '../shared/skins.js'
 import { createEffectsRuntime } from './effects/p0.js'
-import { skinApi } from './skin-api.js'
+import { skinApi, type SkinData } from './skin-api.js'
 import { SkinPanel, type PanelProps } from './skin-panel.js'
 import { createSkinSwitch } from './skin-switch.js'
 
@@ -31,15 +32,25 @@ export const inject = ['slots', 'theme']
 export function apply(ctx: ClientContext): void {
   const theme = createSkinTheme(ctx.theme, document)
   const effects = createEffectsRuntime(document)
+  const getColorScheme = () => ctx.theme.getTheme().active.colorScheme
   const controller = createSkinSwitch({
     api: skinApi,
+    getColorScheme,
     blockReason: theme.blockReason,
     switchAppearance: theme.switchAppearance,
-    mount(data, preferences, artwork) {
-      const releaseTheme = theme.mount(data)
+    mount({ data: original, preferences }, data, artwork) {
+      const releaseTheme = theme.mount(original, preferences?.colors)
+      let releaseEffects: (() => void) | undefined
+      let appearance: { artwork?: PreparedArtwork; accent?: string } | undefined
+      function update(data: SkinData, artwork?: PreparedArtwork) {
+        const accent = data.tokens.colors.accent
+        if (appearance && appearance.accent === accent && appearance.artwork === artwork) return
+        releaseEffects = effects.mount(data.effects, accent, preferences?.quality, artwork, data.scene?.presets)
+        appearance = { artwork, accent }
+      }
       try {
-        const releaseEffects = effects.mount(data.effects, data.tokens.colors.accent, preferences?.quality, artwork, data.scene?.presets)
-        return () => { try { releaseEffects() } finally { releaseTheme() } }
+        update(data, artwork)
+        return { update, release() { try { releaseEffects?.() } finally { releaseTheme() } } }
       } catch (error) {
         releaseTheme()
         throw error
@@ -59,9 +70,9 @@ export function apply(ctx: ClientContext): void {
   observeAppearance(document, observer, SKIN_ATTRIBUTE)
   window.addEventListener('focus', refreshOnFocus)
 
-  let scheme = ctx.theme.getTheme().active.colorScheme
+  let scheme = getColorScheme()
   ctx.on('theme/change', () => {
-    const next = ctx.theme.getTheme().active.colorScheme
+    const next = getColorScheme()
     if (next === scheme) return
     scheme = next
     // Token overrides emit theme/change synchronously. Let the host finish
@@ -72,7 +83,7 @@ export function apply(ctx: ClientContext): void {
   ctx.slots.inject(SECTION, () => {
     ctx.slots.register({
       name: SECTION, id: 'dsh-skin-engine', order: 125, label: 'Skin Engine',
-      inject: () => ({ controller, effects, getColorScheme: () => ctx.theme.getTheme().active.colorScheme }),
+      inject: () => ({ controller, effects, getColorScheme }),
     }, SkinPanel)
   })
   void controller.refresh()

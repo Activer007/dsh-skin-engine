@@ -1,8 +1,9 @@
 import type { SkinChoice, SkinData } from '../client/skin-api.js'
+import type { ColorScheme } from '../core/tokens.js'
+import { resolveSkinColors, type SkinPreferences } from '../shared/preferences.js'
 import { appearanceConflict } from './coexistence.js'
 import { auditedSurfaceMap } from './surface-map.js'
 
-type ColorScheme = 'light' | 'dark'
 type TokenOverrides = Record<string, Record<ColorScheme, string>>
 
 export interface ThemeService {
@@ -43,13 +44,14 @@ export function createSkinTheme(theme: ThemeService, document: Document) {
     }
   }
 
-  function mount(data: SkinData): () => void {
+  function mount(data: SkinData, colors?: SkinPreferences['colors']): () => void {
     if (root.hasAttribute(SKIN_ATTRIBUTE)) throw new Error('The skin scope is occupied.')
     const activation = { id: data.manifest.id }
     const tokens: TokenOverrides = {}
-    const { canvas, surface } = data.tokens.colors
-    if (canvas) tokens[auditedSurfaceMap.surfaces['app.canvas'].token] = { light: canvas, dark: canvas }
-    if (surface) tokens[auditedSurfaceMap.surfaces['app.sidebar'].token] = { light: surface, dark: surface }
+    const light = { ...resolveSkinColors(data.tokens, 'light'), ...colors }
+    const dark = { ...resolveSkinColors(data.tokens, 'dark'), ...colors }
+    if (light.canvas && dark.canvas) tokens[auditedSurfaceMap.surfaces['app.canvas'].token] = { light: light.canvas, dark: dark.canvas }
+    if (light.surface && dark.surface) tokens[auditedSurfaceMap.surfaces['app.sidebar'].token] = { light: light.surface, dark: dark.surface }
     owner = activation
     let releaseTokens: (() => void) | undefined
     function release() {

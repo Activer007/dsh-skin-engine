@@ -15,17 +15,22 @@ const panelShadow = z.string().check(z.maxLength(80), z.refine(value => {
   return Number.parseInt(blur) <= 128 && [red, green, blue].every(channel => Number(channel) <= 255)
 }, 'Expected one bounded rgba shadow or none'))
 
+export type ColorScheme = 'light' | 'dark'
+
+const colors = z.strictObject({
+  canvas: z.optional(hexColor),
+  surface: z.optional(hexColor),
+  surfaceRaised: z.optional(hexColor),
+  textPrimary: z.optional(hexColor),
+  textSecondary: z.optional(hexColor),
+  accent: z.optional(hexColor),
+  accentStrong: z.optional(hexColor),
+})
+
 const tokensSchema = z.strictObject({
   schema: z.literal('dsh.tokens/v1'),
-  colors: z._default(z.strictObject({
-    canvas: z.optional(hexColor),
-    surface: z.optional(hexColor),
-    surfaceRaised: z.optional(hexColor),
-    textPrimary: z.optional(hexColor),
-    textSecondary: z.optional(hexColor),
-    accent: z.optional(hexColor),
-    accentStrong: z.optional(hexColor),
-  }), {}),
+  colors: z._default(colors, {}),
+  variants: z.optional(z.strictObject({ light: z.optional(colors), dark: z.optional(colors) })),
   radius: z._default(z.strictObject({
     panel: z.optional(radius),
     control: z.optional(radius),

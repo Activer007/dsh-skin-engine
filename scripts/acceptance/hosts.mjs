@@ -121,10 +121,11 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     const cdp = await port()
     const main = await port()
     const flags = [`--user-data-dir=${userData}`, `--remote-debugging-port=${cdp}`, `--inspect=${loopback}:${main}`]
-    if (options.suite === 'artwork' || options.suite === 'scenes') flags.push('--force-device-scale-factor=1')
+    if (['artwork', 'scenes', 'tokens', 'dual-appearance'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
     if (lifecycle || options['desktop-disable-occlusion']) flags.push('--disable-features=CalculateNativeWinOcclusion')
     const app = launch(executable, flags, env, true)
-    const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size }) {
+    const keepRendering = options.suite === 'dual-appearance'
+    const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size, keepRendering }) {
       if (process.pid !== pid || process.env.DSH_HOME !== expectedHome) throw Error('Unexpected Desktop process')
       const load = process.mainModule?.require?.bind(process.mainModule)
         ?? process.getBuiltinModule('module').createRequire(process.execPath)
@@ -135,6 +136,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       if (!window) return false
       if (action === 'hide') { window.minimize(); window.hide() }
       else {
+        if (keepRendering) window.webContents.setBackgroundThrottling(false)
         window.restore()
         const area = screen.getPrimaryDisplay().workArea
         const x = Math.min(74, Math.max(0, area.width - size.width))
@@ -147,7 +149,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
         window.focus()
       }
       return true
-    }})(${JSON.stringify({ action, pid: app.child.pid, expectedHome: home, size })})`)
+    }})(${JSON.stringify({ action, pid: app.child.pid, expectedHome: home, size, keepRendering })})`)
     return {
       url: `http://${loopback}:${cdp}`, invoke, logs: app.logs,
       async ready() {
@@ -174,9 +176,12 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     command(executable, [...cli, '--profile', profile, '--from-default-profile', 'web', '--dump-config'], cliEnv)
     if (diagnostics) diagnostics.profileInitialized = true
   }
-  async function install(archive, expected) {
-    const spec = `file:${archive.replaceAll('\\', '/')}`
+  function installLocalBundle(path) {
+    const spec = `file:${path.replaceAll('\\', '/')}`
     command(executable, [...cli, 'plugin', '--profile', profile, 'add', ...(desktop ? [] : ['-w']), spec], cliEnv)
+  }
+  async function install(archive, expected) {
+    installLocalBundle(archive)
     const installed = join(profileDir, 'node_modules', packageName)
     const profileManifest = JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'))
     assert(profileManifest.dsh.profile.bundles.includes(packageName), 'Bundle is not enabled')
@@ -236,7 +241,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       } else {
         browser = await chromium.launch({
           executablePath: resolve(options.chrome),
-          headless: ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance', 'artwork', 'scenes', 'scene-previews'].includes(options.suite),
+          headless: ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance', 'artwork', 'scenes', 'scene-previews', 'tokens', 'dual-appearance'].includes(options.suite),
           ...(signal ? { handleSIGINT: false, handleSIGTERM: false } : {}),
           ignoreDefaultArgs: ['--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'],
         })
@@ -271,5 +276,5 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       })()
     }
   }
-  return { open, install, profileDir }
+  return { open, install, installLocalBundle, profileDir }
 }

@@ -33,8 +33,8 @@ async function clientArtifact(globals = {}) {
 }
 
 async function switchFixture({ initial = null, previewMs, prepare, onMount, onSave, switchAppearance = () => undefined,
-  catalogue = () => choices } = {}) {
-  const { createSkinSwitch } = await clientArtifact()
+  catalogue = () => choices, getColorScheme = () => 'dark', globals } = {}) {
+  const { createSkinSwitch } = await clientArtifact(globals)
   let disk = { skinId: initial, revision: 0 }
   let visual = null
   const writes = []
@@ -56,14 +56,17 @@ async function switchFixture({ initial = null, previewMs, prepare, onMount, onSa
     },
   }
   const controller = createSkinSwitch({
-    api, previewMs, blockReason() {}, switchAppearance,
-    mount(data, preferences) {
+    api, previewMs, getColorScheme, blockReason() {}, switchAppearance,
+    mount({ preferences }, data, artwork) {
       const id = data.manifest.id
-      onMount?.(id, data, preferences)
+      onMount?.(id, data, preferences, artwork)
       assert.equal(visual, null)
       visual = id
       mounts.push(id)
-      return () => { assert.equal(visual, id); visual = null }
+      return {
+        update(next, art) { onMount?.(id, next, preferences, art) },
+        release() { assert.equal(visual, id); visual = null },
+      }
     },
   })
   await controller.refresh()
@@ -221,6 +224,85 @@ test('preference previews are reversible and same-skin write failures reconcile 
   assert.equal(controller.getSnapshot().notice, '')
 })
 
+test('dual appearance resolves the latest mode after decoding and preserves the saved skin and preferences', async t => {
+  const light = Promise.withResolvers()
+  const dark = Promise.withResolvers()
+  const decoding = Promise.withResolvers()
+  const requested = []
+  let missing = false
+  class Image {
+    removeAttribute() {}
+    decode() {
+      const path = new URL(this.src).pathname
+      requested.push(path)
+      if (requested.length === 2) decoding.resolve()
+      if (missing && path === '/night.webp') return Promise.reject(new Error('Missing variant asset'))
+      return path === '/night.webp' ? dark.promise : light.promise
+    }
+  }
+  const dual = { ...choices[0], manifest: { ...choices[0].manifest, colorScheme: 'both' } }
+  let scheme = 'light'
+  let visual
+  let fail = false
+  let failures = 0
+  const { controller, disk, writes, change, visual: active } = await switchFixture({
+    globals: { Image, document: { baseURI: 'http://skin.test/' } },
+    catalogue: () => [dual],
+    getColorScheme: () => scheme,
+    prepare: choice => ({
+      ...dataFor(choice), tokens: { colors: { canvas: '#f8f8f8', surface: '#efe9e1', accent: '#844f81' },
+        variants: { dark: { canvas: '#182032', accent: '#88ccff' } } },
+      scene: { layout: {} }, sceneArtworkUrl: '/day.webp', sceneArtworkVariants: { dark: '/night.webp' },
+    }),
+    onMount(_id, data, _preferences, artwork) {
+      if (fail && data.tokens.colors.canvas === '#f8f8f8') {
+        failures++
+        throw new Error('Injected appearance failure')
+      }
+      visual = [data.tokens.colors.canvas, data.tokens.colors.surface, data.tokens.colors.accent,
+        artwork && new URL(artwork.image.src).pathname]
+    },
+  })
+  t.after(() => controller.dispose())
+  const original = { skinId: 'a', revision: 5, preferences: { a: { colors: { surface: '#ebe6dd' } } } }
+  change(original)
+  const refresh = controller.refresh()
+  await decoding.promise
+  light.resolve()
+  scheme = 'dark'
+  controller.appearanceChanged()
+  dark.resolve()
+  await refresh
+  assert.deepEqual(visual, ['#182032', '#ebe6dd', '#88ccff', '/night.webp'])
+  scheme = 'light'
+  controller.appearanceChanged()
+  assert.deepEqual(visual, ['#f8f8f8', '#ebe6dd', '#844f81', '/day.webp'])
+  scheme = 'dark'
+  controller.appearanceChanged()
+  assert.deepEqual(visual, ['#182032', '#ebe6dd', '#88ccff', '/night.webp'])
+  assert.deepEqual(requested, ['/day.webp', '/night.webp'])
+  assert.deepEqual(disk(), original)
+  assert.deepEqual(writes, [])
+  fail = true
+  scheme = 'light'
+  controller.appearanceChanged()
+  controller.appearanceChanged()
+  assert.equal(active(), null)
+  assert.equal(failures, 1)
+  assert.match(controller.getSnapshot().notice, /Injected appearance failure/)
+  scheme = 'dark'
+  controller.appearanceChanged()
+  assert.equal(active(), 'a')
+  assert.deepEqual(disk(), original)
+  await controller.apply(null)
+  assert.equal(controller.getSnapshot().rendered, null)
+  missing = true
+  await controller.preview('a')
+  assert.equal(active(), 'a')
+  assert.deepEqual(visual, ['#182032', '#ebe6dd', '#88ccff', undefined])
+  assert.equal(disk().skinId, null)
+})
+
 test('client installs the real settings slot and yields without removing foreign marks', async () => {
   const root = new Map()
   const body = new Set()
@@ -239,9 +321,11 @@ test('client installs the real settings slot and yields without removing foreign
     observe() { observing = true }
     disconnect() { observing = false }
   }
+  const data = dataFor(choices[0])
+  Object.assign(data.tokens.colors, { surfaceRaised: '#18212c', accent: '#adc5e0', textPrimary: '#f6ead0', textSecondary: '#c0d0e0' })
   const fetch = async url => Response.json(url.pathname.endsWith('/skins') ? { skins: choices, issues: [], placeholderUrl: 'placeholder.svg' }
     : url.pathname.endsWith('/selection') ? { skinId: 'a', revision: 1 }
-    : dataFor(choices[0]))
+    : data)
   const window = { addEventListener() {}, removeEventListener() {} }
   const plugin = await clientArtifact({ document, window, fetch, MutationObserver: Observer })
   let cleanup, controller, paletteChange, tokens, presented
@@ -274,6 +358,7 @@ test('client installs the real settings slot and yields without removing foreign
   try {
     await controller.refresh()
     assert.equal(root.get('data-dsh-skin-id'), 'a')
+    assert.deepEqual(Object.keys(tokens).sort(), ['--dsw-alias-bg-base', '--dsw-specific-sidebar-fill'])
     assert.equal(tokens['--dsw-alias-bg-base'].dark, '#0b1220')
     assert.equal(tokens['--dsw-specific-sidebar-fill'].dark, '#19283a')
     for (const marker of ['data-we-wallpaper', 'data-dsh-maid-atelier', 'data-dsh-orca-link']) {

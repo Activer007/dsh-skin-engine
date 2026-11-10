@@ -23,6 +23,8 @@ PR-01 · M0 实测记录
 
 ## T0-02 令牌与表面
 
+NEXT-06 的实际计算样式、前景对比度及回退证据见 [Web 与 Windows Desktop 语义 Token 矩阵](host-token-matrix.md)。
+
 样机以独立来源调用 `theme.overrideTokens`，探测 `--dsw-alias-bg-base` 与 `--dsw-specific-sidebar-fill` 的浅深值。源码候选为 `body` 和 `[data-slot="sidebar"]` 的布局父元素。槽出口为 `display: contents`。表面开放前要记录唯一命中、布局盒子和计算样式，并对照侧栏折叠、编辑器、菜单与弹窗。 [令牌实现](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/client/ui-theme/src/client/index.ts#L376) · [侧栏布局](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/client/ui-layout/src/client/AppFrame.tsx#L290)
 
 Windows Desktop 的侧栏槽唯一命中，父元素生成 280 px 宽的布局盒子。浅色时，`body` 背景从 `rgb(255, 255, 255)` 变为 `rgb(232, 243, 252)`，侧栏从 `rgb(249, 250, 251)` 变为 `rgb(215, 233, 248)`。深色时，背景从 `rgb(21, 21, 23)` 变为 `rgb(19, 31, 51)`，侧栏从 `rgb(27, 27, 28)` 变为 `rgb(29, 52, 81)`。撤回后恢复原值和尺寸。当前 [表面映射](../src/adapter/surface-map.ts) 记录令牌载体。Web 从 1280 × 900 收窄到 520 × 780，设置页内容仍在视口内，按钮可获得焦点，侧栏槽保持 `display: contents`。关闭设置后，原生编辑器可获得焦点并接受、清除测试文本。侧栏收起和装饰层几何仍需进一步验证。

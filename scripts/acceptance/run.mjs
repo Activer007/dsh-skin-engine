@@ -7,11 +7,14 @@ import { parseArgs } from 'node:util'
 import { settings, switchSkins } from './browser.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
+import { checkDualAppearance } from './dual-appearance.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
 import { checkPackages, checkSample } from './packages.mjs'
 import { performanceComparison, visibilityCycle } from './rendering.mjs'
 import { checkSceneSamples } from './scenes.mjs'
 import { checkSurfaces, seedSurfaceHistory } from './surfaces.mjs'
+import { installTokenProbe } from './token-probe.mjs'
+import { checkTokens } from './tokens.mjs'
 import { saveOldSelection, verifyUpgrade } from './upgrade.mjs'
 import { checkPackageUpdates } from './updates.mjs'
 
@@ -41,15 +44,17 @@ const upgrade = options.suite === 'upgrade'
 const packages = options.suite === 'packages'
 const packageUpdate = options.suite === 'package-update'
 const appearance = options.suite === 'appearance'
+const dual = options.suite === 'dual-appearance'
 const artwork = options.suite === 'artwork'
+const tokens = options.suite === 'tokens'
 const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || packageUpdate || appearance || artwork || scenes || sample || options.suite === 'surfaces'
+assert(upgrade || packages || packageUpdate || appearance || dual || artwork || scenes || sample || tokens || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
-assert(!(packages || scenes) || options['sample-dir'], 'Package and scene acceptance need --sample-dir')
+assert(!(packages || scenes || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
 assert(!sample || options['sample-zip'], 'Sample acceptance needs --sample-zip')
 assert(!appearance || !desktop, 'Appearance acceptance targets the official Web host')
 assert(desktop ? process.platform === 'win32' && options['desktop-exe'] : options['web-cli'] && options.chrome,
@@ -70,7 +75,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const interruption = appearance || artwork || scenes ? new AbortController() : undefined
+const interruption = appearance || dual || artwork || scenes || tokens ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
 const includes = name => suites.includes(name)
@@ -89,6 +94,7 @@ if (interruption) {
 async function enter(open, lifecycle, appearance) {
   session = await open(lifecycle)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
+  if ((tokens || dual) && desktop) await session.show()
   return settings(session.page, desktop, appearance)
 }
 
@@ -98,7 +104,7 @@ try {
   const firstArchive = upgrade ? resolve(options['from-archive']) : options.archive
   const firstArtifact = upgrade ? await identify(firstArchive, run.hostVersion) : run.artifact
   if (interruption) run.gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
-  const { open, install, profileDir } = await prepareHost(
+  const { open, install, installLocalBundle, profileDir } = await prepareHost(
     { ...options, archive: firstArchive, signal: interruption?.signal }, directory, firstArtifact, run.web,
   )
   const openInProfile = async appearance => {
@@ -106,7 +112,22 @@ try {
     const ui = await enter(open, cssSample && appearance !== null, appearance)
     return { ui, foreground: session.show, hide: session.hide, browser: session.browser, resize: session.resize }
   }
-  if (includes('surfaces') || sample || artwork || scenes) await seedSurfaceHistory(directory, profileDir, scenes)
+  if (includes('surfaces') || sample || artwork || scenes || tokens || dual) {
+    await seedSurfaceHistory(directory, profileDir, { bilingual: scenes, secondTurn: tokens })
+  }
+  if (tokens) {
+    await installTokenProbe(directory, installLocalBundle)
+    const tokensUi = await enter(open, false)
+    run.tokens = {}
+    await checkTokens(session, tokensUi, resolve(options['sample-dir']), profileDir, run.tokens)
+    interruption.signal.throwIfAborted()
+  }
+  if (dual) {
+    run.dualAppearance = {}
+    await checkDualAppearance(openInProfile, directory, run.dualAppearance, desktop)
+    interruption.signal.throwIfAborted()
+    console.log('Verified dual appearance, decoded artwork, saved preferences, restart, and Default')
+  }
   if (scenes) {
     const scenesUi = await enter(open, false)
     run.scenes = {}
@@ -202,7 +223,7 @@ try {
 } finally {
   try {
     await session?.close()
-    if ((artwork || scenes) && session) run.browserDisconnected = !session.browser.isConnected()
+    if ((artwork || scenes || tokens || dual) && session) run.browserDisconnected = !session.browser.isConnected()
   } finally {
     if (interruption) {
       process.off('SIGINT', interrupt)

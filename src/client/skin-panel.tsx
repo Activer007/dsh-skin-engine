@@ -157,7 +157,7 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
             })}
           </ul>
         </section>
-        {choice ? <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} id={detailId} choice={choice} controller={controller}
+        {choice ? <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} id={detailId} choice={choice} scheme={scheme} controller={controller}
           preferences={preferencesFor(state.saved?.preferences, choice.manifest.id)} revision={state.saved?.revision}
           applied={state.preview === null && state.rendered === choice.manifest.id && state.saved?.skinId === choice.manifest.id}
           busy={state.saving} onVersionNotice={setVersionNotice} /> : null}

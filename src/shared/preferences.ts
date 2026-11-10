@@ -1,5 +1,5 @@
 import type { SkinEffect } from '../core/effects.js'
-import type { parseSkinTokens } from '../core/tokens.js'
+import type { ColorScheme, parseSkinTokens } from '../core/tokens.js'
 
 export const qualityLevels = ['low', 'balanced', 'high', 'auto'] as const
 export type QualityChoice = (typeof qualityLevels)[number]
@@ -62,13 +62,19 @@ function overrideEffect(effect: SkinEffect, overrides: SkinPreferences['effects'
   }
 }
 
+export function resolveSkinColors(tokens: ReturnType<typeof parseSkinTokens>, scheme?: ColorScheme) {
+  const overrides = scheme && tokens.variants?.[scheme]
+  return overrides ? { ...tokens.colors, ...overrides } : tokens.colors
+}
+
 export function applyPreferences<T extends { tokens: ReturnType<typeof parseSkinTokens>; effects: SkinEffect[] }>(
-  data: T, preferences: SkinPreferences | undefined,
+  data: T, preferences: SkinPreferences | undefined, scheme?: ColorScheme,
 ): T {
-  if (!preferences && !data.effects.some(effect => effect.id === 'glass.refraction' && effect.enabled)) return data
+  const colors = resolveSkinColors(data.tokens, scheme)
+  if (colors === data.tokens.colors && !preferences && !data.effects.some(effect => effect.id === 'glass.refraction' && effect.enabled)) return data
   return {
     ...data,
-    tokens: { ...data.tokens, colors: { ...data.tokens.colors, ...preferences?.colors } },
+    tokens: { ...data.tokens, colors: { ...colors, ...preferences?.colors } },
     effects: data.effects.map(effect => overrideEffect(effect, preferences?.effects)),
   }
 }

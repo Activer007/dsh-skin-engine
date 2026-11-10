@@ -1,3 +1,4 @@
+import type { ColorScheme } from '../core/tokens.js'
 import type { PreparedArtwork, SkinSelection } from '../shared/skins.js'
 import { applyPreferences, preferencesFor, samePreferences, type SkinPreferences } from '../shared/preferences.js'
 import { canActivate, type skinApi, type SkinCatalogue, type SkinChoice, type SkinData } from './skin-api.js'
@@ -6,7 +7,12 @@ interface PreparedSkin {
   choice: SkinChoice
   data: SkinData
   preferences?: SkinPreferences
-  artwork?: PreparedArtwork
+  artwork?: PreparedArtwork | Record<ColorScheme, PreparedArtwork | undefined>
+}
+
+interface MountedSkin {
+  update(data: SkinData, artwork?: PreparedArtwork): void
+  release(): void
 }
 
 export interface PreferenceDraft { value: SkinPreferences | null; revision: number }
@@ -26,9 +32,10 @@ interface SwitchState {
 
 interface SwitchOptions {
   api: typeof skinApi
+  getColorScheme(): ColorScheme
   blockReason(choice: SkinChoice, intent?: 'render' | 'apply'): string | undefined
   switchAppearance(choice: SkinChoice): (() => void) | undefined
-  mount(data: SkinData, preferences?: SkinPreferences, artwork?: PreparedArtwork): () => void
+  mount(skin: PreparedSkin, data: SkinData, artwork?: PreparedArtwork): MountedSkin
   previewMs?: number
 }
 
@@ -59,16 +66,24 @@ async function decodeArtwork(url: string, signal: AbortSignal) {
   }
 }
 
-async function prepareArtwork(data: SkinData, signal: AbortSignal): Promise<PreparedArtwork | undefined> {
+async function prepareArtwork(data: SkinData, signal: AbortSignal): Promise<PreparedSkin['artwork']> {
   if (data.scene) {
-    if (!data.sceneArtworkUrl) return
-    try {
-      const image = await decodeArtwork(data.sceneArtworkUrl, AbortSignal.any([signal, AbortSignal.timeout(10_000)]))
-      return { kind: 'scene', image, layout: data.scene.layout }
-    } catch {
-      signal.throwIfAborted()
-      return // A scene's canvas remains usable if its decorative image cannot decode.
+    const { layout } = data.scene
+    async function decode(url: string | undefined): Promise<PreparedArtwork | undefined> {
+      if (!url) return
+      try {
+        const image = await decodeArtwork(url, AbortSignal.any([signal, AbortSignal.timeout(10_000)]))
+        return { kind: 'scene', image, layout }
+      } catch {
+        signal.throwIfAborted()
+        return // A scene's canvas remains usable if its decorative image cannot decode.
+      }
     }
+    const light = data.sceneArtworkVariants?.light ?? data.sceneArtworkUrl
+    const dark = data.sceneArtworkVariants?.dark ?? data.sceneArtworkUrl
+    if (light === dark) return decode(light)
+    const [lightArtwork, darkArtwork] = await Promise.all([decode(light), decode(dark)])
+    return { light: lightArtwork, dark: darkArtwork }
   }
   if (!data.art) return
   try {
@@ -79,7 +94,7 @@ async function prepareArtwork(data: SkinData, signal: AbortSignal): Promise<Prep
   }
 }
 
-export function createSkinSwitch({ api, blockReason, switchAppearance, mount, previewMs = 30_000 }: SwitchOptions) {
+export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppearance, mount, previewMs = 30_000 }: SwitchOptions) {
   let state: SwitchState = {
     catalogue: null, catalogueNotice: '', saved: null, rendered: null, preview: null, pending: null, saving: false, notice: '',
   }
@@ -88,7 +103,8 @@ export function createSkinSwitch({ api, blockReason, switchAppearance, mount, pr
   let committed: PreparedSkin | null = null
   let preview: PreparedSkin | null = null
   let details: { choice: SkinChoice; data: SkinData } | undefined
-  let active: { skin: PreparedSkin; release: () => void } | undefined
+  let active: { skin: PreparedSkin; scheme?: ColorScheme; mount: MountedSkin } | undefined
+  let failedRender: { skin: PreparedSkin; scheme?: ColorScheme; reason: string } | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
   let catalogueRefreshQueued = false
   let disposed = false
@@ -102,17 +118,33 @@ export function createSkinSwitch({ api, blockReason, switchAppearance, mount, pr
   function releaseActive() {
     const previous = active
     active = undefined
-    previous?.release()
+    previous?.mount.release()
   }
 
   function render(skin: PreparedSkin | null): string | undefined {
-    const reason = skin ? blockReason(skin.choice) : undefined
-    if (skin && !reason && active?.skin === skin) return
-    releaseActive()
-    publish({ rendered: null })
-    if (skin && !reason) {
-      active = { skin, release: mount(applyPreferences(skin.data, skin.preferences), skin.preferences, skin.artwork) }
-      publish({ rendered: skin.choice.manifest.id })
+    const scheme = skin && (skin.data.tokens.variants || skin.data.sceneArtworkVariants) ? getColorScheme() : undefined
+    const failure = failedRender?.skin === skin && failedRender.scheme === scheme ? failedRender.reason : undefined
+    const reason = skin ? blockReason(skin.choice) ?? failure : undefined
+    if (skin && !reason && active?.skin === skin && active.scheme === scheme) return
+    try {
+      if (skin && !reason) {
+        if (active?.skin !== skin) releaseActive()
+        const art = skin.artwork
+        const artwork = art && ('kind' in art ? art : scheme && art[scheme])
+        const data = applyPreferences(skin.data, skin.preferences, scheme)
+        if (active) {
+          active.mount.update(data, artwork)
+          active.scheme = scheme
+        } else active = { skin, scheme, mount: mount(skin, data, artwork) }
+        failedRender = undefined
+      } else releaseActive()
+    } catch (error) {
+      if (skin) failedRender = { skin, scheme, reason: describe(error) }
+      releaseActive()
+      throw error
+    } finally {
+      const rendered = active?.skin.choice.manifest.id ?? null
+      if (rendered !== state.rendered) publish({ rendered })
     }
     return reason
   }
@@ -126,6 +158,7 @@ export function createSkinSwitch({ api, blockReason, switchAppearance, mount, pr
 
   function begin(kind: OperationKind) {
     operation?.abort()
+    failedRender = undefined
     clearTimeout(timer)
     operation = new AbortController()
     publish({ pending: kind, notice: '' })
@@ -316,8 +349,17 @@ export function createSkinSwitch({ api, blockReason, switchAppearance, mount, pr
       } else if (!active && !state.pending) {
         publish({ notice: restore() ?? '' })
       } else {
-        // The selected card may have a different appearance requirement from the rendered skin.
-        publish({})
+        try {
+          if (active) render(active.skin)
+          // The selected card can have a different appearance requirement from the rendered skin.
+          publish({})
+        } catch (error) {
+          if (preview) {
+            clearPreview()
+            restore()
+          }
+          publish({ notice: describe(error) })
+        }
       }
     },
     dispose() {

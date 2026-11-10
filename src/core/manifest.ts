@@ -5,7 +5,9 @@ import { invalid, parseFile, type SkinDiagnostic } from './validation.js'
 
 const LEGACY_API_VERSION = '1.0.0'
 const SCENE_API_VERSION = '1.1.0'
-export const ENGINE_API_VERSION = '1.2.0'
+const SCENE_PRESET_API_VERSION = '1.2.0'
+export const DUAL_APPEARANCE_API_VERSION = '1.3.0'
+export const ENGINE_API_VERSION = DUAL_APPEARANCE_API_VERSION
 
 const capabilities = ['tokens', 'css', 'assets', 'effects:css', 'effects:canvas2d', 'effects:webgl', 'scene'] as const
 const segment = /^[a-z0-9_-][a-z0-9_.-]*$/i
@@ -100,6 +102,7 @@ export function checkSkinCompatibility(manifest: SkinManifest, dshVersion: strin
     }
   }
   const compatible = satisfies(ENGINE_API_VERSION, manifest.engineApi)
+    || satisfies(SCENE_PRESET_API_VERSION, manifest.engineApi)
     || satisfies(SCENE_API_VERSION, manifest.engineApi)
     || (!manifest.entry.scene && satisfies(LEGACY_API_VERSION, manifest.engineApi))
   if (!compatible) {

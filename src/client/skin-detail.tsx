@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react'
-import { editableColors, effectStrength, qualityLevels, samePreferences, type EditableEffect, type QualityChoice,
+import type { ColorScheme } from '../core/tokens.js'
+import { editableColors, effectStrength, qualityLevels, resolveSkinColors, samePreferences, type EditableEffect, type QualityChoice,
   type SkinPreferences } from '../shared/preferences.js'
 import { PackageActions } from './package-controls.js'
 import { canActivate, type SkinChoice, type SkinData } from './skin-api.js'
@@ -27,6 +28,7 @@ function pickerColor(color: string | undefined) {
 interface DetailProps {
   id: string
   choice: SkinChoice
+  scheme: ColorScheme
   controller: ReturnType<typeof createSkinSwitch>
   preferences?: SkinPreferences
   revision?: number
@@ -35,11 +37,12 @@ interface DetailProps {
   onVersionNotice(message: string): void
 }
 
-export function SkinDetail({ id, choice, controller, preferences, revision, applied, busy, onVersionNotice }: DetailProps) {
+export function SkinDetail({ id, choice, scheme, controller, preferences, revision, applied, busy, onVersionNotice }: DetailProps) {
   const [result, setResult] = useState<{ data?: SkinData; error?: string }>()
   const [draft, setDraft] = useState<PreferenceDraft>()
   const statusId = useId()
   const { manifest, compatibility } = choice
+  const colors = result?.data && resolveSkinColors(result.data.tokens, scheme)
   const blocked = compatibility?.message ?? (!canActivate(choice) ? 'Local activation requires a validated installation.' : undefined)
   const values = (draft ? draft.value : preferences) ?? {}
   const disabled = busy || revision === undefined || Boolean(blocked) || !result?.data
@@ -90,9 +93,9 @@ export function SkinDetail({ id, choice, controller, preferences, revision, appl
           <fieldset disabled={disabled}>
             <legend>Preferences</legend>
             <div className="dsh-skin-fields">
-              {editableColors.filter(key => result.data?.tokens.colors[key] !== undefined).map(key => (
+              {editableColors.filter(key => colors?.[key] !== undefined || values.colors?.[key] !== undefined).map(key => (
                 <label key={key}>{colorNames[key]}
-                  <input type="color" value={pickerColor(values.colors?.[key] ?? result.data?.tokens.colors[key])}
+                  <input type="color" value={pickerColor(values.colors?.[key] ?? colors?.[key])}
                     onChange={event => edit({ ...values, colors: { ...values.colors, [key]: event.currentTarget.value } })} />
                 </label>
               ))}
