@@ -42,7 +42,8 @@ function reject(operation, file, path, code) {
 
 test('the exact Host artifact reads and validates the packaged examples', async () => {
   const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
-  assert.equal(pkg.engines.dsh, dshVersion)
+  assert.equal(pkg.engines.dsh, `>=${dshVersion}`)
+  assert.equal(pkg.peerDependencies['@deepseek-ai/dsh-app-boot'], pkg.engines.dsh)
   const examples = await readBuiltInSkins()
   assert.deepEqual(examples.map(example => example.manifest.id), [
     'com.dsh.skin.deep-ocean', 'com.dsh.skin.aurora', 'com.dsh.skin.obsidian-neon', 'com.dsh.skin.paper-light',
@@ -185,9 +186,12 @@ test('manifest version, runtime adapter, and data API requirements are independe
   assert.equal(parseSkinManifest({ ...manifest, version: '1.0.0-rc.1+build.2' }).version, '1.0.0-rc.1+build.2')
   const parsed = parseSkinManifest(manifest)
   assert.equal(checkSkinCompatibility(parsed, dshVersion), undefined)
-  // A DSH profile exemption can load the engine; it cannot add a verified adapter.
-  for (const runtime of [undefined, '0.2.2', '0.2.2-alpha.1', '0.3.0-rc.1', '0.2.2rc1']) {
+  for (const runtime of [undefined, '', '0.2.1-rc.4', '0.2.2-rc.0', '0.2.2-alpha.1', '0.2.2rc1']) {
     assert.equal(checkSkinCompatibility(parsed, runtime).code, 'unsupported-host')
+    assert.match(checkSkinCompatibility(parsed, runtime).message, /requires DSH >=0\.2\.2-rc\.1/)
+  }
+  for (const runtime of ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2', '0.2.3-alpha.1', '0.3.0-rc.1', '1.0.0']) {
+    assert.equal(checkSkinCompatibility(parsed, runtime), undefined)
   }
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...manifest, engineApi: '^2.0.0' }), dshVersion).code, 'incompatible-engine')
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...manifest, dshCompatibility: '>=0.3.0' }), dshVersion).code, 'incompatible-dsh')

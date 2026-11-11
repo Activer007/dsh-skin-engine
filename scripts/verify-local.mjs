@@ -5,6 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeF
 import { platform, release } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { minVersion } from 'semver'
 
 const [trust, commit, output = '.cache/local-verification', ...extra] = process.argv.slice(2)
 assert(trust === 'trusted-commit' && /^[0-9a-f]{40}$/.test(commit ?? '') && !extra.length,
@@ -101,7 +102,8 @@ async function packageFiles(label, source) {
   })
   writeFileSync(join(output, 'SHA256SUMS.txt'), artifacts.map(({ name, sha256 }) => `${sha256}  ${name}`).join('\n') + '\n')
   assert.equal(git(['status', '--porcelain', '--untracked-files=no'], source), '', 'Build modified tracked source')
-  return { engineVersion: manifest.version, hostVersion: manifest.engines.dsh, archiveEntries, artifacts }
+  return { engineVersion: manifest.version, hostVersion: minVersion(manifest.engines.dsh)?.version,
+    hostVersionRange: manifest.engines.dsh, archiveEntries, artifacts }
 }
 
 console.log(`Local verification output: ${directory}`)

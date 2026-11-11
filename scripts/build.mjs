@@ -3,6 +3,7 @@ import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
+import { minVersion } from 'semver'
 
 const root = new URL('../', import.meta.url)
 const packageJson = JSON.parse(await readFile(new URL('package.json', root), 'utf8'))
@@ -104,6 +105,6 @@ await Promise.all(builtInSkinDirectories.map(async directory => {
   }))
 }))
 for (const { manifest, diagnostics } of await readBuiltInSkins()) {
-  const problem = checkSkinCompatibility(manifest, packageJson.engines.dsh) ?? diagnostics[0]
+  const problem = checkSkinCompatibility(manifest, minVersion(packageJson.engines.dsh)?.version) ?? diagnostics[0]
   if (problem) throw new Error(`${manifest.id}: ${problem.message}`)
 }

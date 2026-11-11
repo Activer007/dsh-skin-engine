@@ -1,12 +1,12 @@
 {
   "name": "dsh-plugin-skin-engine",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Declarative skin engine for DeepSeek Harness",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=24.9",
-    "dsh": "0.2.2-rc.1"
+    "dsh": ">=0.2.2-rc.1"
   },
   "exports": {
     ".": "./lib/host.js",
@@ -45,7 +45,7 @@
     "prepack": "npm run build"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-app-boot": "0.2.2-rc.1"
+    "@deepseek-ai/dsh-app-boot": ">=0.2.2-rc.1"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/dsh-app-boot": {

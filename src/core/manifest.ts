@@ -1,6 +1,6 @@
 import { gte, minVersion, satisfies, valid, validRange } from 'semver'
 import * as z from 'zod/mini'
-import { SUPPORTED_DSH_VERSION } from '../shared/compatibility.js'
+import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
 import { invalid, parseFile, type SkinDiagnostic } from './validation.js'
 
 const LEGACY_API_VERSION = '1.0.0'
@@ -96,10 +96,10 @@ export function parseSkinManifest(value: unknown): SkinManifest {
 }
 
 export function checkSkinCompatibility(manifest: SkinManifest, dshVersion: string | undefined): SkinDiagnostic | undefined {
-  if (dshVersion !== SUPPORTED_DSH_VERSION) {
+  if (!dshVersion || !valid(dshVersion) || !gte(dshVersion, MINIMUM_DSH_VERSION)) {
     return {
       file: 'skin.json', path: 'dshCompatibility', code: 'unsupported-host',
-      message: `DSH ${dshVersion ?? '(unknown)'} has no verified adapter`,
+      message: `Unsupported DSH version ${dshVersion ?? '(unknown)'}. Skin Engine requires DSH >=${MINIMUM_DSH_VERSION}.`,
     }
   }
   const compatible = satisfies(ENGINE_API_VERSION, manifest.engineApi)

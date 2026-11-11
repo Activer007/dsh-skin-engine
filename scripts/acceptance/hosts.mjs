@@ -7,6 +7,7 @@ import { createServer } from 'node:net'
 import { dirname, join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { chromium } from 'playwright-core'
+import { satisfies } from 'semver'
 
 const packageName = 'dsh-plugin-skin-engine'
 const hostProfile = 'skin-engine-acceptance'
@@ -17,7 +18,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 export async function identify(archive, hostVersion) {
   const manifest = JSON.parse(archived(archive, 'package.json'))
   assert.equal(manifest.name, packageName)
-  assert.equal(manifest.engines.dsh, hostVersion)
+  assert(satisfies(hostVersion, manifest.engines.dsh, { includePrerelease: true }), 'Archive does not support the requested DSH version')
   return {
     version: manifest.version,
     sha256: hash(await readFile(archive)),
@@ -33,8 +34,8 @@ export function redact(message) {
     .replace(/(\bBearer\s+)[^\s"',;]+/gi, '$1[redacted]')
 }
 
-async function until(check, label) {
-  const deadline = Date.now() + 45_000
+async function until(check, label, timeout = 45_000) {
+  const deadline = Date.now() + timeout
   while (Date.now() < deadline) {
     const value = await check()
     if (value) return value
@@ -245,7 +246,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       const launchUrl = await until(() => {
         signal?.throwIfAborted()
         return app.output().match(/http:\/\/127\.0\.0\.1:\d+\/\?token=[A-Za-z0-9._~%+-]+/)?.[0]
-      }, 'the Web launch URL')
+      }, 'the Web launch URL', 90_000)
       attempt.announcedInMs = Date.now() - started
       attempt.origin = new URL(launchUrl).origin
       attempt.stage = 'browser'

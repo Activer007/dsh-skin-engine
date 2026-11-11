@@ -1,8 +1,8 @@
-import { SUPPORTED_DSH_VERSION } from '../shared/compatibility.js'
+import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
 
 /** Token and layout carriers verified in official DSH 0.2.2-rc.1. */
 export const auditedSurfaceMap = {
-  host: SUPPORTED_DSH_VERSION,
+  host: MINIMUM_DSH_VERSION,
   surfaces: {
     'app.canvas': {
       anchor: 'body',
