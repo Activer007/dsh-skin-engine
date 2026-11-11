@@ -17,7 +17,7 @@ const palettes = {
 const artwork = '[data-dsh-skin-scene-artwork] > img'
 const samples = new URL('../../DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/', import.meta.url)
 
-async function sampleZip() {
+export async function packDualAppearanceFixture() {
   const zip = new ZipFile()
   const add = (path, bytes) => zip.addBuffer(Buffer.from(bytes), path, { mtime: new Date('2026-01-01T00:00:00Z') })
   const json = (path, value) => add(path, JSON.stringify(value))
@@ -84,7 +84,7 @@ export async function checkDualAppearance(openInProfile, directory, evidence, de
   evidence.legacy = { decoded: true, restored: await palette(ui.page) }
   assert.deepEqual(evidence.legacy.restored, native)
 
-  const zip = await sampleZip()
+  const zip = await packDualAppearanceFixture()
   evidence.sampleSha256 = createHash('sha256').update(zip).digest('hex')
   await packagePanel(ui).install(`${skin.id}.dshskin.zip`, zip)
   await ui.choose(skin)

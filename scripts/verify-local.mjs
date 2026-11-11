@@ -5,7 +5,10 @@ import { mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeF
 import { platform, release } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { buffer } from 'node:stream/consumers'
 import { minVersion } from 'semver'
+import { openPromise } from 'yauzl'
+import { assetPaths, examples, loadReleaseAssets, releaseSampleDirectories } from './release-assets.mjs'
 
 const [trust, commit, output = '.cache/local-verification', ...extra] = process.argv.slice(2)
 assert(trust === 'trusted-commit' && /^[0-9a-f]{40}$/.test(commit ?? '') && !extra.length,
@@ -27,8 +30,7 @@ const report = {
 }
 const checkouts = []
 const readJson = path => JSON.parse(readFileSync(path, 'utf8'))
-const samples = ['skins/ink-focus', 'skins/warm-dusk', 'templates/starter']
-const examples = 'DSH_Skin_Engine_Development_Pack_v1.0/examples'
+const samples = [...releaseSampleDirectories, 'templates/starter']
 
 function run(step, command, args, cwd) {
   const result = spawnSync(command, args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 16 * 1024 * 1024 })
@@ -43,6 +45,33 @@ function run(step, command, args, cwd) {
 
 const npm = (step, args, cwd) => run(step, process.execPath, [process.env.npm_execpath, ...args], cwd)
 const node = (step, args, cwd) => run(step, process.execPath, args, cwd)
+const digest = bytes => createHash('sha256').update(bytes).digest('hex')
+
+function checkAssetBytes(inventory, bytes, key) {
+  const record = inventory.get(key)
+  assert(record, `Missing release asset record: ${key}`)
+  assert.equal(bytes.length, record.bytes, key)
+  assert.equal(digest(bytes), record.sha256, key)
+}
+
+async function checkZip(inventory, archive, directory, manifest, expectedId) {
+  const expectedAssets = assetPaths(manifest)
+  const zip = await openPromise(archive)
+  const names = []
+  let id
+  try {
+    for await (const entry of zip.eachEntry()) {
+      const name = entry.fileName
+      names.push(name)
+      if (name === 'skin.json') id = JSON.parse(await buffer(await zip.openReadStreamPromise(entry))).id
+      if (expectedAssets.has(name)) {
+        checkAssetBytes(inventory, await buffer(await zip.openReadStreamPromise(entry)), `${examples}/${directory}/${name}`)
+      }
+    }
+  } finally { zip.close() }
+  assert.equal(id, expectedId, archive)
+  assert.deepEqual(names.sort(), ['skin.json', ...Object.values(manifest.entry), ...expectedAssets].sort(), archive)
+}
 
 function checkout(label) {
   const source = join(directory, `${label}-source`)
@@ -58,6 +87,7 @@ async function packageFiles(label, source) {
   const output = join(directory, label)
   mkdirSync(output)
   const manifest = readJson(join(source, 'package.json'))
+  const inventory = await loadReleaseAssets(join(source, 'docs/release-assets.json'))
   const packed = JSON.parse(npm(`${label}-engine`, ['pack', '--json', '--pack-destination', output], source))
   // npm 12 keys pack results by package name. Older npm versions return a list.
   const pack = Array.isArray(packed) ? packed[0] : packed[manifest.name]
@@ -67,17 +97,21 @@ async function packageFiles(label, source) {
   const host = await import(pathToFileURL(join(source, 'lib/host.js')).href)
   const files = new Set([
     'package.json', 'cordis.patch.yml', 'lib/host.js', 'lib/client.js',
-    'lib/THIRD-PARTY-NOTICES.txt', 'docs/release-asset-notes.md',
+    'lib/THIRD-PARTY-NOTICES.txt', 'docs/release-asset-notes.md', 'docs/release-assets.json',
   ])
   const assets = readdirSync(join(source, 'lib/assets'))
   assert.equal(assets.length, 2)
   assert(assets.some(name => /^probe-[a-f0-9]{12}\.svg$/.test(name)))
   assert(assets.some(name => /^preview-placeholder-[a-f0-9]{12}\.svg$/.test(name)))
-  for (const file of assets) files.add(`lib/assets/${file}`)
+  const tarAssets = new Map(assets.map(file => [`lib/assets/${file}`, `src/client/${file.replace(/-[a-f0-9]{12}\.svg$/, '.svg')}`]))
+  for (const file of tarAssets.keys()) files.add(file)
+  const builtInManifests = new Map()
   for (const name of host.builtInSkinDirectories) {
     const prefix = `lib/skins/${name}`
     const skin = host.parseSkinManifest(readJson(join(source, prefix, 'skin.json')))
-    for (const file of ['skin.json', ...Object.values(skin.entry), ...Object.values(skin.preview ?? {}), ...skin.assets ?? []]) {
+    builtInManifests.set(name, skin)
+    for (const path of assetPaths(skin)) tarAssets.set(`${prefix}/${path}`, `${examples}/skins/${name}/${path}`)
+    for (const file of ['skin.json', ...Object.values(skin.entry), ...assetPaths(skin)]) {
       files.add(`${prefix}/${file}`)
     }
   }
@@ -86,19 +120,31 @@ async function packageFiles(label, source) {
   const packedManifest = JSON.parse(run(`${label}-manifest`, 'tar',
     ['-xOzf', join(output, pack.filename), 'package/package.json'], source))
   assert.deepEqual(packedManifest, manifest)
+  for (const [file, key] of tarAssets) {
+    const bytes = execFileSync('tar', ['-xOzf', join(output, pack.filename), `package/${file}`], {
+      windowsHide: true, maxBuffer: 16 * 1024 * 1024,
+    })
+    checkAssetBytes(inventory, bytes, key)
+  }
 
   node(`${label}-samples`, ['scripts/pack-samples.mjs', output], source)
   const zipNames = host.builtInSkinDirectories.map(name => `${name}.dshskin.zip`)
+  for (const [name, skin] of builtInManifests) {
+    await checkZip(inventory, join(output, `${name}.dshskin.zip`), `skins/${name}`, skin, `${skin.id}.sample`)
+  }
   for (const sample of samples) {
     const path = join(examples, sample)
     node(`${label}-${sample.split('/').at(-1)}`, ['scripts/pack-samples.mjs', '--source', path, output], source)
-    zipNames.push(`${readJson(join(source, path, 'skin.json')).id}.dshskin.zip`)
+    const skin = host.parseSkinManifest(readJson(join(source, path, 'skin.json')))
+    const name = `${skin.id}.dshskin.zip`
+    await checkZip(inventory, join(output, name), sample, skin, skin.id)
+    zipNames.push(name)
   }
   const names = readdirSync(output).sort()
   assert.deepEqual(names, [pack.filename, ...zipNames].sort())
   const artifacts = names.map(name => {
     const bytes = readFileSync(join(output, name))
-    return { name, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') }
+    return { name, bytes: bytes.length, sha256: digest(bytes) }
   })
   writeFileSync(join(output, 'SHA256SUMS.txt'), artifacts.map(({ name, sha256 }) => `${sha256}  ${name}`).join('\n') + '\n')
   assert.equal(git(['status', '--porcelain', '--untracked-files=no'], source), '', 'Build modified tracked source')

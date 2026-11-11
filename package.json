@@ -20,7 +20,8 @@
     "lib/THIRD-PARTY-NOTICES.txt",
     "lib/assets",
     "lib/skins",
-    "docs/release-asset-notes.md"
+    "docs/release-asset-notes.md",
+    "docs/release-assets.json"
   ],
   "dsh": {
     "bundle": {

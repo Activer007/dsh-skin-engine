@@ -9,6 +9,7 @@ import { validateSkinCss } from './skin-css.js'
 import { createZipPathIndex, EXPANDED_BYTES, zipPathParts, ZIP_ENTRIES } from './zip-archive.js'
 
 export { ZIP_BYTES }
+export { resourceType }
 
 /** Read a source directory into the same bounded, validated files accepted by ZIP import. */
 export async function readSkinSource(directory: string) {

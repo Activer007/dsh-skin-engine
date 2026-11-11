@@ -1,0 +1,75 @@
+{
+  "provenance": {
+    "engine-svg": {
+      "source": "src/client 下的项目原生 SVG",
+      "author": "DSH Skin Engine 项目",
+      "authorization": "项目自有图形，仓库未单独标注对外许可",
+      "conversion": "构建将行尾归一化为 LF，再按内容哈希命名；无图像转码。"
+    },
+    "web-png": {
+      "source": "官方 DSH Web 0.2.2-rc.1，Chrome 隔离空白会话",
+      "author": "项目采集；DSH 界面及标志归相应权利人",
+      "authorization": "采集来源已登记；截图及标志的对外使用范围待确认",
+      "conversion": "原始 PNG 直接随包复制。"
+    },
+    "web-webp": {
+      "source": "官方 DSH Web 0.2.2-rc.1 隔离空白会话",
+      "author": "项目采集；DSH 界面及标志归相应权利人",
+      "authorization": "采集来源已登记；截图及标志的对外使用范围待确认",
+      "conversion": "1280×820 截图 PNG 转 WebP，保留尺寸；原编码工具版本及参数未核实。"
+    },
+    "scene-preview": {
+      "source": "官方 DSH Web 0.2.2-rc.1 场景样例的标准动效实拍",
+      "author": "项目采集；插画出处见对应插画条目，界面及标志归相应权利人",
+      "authorization": "截图、标志及插画各自的对外使用范围待确认",
+      "conversion": "实拍缩至宽 640 像素后编码为 WebP；精确编码参数未核实。轻量视差直接复制夜航员场景预览。"
+    },
+    "imagegen": {
+      "source": "内置 imagegen 生成，见 release-asset-notes.md 的夜航员与 v1.3 提示词",
+      "author": "DSH Skin Engine 项目使用 imagegen 生成；续集三张以夜航员为人物参考",
+      "authorization": "生成方式已登记；生成原 PNG、原始生成记录及对外使用范围待确认",
+      "conversion": "生成 PNG 转 WebP，场景包复用 WebP；原编码工具版本及参数未核实。"
+    },
+    "user-attachment": {
+      "source": "用户提供的四张附件，顺序见 release-asset-notes.md v1.4",
+      "author": "由用户提供，原作者及生成方式待确认",
+      "authorization": "来源与原始字节已核对；权利人及再分发授权待确认",
+      "conversion": "PNG 按原尺寸及构图转 WebP，场景包复用 WebP；原编码工具版本及参数未核实。"
+    }
+  },
+  "files": [
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/crimson-rain/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 52988, "sha256": "bb083c08c1892735b22624a242d8e4a42c334d6ecb54d377e274185648ddea4f", "provenance": "user-attachment", "original": {"source": "用户附件 4 · codex-clipboard-be79cb4e-582c-4e3e-85d1-fba1f7321864.png", "format": "png", "width": 1672, "height": 941, "bytes": 1720451, "sha256": "54896a22fd1b2823ee1e223598edbef2db58cf76ae692096bc1e3411109f503a"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/crimson-rain/preview/scene.webp", "format": "webp", "width": 640, "height": 410, "bytes": 9010, "sha256": "c950854e24eba44326a0cc4215ef0d8114363a856ead7395dd51d308ac1b8379", "provenance": "scene-preview"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/morning-observatory/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 78882, "sha256": "7fae5b2d67dd978577648756779ce85f59ff2af4f602b01b4a404fea7ccee085", "provenance": "imagegen"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/morning-observatory/preview/scene.webp", "format": "webp", "width": 640, "height": 410, "bytes": 9526, "sha256": "973c2b380be2df2a4e7a2276a6a331a1c4cf8009ea39bdd8240328679f312342", "provenance": "scene-preview"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/night-navigator/assets/navigator.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 28784, "sha256": "fb4a6d6e24ba2ec09a4940f085a180646aee1f9f4e992f4856df635781fb1625", "provenance": "imagegen"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/night-navigator/preview/scene.webp", "format": "webp", "width": 640, "height": 410, "bytes": 9368, "sha256": "f0d0c6e81e805a72a4c8767a6b33884bb11267cd2b166d55d73831ce4ef034a9", "provenance": "scene-preview"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/night-navigator-motion/assets/navigator.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 28784, "sha256": "fb4a6d6e24ba2ec09a4940f085a180646aee1f9f4e992f4856df635781fb1625", "provenance": "imagegen"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/night-navigator-motion/preview/scene.webp", "format": "webp", "width": 640, "height": 410, "bytes": 9368, "sha256": "f0d0c6e81e805a72a4c8767a6b33884bb11267cd2b166d55d73831ce4ef034a9", "provenance": "scene-preview"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/aurora/preview/dark.png", "format": "png", "width": 1280, "height": 720, "bytes": 244080, "sha256": "bfacbccaf97ceb168a0d820824483f21b269196221fd3dfe3b5ce2893e3a316d", "provenance": "web-png"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/blue-arc/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 48954, "sha256": "6d41d50d0216e64ad6e7c014024332c9cc6c73d7551ca9b541e0a2e6cdb95dba", "provenance": "user-attachment", "original": {"source": "用户附件 1 · codex-clipboard-4479e1de-35fd-48c3-904f-75a205ffcb68.png", "format": "png", "width": 1672, "height": 941, "bytes": 1741566, "sha256": "4da767d2e9f5834e484e13db282f4cfcfafbbc6f515f35416b7479456a2ebc21"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/blue-arc/preview/dark.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 27290, "sha256": "20e1465f82232b57155abeb94c0edb82eb62141e6fef1fe3f66559ca7b991dd5", "provenance": "web-webp", "original": {"source": ".cache/v1.4.0/previews/blue-arc.png", "format": "png", "width": 1280, "height": 820, "bytes": 284753, "sha256": "80b619b79eee155c56e75da84dc6a2a3e38cd3a60fbf8b372b120b83f8d77741"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/crimson-rain/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 52988, "sha256": "bb083c08c1892735b22624a242d8e4a42c334d6ecb54d377e274185648ddea4f", "provenance": "user-attachment", "original": {"source": "用户附件 4 · codex-clipboard-be79cb4e-582c-4e3e-85d1-fba1f7321864.png", "format": "png", "width": 1672, "height": 941, "bytes": 1720451, "sha256": "54896a22fd1b2823ee1e223598edbef2db58cf76ae692096bc1e3411109f503a"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/crimson-rain/preview/dark.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 26662, "sha256": "9b831f010e167634395f57072f9a2fa43eeb09cb62f63009a923dbb50f173adb", "provenance": "web-webp", "original": {"source": ".cache/v1.4.0/previews/crimson-rain.png", "format": "png", "width": 1280, "height": 820, "bytes": 298003, "sha256": "c1dfd38b3ba17fece7455a698e2687c8edcb8520368ed964ca56c0a3750906dd"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/dawn-station/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 58922, "sha256": "59d7f70c33f8337b1b8093725f1cb620914536c07d1f983d4bf20c9f0138d671", "provenance": "user-attachment", "original": {"source": "用户附件 2 · codex-clipboard-fddd1c31-800d-47dd-a3e3-1e9c1d7c10ef.png", "format": "png", "width": 1672, "height": 941, "bytes": 1819377, "sha256": "1717e5f3f87a7f0c1ee86ee25fffbd75f1fe74d42b2f61deac852e20943a6f7e"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/dawn-station/preview/light.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 27720, "sha256": "c80ffc7790194ab57819e8b87961edaccd7cbcbe88ffd8b293ddf3b712a21438", "provenance": "web-webp", "original": {"source": ".cache/v1.4.0/previews/dawn-station.png", "format": "png", "width": 1280, "height": 820, "bytes": 319438, "sha256": "681730de44d9548b700f9007c796d6580e7de1834a321eb5bde4e40a442700d2"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/deep-ocean/preview/dark.png", "format": "png", "width": 1280, "height": 720, "bytes": 211127, "sha256": "11104c9a4b83b0c410b8ed456e5dc8044245507a97264b226fd5acdc8ad2a89d", "provenance": "web-png"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/ink-focus/preview/dark.png", "format": "png", "width": 1280, "height": 820, "bytes": 37920, "sha256": "e32d62e7ddc6d7b384d0228b0c8117a93a51f6b5c38999a6f8568a6d4891cd6f", "provenance": "web-png"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/jade-archive/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 72832, "sha256": "c3fddb948bf4c99b1e4f2e6dd8ebb3c024f0d32d72934b62103c4a6ccdf43f62", "provenance": "imagegen"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/jade-archive/preview/light.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 28710, "sha256": "9bcc7a0efad0d544adc2a12aceb1c1a2ffa730dfe256a2dd5155fe626df31939", "provenance": "web-webp", "original": {"source": ".cache/v1.3.0/previews/jade-archive.png", "format": "png", "width": 1280, "height": 820, "bytes": 410343, "sha256": "11855a64ed200ecd5e69c76e556b72aa8f3e3f0f47f43417b4f62a2f6c91e70a"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/mist-pine/preview/light.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 18020, "sha256": "00cbb8922274f737da027f76fe82a464b65251e550a35d8fb95be15f46189217", "provenance": "web-webp", "original": {"source": ".cache/v1.2.0/gallery-smoke-2Jcbbu/mist-pine.png", "format": "png", "width": 1280, "height": 820, "bytes": 39154, "sha256": "c4a2bdea27634803685c5a1fb54aebec9b20c198453cfff93fa6338f6b6bfe12"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/moonlit-horizon/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 51106, "sha256": "ceb6a3da6599124d4ba00045f45017bbed7262529dc668e80f029e2c5f9a8184", "provenance": "user-attachment", "original": {"source": "用户附件 3 · codex-clipboard-80785013-b9e0-4830-bf7d-907c674ff80a.png", "format": "png", "width": 1672, "height": 941, "bytes": 1700362, "sha256": "9ebb6c6d48637da1a2ed23838fd41acf8242bb5fa2bd4bcc0db3b1d3bcdcdc97"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/moonlit-horizon/preview/dark.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 25992, "sha256": "5710b7fc80e6cc90b472f8dd3251dc510d67367f9b41bd713b26c6122508d421", "provenance": "web-webp", "original": {"source": ".cache/v1.4.0/previews/moonlit-horizon.png", "format": "png", "width": 1280, "height": 820, "bytes": 272011, "sha256": "21cbbb32d3beeedac761ce731cd62f03c8b45a845e5cf32af1b45b60530f6073"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/morning-observatory/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 78882, "sha256": "7fae5b2d67dd978577648756779ce85f59ff2af4f602b01b4a404fea7ccee085", "provenance": "imagegen"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/morning-observatory/preview/light.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 32762, "sha256": "47406ec533883cbd4c149959af3a3275a3b65d39a065523c678c1e5c442f9abf", "provenance": "web-webp", "original": {"source": ".cache/v1.3.0/previews/morning-observatory.png", "format": "png", "width": 1280, "height": 820, "bytes": 404060, "sha256": "4ce9c5c3efb0ee90fd5dd05d24f02e36265ba3e2d09e8ae8be3bd5de3477ad5a"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/night-navigator/assets/navigator.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 28784, "sha256": "fb4a6d6e24ba2ec09a4940f085a180646aee1f9f4e992f4856df635781fb1625", "provenance": "imagegen"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/night-navigator/preview/dark.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 22446, "sha256": "3643638f93d1638e2f5bfc74cee29b32acb3581c4329a74b1afea22f49119720", "provenance": "web-webp", "original": {"source": ".cache/v1.2.0/gallery-smoke-7BPuwR/night-navigator.png", "format": "png", "width": 1280, "height": 820, "bytes": 204646, "sha256": "fb8f43d110b89992f1c7e7febb2cf6b9f17ea61473d846f57e3764f654a74917"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/obsidian-neon/preview/dark.png", "format": "png", "width": 1280, "height": 720, "bytes": 139878, "sha256": "2c6c43c2b55a7787ae5d0d3b9a1aadd84ca907e26eafd62a7ed662c30cff8669", "provenance": "web-png"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/paper-light/preview/light.png", "format": "png", "width": 1280, "height": 820, "bytes": 39119, "sha256": "3b502558dcda0a040658aa47f2f8a6763efc0b1e1f435925e7ff0019abf1fa0e", "provenance": "web-png"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/rainline/assets/portrait.webp", "format": "webp", "width": 1672, "height": 941, "bytes": 34800, "sha256": "70db10523510170bc10e2d742c088122e9ede0ce9a1076f72c065f759d971c87", "provenance": "imagegen"},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/rainline/preview/dark.webp", "format": "webp", "width": 1280, "height": 820, "bytes": 23010, "sha256": "50971d5a266bef43339eabee8b06500f042303a10ec60a31d2d2272d65e1e7a2", "provenance": "web-webp", "original": {"source": ".cache/v1.3.0/previews/rainline.png", "format": "png", "width": 1280, "height": 820, "bytes": 228169, "sha256": "a1c9bf72c2e72f39402247f8ddd3d9d0da6386442376bc03653405c030d9c547"}},
+    {"path": "DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/warm-dusk/preview/dark.png", "format": "png", "width": 1280, "height": 820, "bytes": 74204, "sha256": "51dc73462bf6a902c5176ccdcbe2ab4b553085e1437c89ce9cd992b8594407be", "provenance": "web-png"},
+    {"path": "src/client/probe.svg", "format": "svg", "width": 28, "height": 28, "bytes": 214, "sha256": "c6ccdb927f23bc25c33d61ca867ed2142d58b64abc8f15f1744de25fdfc94f55", "provenance": "engine-svg"},
+    {"path": "src/client/preview-placeholder.svg", "format": "svg", "width": 320, "height": 180, "bytes": 482, "sha256": "43ec0cdb2ca643c65b0726ee0c5179ad7469ecec592ddb3d89ef20a7260154a7", "provenance": "engine-svg"}
+  ]
+}

@@ -15,7 +15,7 @@
 | P0 | NEXT-03 · SceneSpec 声明契约（M，已完成） | 01、02 | Engine API 1.1.0 支持可选场景入口、包内图片、焦点、锚点、断点和效果引用。旧包继续兼容 API 1.0.0。作者打包、导入、更新、加载和导出共享校验。 [SceneSpec v1 契约](scene-spec.md) |
 | P0 | NEXT-04 · 响应式插画层（M，已完成） | 03 | 复用已解码的包内图片和已审计的宿主表面。覆盖 1920、1440、1280、760、520 像素，确认人物焦点、正文、输入和焦点操作可用。缺图回退基色，取消预览、Default、停用时清理自有资源。 |
 | P0 | NEXT-05 · 三套场景样例（M，已完成） | 04 | 夜航员、晨光温室和绯雨霓虹提供三档动效、可复建 ZIP 及同一 tarball 的双端实拍。 [场景样例与验收](scene-samples.md) |
-| P1 | NEXT-13 · 素材清单（S） | 02 | 核对 13 套内置和两套独立 ZIP 的来源、授权状态、尺寸、体积和 SHA，标明待审项。建议在 NEXT-05 定稿前完成，便于审核样例发行内容。 |
+| P1 | NEXT-13 · 素材清单（已完成） | 02 | 记录 13 套内置、两套独立 ZIP、场景与轻量视差样例、双明暗夹具的素材来源、权利状态和字节哈希，并在打包时核对。 [发包资产清单](release-asset-notes.md#next-13-发包资产清单) |
 | P1 | NEXT-06 · 宿主语义 Token 审计（M，已完成） | 01、02 | Web 和 Windows Desktop 记录八组明暗宽窄快照及撤销。画布和侧栏继续作为开放表面。 [语义 Token 矩阵](host-token-matrix.md) |
 | P1 | NEXT-07 · 单包双明暗（M，已完成） | 06 | 同一 `skinId` 随 DSH 外观切换配色和插画，保留旧单组格式及保存偏好。官方双端通过手动、跟随系统和重启，Web 验证双页面同步。 [双明暗契约与验收](dual-appearance.md) |
 | P1 | NEXT-08 · 效果运行时拆分（M，已完成） | 05 | 分离窗口状态、宿主表面、输入绑定和场景编排。八项效果沿用原有契约与渲染器，官方双端验证旧 ZIP、共享调度、暂停恢复和 GPU 回退。 [运行时结构与专项](effects-runtime.md) |
@@ -28,7 +28,7 @@
 ### 执行顺序与验收边界
 
 - **NEXT-02 以迁移 PR 合并为收口。** 本地检查先落到维护分支。迁移通过检查与自动审查并合并后，后续开发与打包均以 `main` 为基准，保留 `codex/v1-maintenance`。NEXT-01 的 `appearance` 和 `switch` 套件继续按各自场景复用。 [验收入口](acceptance.md)
-- **G1 已交付场景布局与首批样例。** NEXT-07 的单包双明暗使用 NEXT-06 已审计的表面范围。NEXT-13 可开始整理素材。 [SceneSpec v1 契约](scene-spec.md) · [三套场景样例](scene-samples.md) · [语义 Token 矩阵](host-token-matrix.md)
+- **G1 已交付场景布局与首批样例。** NEXT-07 的单包双明暗使用 NEXT-06 已审计的表面范围，素材随 NEXT-13 纳入清单。 [SceneSpec v1 契约](scene-spec.md) · [三套场景样例](scene-samples.md) · [语义 Token 矩阵](host-token-matrix.md)
 - **常规 PR 只验证受影响的路径。** 每次以一个明确范围提交，查看本地检查和自动审查，修复后定向复测再合并。100 次切换、300 秒后台和整套配对性能留在集成或正式发布关口。NEXT-10 的 10/100 包样本只用于验证索引工作量。16.7 ms 是同环境 P95 持续增量排查线。测试记录 Git SHA、tarball SHA、宿主版本、结果和复现命令，结束后关闭本轮启动的 DSH 和浏览器。 [验收方法](acceptance.md)
 - 建议从 NEXT-05 验证过的一套场景提炼带注释的作者模板，独立小 PR 交付。新增独立样例沿用 ZIP 工作流，现有内置 skinId 的迁移须先有兼容方案。皮肤编辑器、视频壁纸和在线市场另立专题，第三方包遵守声明式安全边界。 [样例与模板](../DSH_Skin_Engine_Development_Pack_v1.0/examples/README.md) · [本地包更新与回滚](local-package-updates.md)
 

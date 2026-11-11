@@ -4,12 +4,19 @@ import { posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
 import { minVersion } from 'semver'
+import { assetPaths, checkExactPaths, checkOutputFiles, checkReleaseAsset, examples, loadReleaseAssets,
+  releaseSampleDirectories, sourceKey } from './release-assets.mjs'
 
 const root = new URL('../', import.meta.url)
 const packageJson = JSON.parse(await readFile(new URL('package.json', root), 'utf8'))
+const inventory = await loadReleaseAssets()
+const seenAssets = new Set()
 const engineVersion = JSON.stringify(packageJson.version)
 async function publicImage(name) {
-  const bytes = await readFile(new URL(`src/client/${name}.svg`, root))
+  const path = `src/client/${name}.svg`
+  const bytes = Buffer.from((await readFile(new URL(path, root), 'utf8')).replaceAll('\r\n', '\n'))
+  checkReleaseAsset(inventory, path, bytes)
+  seenAssets.add(path)
   const revision = createHash('sha1').update(bytes).digest('hex').slice(0, 12)
   const file = `${name}-${revision}.svg`
   return { bytes, file, path: `plugins/${packageJson.name}/assets/${file}` }
@@ -93,17 +100,39 @@ for (const directory of [...dependencyRoots].sort()) {
 await writeFile(new URL('lib/THIRD-PARTY-NOTICES.txt', root), notices.join('\n\n') + '\n')
 
 const { builtInSkinDirectories, checkSkinCompatibility, parseSkinManifest, readBuiltInSkins } = await import('../lib/host.js')
-const sourceSkins = new URL('DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/', root)
+const { readSkinSource, resourceType } = await import('../lib/authoring.js')
+const sourceSkins = new URL(`${examples}/skins/`, root)
+const builtFiles = new Set()
+async function checkSkinAssets(relative, directory) {
+  const { manifest, files } = await readSkinSource(directory)
+  const sourceDirectory = fileURLToPath(new URL(`${examples}/${relative}/`, root))
+  await checkExactPaths(sourceDirectory, files.keys())
+  for (const path of assetPaths(manifest)) {
+    const key = sourceKey(sourceDirectory, path)
+    checkReleaseAsset(inventory, key, files.get(path), resourceType)
+    seenAssets.add(key)
+  }
+}
 await Promise.all(builtInSkinDirectories.map(async directory => {
   const source = new URL(`${directory}/`, sourceSkins)
   const destination = new URL(`lib/skins/${directory}/`, root)
   const manifest = parseSkinManifest(JSON.parse(await readFile(new URL('skin.json', source), 'utf8')))
-  const files = new Set(['skin.json', ...Object.values(manifest.entry), ...Object.values(manifest.preview ?? {}), ...manifest.assets ?? []])
+  const files = new Set(['skin.json', ...Object.values(manifest.entry), ...assetPaths(manifest)])
   await Promise.all([...files].map(async filename => {
+    builtFiles.add(`${directory}/${filename}`)
     await mkdir(new URL(posix.dirname(filename) + '/', destination), { recursive: true })
     await copyFile(new URL(filename, source), new URL(filename, destination))
   }))
+  await checkSkinAssets(`skins/${directory}`, fileURLToPath(destination))
 }))
+for (const directory of releaseSampleDirectories) {
+  await checkSkinAssets(directory, fileURLToPath(new URL(`${examples}/${directory}/`, root)))
+}
+for (const key of inventory.keys()) {
+  if (!seenAssets.has(key)) throw Error(`Release asset is no longer referenced: ${key}`)
+}
+await checkOutputFiles(fileURLToPath(new URL('lib/assets/', root)), [probe.file, placeholder.file])
+await checkOutputFiles(fileURLToPath(new URL('lib/skins/', root)), builtFiles)
 for (const { manifest, diagnostics } of await readBuiltInSkins()) {
   const problem = checkSkinCompatibility(manifest, minVersion(packageJson.engines.dsh)?.version) ?? diagnostics[0]
   if (problem) throw new Error(`${manifest.id}: ${problem.message}`)
