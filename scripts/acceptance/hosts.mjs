@@ -135,15 +135,16 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   const profile = desktop ? 'desktop' : hostProfile
   const profileDir = join(home, 'profiles', profile)
   const userData = join(directory, 'electron-user-data')
+  const isolatedRenderer = ['catalogue-cache', 'character-samples'].includes(options.suite)
 
   async function startDesktop(lifecycle, userDirectory = userData) {
     const cdp = await port()
     const main = await port()
     const flags = [`--user-data-dir=${userDirectory}`, `--remote-debugging-port=${cdp}`, `--inspect=${loopback}:${main}`]
-    if (['artwork', 'scenes', 'tokens', 'dual-appearance', 'scene-motion'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
+    if (['artwork', 'scenes', 'tokens', 'dual-appearance', 'scene-motion', 'character-samples'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
     if (lifecycle || options['desktop-disable-occlusion']) flags.push('--disable-features=CalculateNativeWinOcclusion')
     const app = launch(executable, flags, env, true)
-    const keepRendering = ['dual-appearance', 'effects-runtime', 'scene-motion', 'catalogue-cache'].includes(options.suite)
+    const keepRendering = isolatedRenderer || ['dual-appearance', 'effects-runtime', 'scene-motion'].includes(options.suite)
     const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size, keepRendering }) {
       if (process.pid !== pid || process.env.DSH_HOME !== expectedHome) throw Error('Unexpected Desktop process')
       const load = process.mainModule?.require?.bind(process.mainModule)
@@ -189,7 +190,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   }
 
   if (desktop) {
-    const bootstrap = options.suite === 'catalogue-cache' ? join(directory, 'electron-bootstrap') : userData
+    const bootstrap = isolatedRenderer ? join(directory, 'electron-bootstrap') : userData
     const initial = await startDesktop(false, bootstrap)
     try {
       await initial.ready()
@@ -251,14 +252,13 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       attempt.origin = new URL(launchUrl).origin
       attempt.stage = 'browser'
       let page
-      const catalogue = options.suite === 'catalogue-cache'
-      if (lifecycle || catalogue) {
+      if (lifecycle || isolatedRenderer) {
         const cdp = await port()
         nativeChrome = launch(resolve(options.chrome), [
           `--user-data-dir=${join(directory, 'chrome-user-data')}`, `--remote-debugging-port=${cdp}`,
           '--no-first-run', '--no-default-browser-check', '--disable-features=CalculateNativeWinOcclusion',
-          ...(catalogue ? ['--headless=new'] : []), 'about:blank',
-        ], env, !catalogue, true)
+          ...(isolatedRenderer ? ['--headless=new'] : []), 'about:blank',
+        ], env, !isolatedRenderer, true)
         const origin = `http://${loopback}:${cdp}`
         await until(async () => {
           nativeChrome.output()
@@ -267,7 +267,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
         browser = await chromium.connectOverCDP(origin, { noDefaults: true })
         page = browser.contexts()[0].pages().find(tab => tab.url() === 'about:blank')
         assert(page, 'Missing Chrome startup tab')
-        if (catalogue) await page.setViewportSize({ width: 1280, height: 820 })
+        if (isolatedRenderer) await page.setViewportSize({ width: 1280, height: 820 })
       } else {
         browser = await chromium.launch({
           executablePath: resolve(options.chrome),

@@ -1,0 +1,34 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "example.jade-reading-room",
+  "name": "青笺阅览室",
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.2.0",
+  "dshCompatibility": ">=0.2.2-rc.1",
+  "colorScheme": "light",
+  "tags": [
+    "character",
+    "scene"
+  ],
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json",
+    "scene": "scene.json"
+  },
+  "assets": [
+    "assets/portrait.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "scene"
+  ],
+  "nameEn": "Jade Reading Room",
+  "description": "淡青纸面、墨绿侧栏与右侧木刻人物，适合长文阅读。",
+  "preview": {
+    "light": "preview/light.png"
+  }
+}

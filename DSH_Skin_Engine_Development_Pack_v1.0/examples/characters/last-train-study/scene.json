@@ -1,0 +1,47 @@
+{
+  "schema": "dsh.scene/v1",
+  "layout": {
+    "artwork": {
+      "asset": "assets/portrait.webp",
+      "fit": "contain",
+      "anchor": "right center",
+      "focalPoint": [
+        0.87,
+        0.33
+      ],
+      "scale": 0.97,
+      "opacity": 0.35,
+      "motion": {
+        "parallax": {
+          "maxX": 6,
+          "maxY": 3,
+          "settleMs": 260
+        },
+        "ambientLight": {
+          "color": "#ed9aa9",
+          "opacity": 0.16
+        }
+      }
+    },
+    "safeArea": {
+      "contentLeftFraction": 0.68
+    },
+    "breakpoints": [
+      {
+        "maxWidth": 520,
+        "artworkScale": 0.62,
+        "opacity": 0.12
+      },
+      {
+        "maxWidth": 760,
+        "artworkScale": 0.78,
+        "opacity": 0.21
+      }
+    ]
+  },
+  "presets": {
+    "static": [],
+    "light": [],
+    "dynamic": []
+  }
+}

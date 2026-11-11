@@ -1,0 +1,35 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "example.last-train-study",
+  "name": "末班车札记",
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.4.0",
+  "dshCompatibility": ">=0.2.2-rc.1",
+  "colorScheme": "dark",
+  "tags": [
+    "character",
+    "scene"
+  ],
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json",
+    "scene": "scene.json"
+  },
+  "assets": [
+    "assets/portrait.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "scene",
+    "effects:css"
+  ],
+  "nameEn": "Last Train Study",
+  "description": "葡萄灰车厢、柔和玫瑰窗光与右侧雨夜人物。",
+  "preview": {
+    "dark": "preview/dark.png"
+  }
+}

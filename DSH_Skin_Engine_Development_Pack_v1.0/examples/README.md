@@ -8,6 +8,8 @@
 | 独立 ZIP 样例 | [`skins/ink-focus`](skins/ink-focus/)、[`skins/warm-dusk`](skins/warm-dusk/) | `npm run pack:skin -- <源码目录> <输出目录>` |
 | 三档 SceneSpec 样例 | [夜航员](scenes/night-navigator/)、[晨光温室](scenes/morning-observatory/)、[绯雨霓虹](scenes/crimson-rain/) | [复建 ZIP 与验收](../../docs/scene-samples.md) |
 | 作者起步模板 | [`templates/starter`](templates/starter/) | 复制并修改后运行 `npm run pack:skin -- <源码目录> <输出目录>` |
+| 人物场景作者模板 | [浅色](templates/portrait-light/)、[深色](templates/portrait-dark/)、[双明暗](templates/portrait-dual/) | [复制、打包和导入](../../docs/character-author-templates.md) |
+| 独立人物 ZIP | [青笺阅览室](characters/jade-reading-room/)、[末班车札记](characters/last-train-study/)、[晨昏观测](characters/twilight-shift/) | `npm run pack:skin -- <源码目录> <输出目录>` |
 
 内置皮肤由[引擎目录](../../src/host/built-in-skins.ts)显式登记。`pack:samples` 生成的内置示范包沿用 `.sample` ID。独立的 `pack:skin` 保留清单中的 ID，只将校验过的声明文件和资源写入 ZIP。使用该入口可交付额外的 ZIP 样例和自制皮肤。
 

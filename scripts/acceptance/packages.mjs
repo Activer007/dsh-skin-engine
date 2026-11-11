@@ -9,7 +9,7 @@ import { fromBufferPromise } from 'yauzl'
 const base = 'api/dsh-skin-engine'
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 
-async function zipJson(bytes, name = 'skin.json') {
+export async function zipJson(bytes, name = 'skin.json') {
   const zip = await fromBufferPromise(bytes)
   try {
     for await (const entry of zip.eachEntry()) {

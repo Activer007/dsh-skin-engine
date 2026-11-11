@@ -1,0 +1,36 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "example.twilight-shift",
+  "name": "晨昏观测",
+  "author": "DSH Skin Engine",
+  "version": "1.0.0",
+  "engineApi": "^1.3.0",
+  "dshCompatibility": ">=0.2.2-rc.1",
+  "colorScheme": "both",
+  "tags": [
+    "character",
+    "scene"
+  ],
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json",
+    "scene": "scene.json"
+  },
+  "assets": [
+    "assets/day.webp",
+    "assets/night.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "scene"
+  ],
+  "nameEn": "Twilight Shift",
+  "description": "浅色为暖白温室，深色为靛蓝舷窗，随 DSH 外观切换。",
+  "preview": {
+    "light": "preview/light.png",
+    "dark": "preview/dark.png"
+  }
+}

@@ -8,6 +8,7 @@ import { settings, switchSkins } from './browser.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
 import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
+import { checkCharacterSamples } from './character-samples.mjs'
 import { checkDualAppearance } from './dual-appearance.mjs'
 import { checkEffectsRuntime } from './effects-runtime.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
@@ -47,6 +48,7 @@ const desktop = options.platform === 'desktop'
 const upgrade = options.suite === 'upgrade'
 const packages = options.suite === 'packages'
 const catalogueCache = options.suite === 'catalogue-cache'
+const characters = options.suite === 'character-samples'
 const packageUpdate = options.suite === 'package-update'
 const appearance = options.suite === 'appearance'
 const dual = options.suite === 'dual-appearance'
@@ -58,10 +60,10 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || sample || tokens || effects || sceneMotion || options.suite === 'surfaces'
+assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
-assert(!(packages || scenes || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
+assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
 assert(!(sample || sceneMotion) || options['sample-zip'], 'Sample acceptance needs --sample-zip')
 assert(!appearance || !desktop, 'Appearance acceptance targets the official Web host')
 assert(desktop ? process.platform === 'win32' && options['desktop-exe'] : options['web-cli'] && options.chrome,
@@ -82,7 +84,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const interruption = appearance || dual || artwork || scenes || tokens || effects || sceneMotion || catalogueCache ? new AbortController() : undefined
+const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
 const includes = name => suites.includes(name)
@@ -101,7 +103,7 @@ if (interruption) {
 async function enter(open, lifecycle, appearance) {
   session = await open(lifecycle)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
-  if ((tokens || dual || effects || sceneMotion || catalogueCache) && desktop) await session.show()
+  if ((tokens || dual || effects || sceneMotion || catalogueCache || characters) && desktop) await session.show()
   return settings(session.page, desktop, appearance)
 }
 
@@ -119,8 +121,8 @@ try {
     const ui = await enter(open, cssSample && appearance !== null, appearance)
     return { ui, foreground: session.show, hide: session.hide, browser: session.browser, resize: session.resize }
   }
-  if (includes('surfaces') || sample || artwork || scenes || tokens || dual || sceneMotion) {
-    await seedSurfaceHistory(directory, profileDir, { bilingual: scenes || sceneMotion, secondTurn: tokens })
+  if (includes('surfaces') || sample || artwork || scenes || characters || tokens || dual || sceneMotion) {
+    await seedSurfaceHistory(directory, profileDir, { bilingual: scenes || characters || sceneMotion, secondTurn: tokens })
   }
   if (tokens) {
     await installTokenProbe(directory, installLocalBundle)
@@ -153,6 +155,12 @@ try {
     const scenesUi = await enter(open, false)
     run.scenes = {}
     await checkSceneSamples(session, scenesUi, resolve(options['sample-dir']), directory, run.scenes, previewsOnly)
+    interruption.signal.throwIfAborted()
+  }
+  if (characters) {
+    const charactersUi = await enter(open, false)
+    run.characters = {}
+    await checkCharacterSamples(session, charactersUi, resolve(options['sample-dir']), directory, run.characters)
     interruption.signal.throwIfAborted()
   }
   if (artwork) {
@@ -251,9 +259,9 @@ try {
 } finally {
   try {
     try {
-      if (effects || sceneMotion || catalogueCache) await save()
+      if (effects || sceneMotion || catalogueCache || characters) await save()
     } finally { await session?.close() }
-    if ((artwork || scenes || tokens || dual || effects || sceneMotion || catalogueCache) && session) run.browserDisconnected = !session.browser.isConnected()
+    if ((artwork || scenes || tokens || dual || effects || sceneMotion || catalogueCache || characters) && session) run.browserDisconnected = !session.browser.isConnected()
   } finally {
     if (interruption) {
       process.off('SIGINT', interrupt)

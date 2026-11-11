@@ -9,6 +9,8 @@ export const examples = 'DSH_Skin_Engine_Development_Pack_v1.0/examples'
 export const releaseSampleDirectories = [
   'skins/ink-focus', 'skins/warm-dusk',
   'scenes/night-navigator', 'scenes/morning-observatory', 'scenes/crimson-rain', 'scenes/night-navigator-motion',
+  'templates/portrait-light', 'templates/portrait-dark', 'templates/portrait-dual',
+  'characters/jade-reading-room', 'characters/last-train-study', 'characters/twilight-shift',
 ]
 export const assetPaths = manifest => new Set([...Object.values(manifest.preview ?? {}), ...manifest.assets ?? []])
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
