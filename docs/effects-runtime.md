@@ -2,6 +2,8 @@
 
 NEXT-08 将窗口状态、场景编排、宿主表面和输入绑定分开。现有八项效果继续使用原来的 ID、参数和默认值，旧 ZIP 走原来的加载入口。
 
+NEXT-12 在此基础上通过 Provider API 1.0.0 注册八项既有效果与环境光示范。场景负责统一分配图层和 Canvas，Provider 处理各自的参数、质量预算和生命周期。 [开发者契约](effect-providers.md)
+
 | 模块 | 职责 |
 | --- | --- |
 | [窗口运行时](../src/client/effects/p0.ts) | 持有一个共享帧时钟。管理窗口模式、Auto 质量、有效 SceneSpec 预设和活动场景。 |
@@ -17,6 +19,8 @@ NEXT-08 将窗口状态、场景编排、宿主表面和输入绑定分开。现
 
 专项以 2 秒为最短后台间隔，并记录实际可见性事件或后台读数。300 秒后台和配对性能仍按路线图放在集成关口。
 
+验证 Provider 时再加 `--provider-demo`。同一轮先复跑原八项旧 ZIP，再导入环境光 ZIP，记录单层所有权、预览取消、Static、动态恢复、Default 和截图。Windows Desktop 与 Web 均用原生可见性事件采集最短后台区间。
+
 ## 验收记录
 
 官方 DSH `0.2.2-rc.1`，Windows `10.0.26200`，Node `24.16.0`，Web Chrome `157.0.8103.40`。两端候选包从 `37aac6c531975519f67e95d2268385e8bc85e767` 构建，版本 `1.7.0`，SHA-256 为 `90096b89aa46938b9354d218866a239580e3fe0d8460824c10dc74595e26d60f`。同一旧格式夹具 ZIP 的 SHA-256 为 `5c3b86e5da2a03d680aac1ca3840f2985588246cac39b7ea45c90d2442034f9d`。
@@ -30,3 +34,18 @@ Web `web-pMq00v` 使用夹具提交 `7f46973`。最小化 Chrome 原生窗口后
 双端均在限制 WebGL 后用 CSS 回退，且只尝试一次分配。两端候选包的静态图层及计算样式签名、粒子填充数和 ZIP 字节均与基线一致。原始结果存于本地 `.cache/next-08/` 的 `web-baseline-result.json`、`web-result.json` 和 `desktop-result.json`。
 
 类型检查、lint 和 56 项测试通过。新定向用例验证 WebGL 不可用、上下文丢失及恢复、与粒子共用一个调度句柄和重复释放。效果声明、各渲染器、质量预算与 CSS 样式表在 Git 中逐文件与基线核对。
+
+## NEXT-12 验收记录
+
+Windows `10.0.26200`、Node `24.16.0`，两端使用官方 DSH `0.2.2-rc.1`。Web 使用 Chrome `157.0.8103.40`。Browser plugin not available，使用隔离 Playwright 验收入口。引擎 v1.8.1 候选来自 `d468b864a965c446c158de36ea3b89c6b2ff518f`，两端 tarball SHA-256 均为 `a66229ddfefaae3f354c64290b0824ab67f9ed74fbd78c30294eae232f6493c1`。
+
+| 宿主 | 原生隐藏时间 | 恢复前的 WebGL 尺寸 | 环境光视口 | 证据目录 |
+| --- | --- | --- | --- | --- |
+| Web | 2140 ms | 674 × 480 | 1037 × 739 | `.cache/next-12/host/web-GO00fI/` |
+| Windows Desktop | 2141 ms | 831 × 553 | 1279 × 852 | `.cache/next-12/host/desktop-ZFvG5X/` |
+
+两端均使用与 NEXT-08 字节相同的旧八效果 ZIP。静态图层顺序和计算样式签名与各端 NEXT-08 基线相同，浮尘和星空合计 120 次填充，虹彩与点击涟漪有响应。WebGL 被禁用时只尝试一次分配并使用 CSS。真实上下文丢失时缓冲归零，使用 CSS 回退，恢复窗口时重新分配。在原生隐藏区间内绘制计数不变，Canvas 像素与极光缓存归零，恢复后沿用原场景、Canvas 和粒子位置。Off 和 Default 清理通过。
+
+环境光样例 ZIP 的 SHA-256 为 `000049d4790bbaefb1512fbc7ee397670f31b91c45a1561f01da9d381fbaf3e7`。两端均实测预览取消清理、Apply 后只有一个环境光图层、Static 透明度稳定在 `0.14`、恢复动效沿用同一节点、Default 后无引擎资源残留。每端目录保存 `result.json` 和 `ambient-provider.png`。页面错误为空，隔离 DSH、Web Host 和浏览器均已关闭。
+
+类型检查、lint 和 66 项本地测试通过。Provider 定向测试覆盖严格 Schema 和注册版本、单实例所有权、过期释放、部分挂载失败、帧与绘制异常隔离，以及共享时钟和 GPU 回退。首轮 Web 在虹彩输入处超时，修复侧栏绑定后，两端用同一修复候选重新验证。该轮只运行 2 秒后台专项，长后台和性能对照仍按集成关口执行。

@@ -204,6 +204,17 @@ html[data-dsh-skin-id] [data-dsh-skin-effect-surface="glass-content"] {
   pointer-events: none;
 }
 
+[data-dsh-skin-effect-layer="ambient-light"] {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 54% at 90% 12%, var(--dsh-ambient-accent), transparent 78%);
+}
+
+@media (forced-colors: active) {
+  [data-dsh-skin-effect-layer="ambient-light"] { display: none; }
+}
+
 [data-dsh-skin-effect-layer="edge"] {
   left: calc(100% + var(--dsh-flow-offset));
   width: var(--dsh-flow-width);

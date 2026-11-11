@@ -141,10 +141,10 @@ export async function performanceComparison(ui, evidence, foreground) {
 }
 
 export async function visibilityCycle(session, ui, seconds, evidence, {
-  prepare = () => showMode(ui, 'p0', session.show), minimizeWindow = false,
+  prepare = () => showMode(ui, 'p0', session.show), minimizeWindow = false, sampleNativeEvents = minimizeWindow && !session.hide,
 } = {}) {
   const { page } = session
-  const sampleInRenderer = minimizeWindow && !session.hide
+  const sampleInRenderer = sampleNativeEvents
   const hiddenNotice = sampleInRenderer ? Promise.withResolvers() : undefined
   if (hiddenNotice) await page.exposeFunction('__skinAcceptanceDidHide', hiddenNotice.resolve)
   await prepare()
@@ -262,7 +262,7 @@ export async function visibilityCycle(session, ui, seconds, evidence, {
       try {
         await Promise.race([
           hiddenNotice.promise,
-          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Chrome did not report native hiding')), 30_000) }),
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Host did not report native hiding')), 30_000) }),
         ])
       } finally { clearTimeout(timer) }
       await delay(seconds * 1000 + 100)
@@ -297,9 +297,9 @@ export async function visibilityCycle(session, ui, seconds, evidence, {
     evidence.resumed = await read()
     if (sampleInRenderer) {
       const { hiddenSample, beforeResume } = await page.evaluate(() => window.__skinAcceptanceCycle.nativeSamples())
-      assert(hiddenSample && beforeResume, 'Missing the native Chrome visibility events')
+      assert(hiddenSample && beforeResume, 'Missing the native host visibility events')
       assertHidden(hiddenSample, beforeResume.draws)
-      assert(beforeResume.elapsedMs >= seconds * 1000, `Chrome resumed after ${Math.round(beforeResume.elapsedMs)} ms`)
+      assert(beforeResume.elapsedMs >= seconds * 1000, `Host resumed after ${Math.round(beforeResume.elapsedMs)} ms`)
       evidence.hidden.push(hiddenSample)
       evidence.beforeResume = beforeResume
     }

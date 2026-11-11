@@ -42,6 +42,7 @@ export function effectStrength(effect: SkinEffect): number | undefined {
 }
 
 function overrideEffect(effect: SkinEffect, overrides: SkinPreferences['effects']): SkinEffect {
+  if (!hasEditableEffect(effect)) return effect
   const value = overrides?.[effect.id]
   if (effect.id === 'glass.refraction') {
     return { ...effect, enabled: value?.enabled === true,
@@ -60,6 +61,10 @@ function overrideEffect(effect: SkinEffect, overrides: SkinPreferences['effects'
     case 'particles.starfield': return { ...next, params: { ...next.params, brightness: strength } }
     case 'glass.holographic': return { ...next, params: { ...next.params, intensity: strength } }
   }
+}
+
+function hasEditableEffect(effect: SkinEffect): effect is Extract<SkinEffect, { id: EditableEffect }> {
+  return (editableEffects as readonly string[]).includes(effect.id)
 }
 
 export function resolveSkinColors(tokens: ReturnType<typeof parseSkinTokens>, scheme?: ColorScheme) {

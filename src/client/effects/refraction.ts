@@ -126,7 +126,7 @@ function setup(gl: GL, params: Refraction, accent: string) {
   }
 }
 
-export function mountRefraction(scene: HTMLElement, scheduler: ReturnType<typeof createFrameScheduler>,
+export function mountRefraction(scene: HTMLElement, scheduler: Pick<ReturnType<typeof createFrameScheduler>, 'add'>,
   params: Refraction, accent: string, initialQuality: Quality, onRendering: (active: boolean) => void) {
   const canvas = scene.ownerDocument.createElement('canvas')
   canvas.setAttribute('data-dsh-skin-effect-layer', 'refraction')

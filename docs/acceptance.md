@@ -4,6 +4,8 @@
 
 常规变更按影响面选最少的相关用例。已有结果覆盖当前产物和验收条件时，直接引用记录。失败后只复测故障和受影响的路径。多个阶段合入后的大版本等集成里程碑，再集中执行双端发布矩阵与配对性能对照。遇到具体性能问题时用最短的针对性采样定位。
 
+官方 Web 和 Windows Desktop 的界面验收以 **1280 CSS 像素**为常规目标宽度。改动涉及响应式布局时，再补测 **760 CSS 像素**的窄窗。验收矩阵从 760 CSS 像素起，涉及大屏布局的专项可增加更宽的尺寸。报告记录实际视口宽度。
+
 ## 准备
 
 - 在仓库根目录运行 `npm ci`，使用 Node.js 24.9 或更新版本。Windows 需可调用 `tar`。
@@ -31,7 +33,7 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 将任一端示例加上 `--suite surfaces`，可专项复跑设置页宽度和输入框适配。夹具写入一份隔离的 v4 会话记录，用新会话与已保存会话核对输入卡片。测试记录两个窗口尺寸的设置页宽度、Deep Ocean 底色、两项系统回退、键盘输入和菜单。浏览器插件不可用时，此流程使用仓库已有的 Playwright 入口，截图保存在相应运行目录。
 
-将任一端命令加上 `--suite artwork`，可复跑 SceneSpec 插画专项。脚本在隔离 profile 中导入使用蓝弧远航原图的静态测试包，核对 1920、1440、1280、760、520 CSS 像素下的对话、焦点和输入区域。记录原生窗口尺寸或受窗口边界限制时的渲染器尺寸，以及缺图、减少透明度、旧插画、预览取消、Default 和停用的结果。截图和关闭状态随 `result.json` 保存。
+将任一端命令加上 `--suite artwork`，可复跑 SceneSpec 插画专项。脚本在隔离 profile 中导入使用蓝弧远航原图的静态测试包，核对 1920、1440、1280 和 760 CSS 像素下的对话、焦点和输入区域。记录原生窗口尺寸或受窗口边界限制时的渲染器尺寸，以及缺图、减少透明度、旧插画、预览取消、Default 和停用的结果。截图和关闭状态随 `result.json` 保存。
 
 `--suite scenes --sample-dir <场景 ZIP 目录>` 在每端录制三套场景的九张实拍，并复核导入、预览取消、更新、对比度、减少动效、低质量和 Default。预览采集与 ZIP 复建命令见 [三套场景样例](scene-samples.md)。
 
@@ -39,7 +41,7 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite dual-appearance` 在官方 Web 与 Windows Desktop 核对同包明暗配色和插画、手动切换、跟随系统、保存偏好、重启及 Default。Web 专项还打开同一隔离配置的第二个页面，观察原生设置同步。 [双明暗契约与验收](dual-appearance.md)
 
-`--suite effects-runtime --hidden-seconds 2` 在两端运行同一个旧格式八效果 ZIP，核对静态输出、输入绑定、共享绘制、短后台暂停恢复、GPU 回退和 Default 清理。 [运行时结构与专项](effects-runtime.md)
+`--suite effects-runtime --hidden-seconds 2` 在两端运行同一个旧格式八效果 ZIP，核对静态输出、输入绑定、共享绘制、短后台暂停恢复、GPU 回退和 Default 清理。加 `--provider-demo` 可在同一轮验证环境光 Provider 的单层所有权、暂停恢复和清理。 [运行时结构与专项](effects-runtime.md)
 
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 

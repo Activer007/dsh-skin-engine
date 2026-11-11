@@ -3,7 +3,7 @@ import { hexColor } from './tokens.js'
 import { invalid, parseFile, type SkinDiagnostic } from './validation.js'
 import type { SkinManifest } from './manifest.js'
 
-type Renderer = 'css' | 'canvas2d' | 'webgl'
+export type EffectRenderer = 'css' | 'canvas2d' | 'webgl'
 
 function number(min: number, max: number, initial: number) {
   return z._default(z.number().check(z.minimum(min), z.maximum(max)), initial)
@@ -13,7 +13,7 @@ function integer(min: number, max: number, initial: number) {
   return z._default(z.int().check(z.minimum(min), z.maximum(max)), initial)
 }
 
-function defineEffect<const Id extends string, const Kind extends Renderer, Params extends z.ZodMiniType>(
+function defineEffect<const Id extends string, const Kind extends EffectRenderer, Params extends z.ZodMiniType>(
   id: Id, renderer: Kind, params: Params,
 ) {
   return {
@@ -28,29 +28,29 @@ const sizeRange = z.tuple([particleSize, particleSize]).check(z.refine(
   ([min, max]) => min <= max, 'Expected sizes in ascending order',
 ))
 
-const definitions = [
-  defineEffect('glass.liquid', 'css', z.strictObject({
+export const effectDefinitions = {
+  glass: defineEffect('glass.liquid', 'css', z.strictObject({
     blur: number(0, 24, 16),
     tintAlpha: number(0.08, 0.30, 0.18),
     saturation: number(1, 1.5, 1.25),
     edgeLight: number(0, 1, 0.3),
     frost: number(0, 1, 0.25),
   })),
-  defineEffect('ambient.aurora', 'css', z.strictObject({
+  aurora: defineEffect('ambient.aurora', 'css', z.strictObject({
     speed: number(0.1, 1, 0.25),
     intensity: number(0, 1, 0.45),
     palette: z._default(z.enum(['ocean', 'aurora']), 'ocean'),
     blur: number(0, 96, 48),
     direction: number(0, 360, 35),
   })),
-  defineEffect('particles.dust', 'canvas2d', z.strictObject({
+  dust: defineEffect('particles.dust', 'canvas2d', z.strictObject({
     density: number(0, 1, 0.35),
     speed: number(0.1, 1, 0.25),
     sizeRange: z._default(sizeRange, (): [number, number] => [0.75, 2.25]),
     opacity: number(0, 1, 0.35),
     drift: number(0, 1, 0.3),
   })),
-  defineEffect('light.flow', 'css', z.strictObject({
+  flow: defineEffect('light.flow', 'css', z.strictObject({
     speed: number(0.1, 1, 0.2),
     intensity: number(0, 1, 0.22),
     width: number(1, 48, 8),
@@ -58,39 +58,44 @@ const definitions = [
     route: z._default(z.enum(['background', 'edge']), 'background'),
     count: integer(1, 2, 1),
   })),
-  defineEffect('interaction.ripple', 'canvas2d', z.strictObject({
+  ripple: defineEffect('interaction.ripple', 'canvas2d', z.strictObject({
     durationMs: integer(300, 800, 450),
     maxRadius: number(80, 220, 120),
     ringCount: integer(1, 3, 1),
     color: z._default(hexColor, '#6dc7ff'),
   })),
-  defineEffect('particles.starfield', 'canvas2d', z.strictObject({
+  stars: defineEffect('particles.starfield', 'canvas2d', z.strictObject({
     starCount: integer(0, 128, 64),
     twinkle: number(0, 1, 0.22),
     parallax: number(0, 1, 0.12),
     depthLayers: integer(1, 3, 2),
     brightness: number(0, 1, 0.5),
   })),
-  defineEffect('glass.holographic', 'css', z.strictObject({
+  holographic: defineEffect('glass.holographic', 'css', z.strictObject({
     iridescence: number(0, 1, 0.28),
     edgeWidth: number(0, 4, 1),
     pointerInfluence: number(0, 1, 0.2),
     spectrum: z._default(z.enum(['prism', 'cool', 'warm']), 'prism'),
     intensity: number(0, 1, 0.4),
   })),
-  defineEffect('glass.refraction', 'webgl', z.strictObject({
+  refraction: defineEffect('glass.refraction', 'webgl', z.strictObject({
     distortion: number(0, 1, 0.2),
     dispersion: number(0, 1, 0.08),
     flowSpeed: number(0.1, 1, 0.25),
     refractionScale: number(0.25, 1, 0.5),
     quality: z._default(z.enum(['low', 'balanced', 'high']), 'balanced'),
   })),
-] as const
+  ambientLight: defineEffect('ambient.light', 'css', z.strictObject({
+    intensity: number(0, 0.22, 0.14),
+    speed: number(0.1, 1, 0.3),
+  })),
+} as const
 
-type EffectDefinition = (typeof definitions)[number]
+export type EffectDefinition = (typeof effectDefinitions)[keyof typeof effectDefinitions]
 export type SkinEffect = z.output<EffectDefinition['schema']>
+export type EffectParams<Id extends SkinEffect['id']> = Extract<SkinEffect, { id: Id }>['params']
 
-const registry = new Map<string, EffectDefinition>(definitions.map(definition => [definition.id, definition]))
+const registry = new Map<string, EffectDefinition>(Object.values(effectDefinitions).map(definition => [definition.id, definition]))
 const profileSchema = z.strictObject({
   schema: z.literal('dsh.effects/v1'),
   effects: z.array(z.strictObject({

@@ -63,7 +63,7 @@ export async function checkArtwork(session, ui, directory, profileDir, evidence,
   evidence.previewCleanup = true
 
   evidence.viewports = []
-  for (const width of [1920, 1440, 1280, 760, 520]) {
+  for (const width of [1920, 1440, 1280, 760]) {
     await session.resize(width, 820)
     let native = true
     try {
@@ -112,7 +112,7 @@ export async function checkArtwork(session, ui, directory, profileDir, evidence,
     assert(await message.evaluate(hit), 'Conversation text must stay above the decoration')
     assert(await editor.evaluate(hit), 'Composer must stay above the decoration')
     evidence.viewports.push({ requestedWidth: width, native, ...rendered })
-    if (width >= 1280 || width === 520) await screenshot(`artwork-${width}`)
+    await screenshot(`artwork-${width}`)
   }
   if (evidence.viewports.some(item => !item.native)) await cdp.send('Emulation.clearDeviceMetricsOverride')
   await session.resize(1280, 820)

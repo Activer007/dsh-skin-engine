@@ -10,7 +10,7 @@ import { checkArtwork } from './artwork.mjs'
 import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
 import { checkCharacterSamples } from './character-samples.mjs'
 import { checkDualAppearance } from './dual-appearance.mjs'
-import { checkEffectsRuntime } from './effects-runtime.mjs'
+import { checkAmbientProvider, checkEffectsRuntime } from './effects-runtime.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
 import { checkPackages, checkSample } from './packages.mjs'
 import { performanceComparison, visibilityCycle } from './rendering.mjs'
@@ -29,6 +29,7 @@ const { values: options } = parseArgs({ options: {
   'sample-dir': { type: 'string' },
   'sample-zip': { type: 'string' },
   'catalogue-baseline': { type: 'boolean', default: false },
+  'provider-demo': { type: 'boolean', default: false },
   'host-version': { type: 'string' },
   'web-cli': { type: 'string' },
   chrome: { type: 'string' },
@@ -66,6 +67,7 @@ assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop 
 assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
 assert(!(sample || sceneMotion) || options['sample-zip'], 'Sample acceptance needs --sample-zip')
 assert(!appearance || !desktop, 'Appearance acceptance targets the official Web host')
+assert(!options['provider-demo'] || effects, 'Provider demonstration needs --suite effects-runtime')
 assert(desktop ? process.platform === 'win32' && options['desktop-exe'] : options['web-cli'] && options.chrome,
   'Desktop needs Windows and --desktop-exe. Web needs --web-cli and --chrome.')
 const count = Number(options.switches)
@@ -140,9 +142,15 @@ try {
   if (effects) {
     const effectsUi = await enter(open, true)
     run.effects = {}
-    await checkEffectsRuntime(session, effectsUi, seconds, run.effects)
+    await checkEffectsRuntime(session, effectsUi, seconds, run.effects, options['provider-demo'])
     interruption.signal.throwIfAborted()
     console.log('Verified the eight-effect scene, native visibility, GPU fallback, and Default')
+    if (options['provider-demo']) {
+      run.providerDemo = {}
+      await checkAmbientProvider(effectsUi, directory, run.providerDemo)
+      interruption.signal.throwIfAborted()
+      console.log('Verified the ambient Provider, one owned layer, Static pause, and Default')
+    }
   }
   if (sceneMotion) {
     const motionUi = await enter(open, false)

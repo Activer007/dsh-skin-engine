@@ -21,6 +21,10 @@ const { outputFiles: [module] } = await build({
       export { layoutArtwork, mountArtwork } from './src/client/scene/artwork.ts';
       export { limitArtworkTravel, mountArtworkMotion } from './src/client/scene/artwork-motion.ts';
       export { effectiveScenePreset, sceneEffects } from './src/client/scene/presets.ts';
+      export { effectDefinitions, parseSkinEffects } from './src/core/effects.ts';
+      export { EFFECT_PROVIDER_API, defineProvider } from './src/client/effects/providers/contract.ts';
+      export { createProviderRegistry } from './src/client/effects/providers/runtime.ts';
+      export { createEffectsRuntime } from './src/client/effects/p0.ts';
     `,
     resolveDir: root,
   },
@@ -28,7 +32,8 @@ const { outputFiles: [module] } = await build({
 })
 const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createStarfield, createRipples, createHolographic, mountRefraction,
   createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork, limitArtworkTravel, mountArtworkMotion,
-  effectiveScenePreset, sceneEffects } = await import(
+  effectiveScenePreset, sceneEffects, effectDefinitions, parseSkinEffects, EFFECT_PROVIDER_API, defineProvider, createProviderRegistry,
+  createEffectsRuntime } = await import(
   `data:text/javascript;base64,${Buffer.from(module.contents).toString('base64')}`
 )
 
@@ -172,6 +177,161 @@ function frameClock() {
   }
   return { clock, step, pending: () => frames.size + timers.size }
 }
+
+const providerLayout = { mode: 'dynamic', quality: 'balanced', canvas: true, sidebarGrid: true, filterSupported: true,
+  reducedTransparency: false }
+const providerPlayback = { ...providerLayout, dynamic: true, visible: true, p1Motion: true }
+const declare = definition => ({ id: definition.id, renderer: definition.renderer, enabled: true, params: {} })
+
+test('trusted registration uses the same strict schema and renderer as ZIP declarations', () => {
+  const entry = declare(effectDefinitions.ambientLight)
+  const parse = effects => parseSkinEffects({ schema: 'dsh.effects/v1', effects }, ['effects:css'])
+  const approved = parse([entry, { ...entry, id: 'example.unapproved', params: { source: 'ignored' } }])
+  assert.deepEqual(approved.effects, [{ ...entry, params: { intensity: 0.14, speed: 0.3 } }])
+  assert.equal(approved.diagnostics[0].code, 'unknown-effect')
+  for (const invalid of [
+    [{ ...entry, renderer: 'webgl' }], [{ ...entry, params: { intensity: 0.3 } }],
+    [{ ...entry, params: { shader: 'unapproved' } }], [entry, entry],
+  ]) assert.throws(() => parse(invalid))
+  assert.throws(() => parseSkinEffects({ schema: 'dsh.effects/v1', effects: [entry] }, []))
+  const provider = defineProvider(effectDefinitions.ambientLight, { api: EFFECT_PROVIDER_API, budget: () => 0, mount: () => ({}) })
+  assert.equal(provider.schema, effectDefinitions.ambientLight.schema)
+  assert.equal(provider.renderer, 'css')
+  assert.throws(() => createProviderRegistry([provider, provider]), /Duplicate effect Provider/)
+  assert.throws(() => createProviderRegistry([{ ...provider, api: '2.0.0' }]), /Incompatible effect Provider API/)
+})
+
+test('a scene owns one instance per Provider and transfers shared frame work across pause and release', () => {
+  const time = frameClock()
+  const scheduler = createFrameScheduler(time.clock)
+  const calls = []
+  const resources = new Set()
+  const base = { frames: scheduler, layer(name) {
+    resources.add(name)
+    return { node: {}, release: () => resources.delete(name) }
+  } }
+  const provider = defineProvider(effectDefinitions.ambientLight, {
+    api: EFFECT_PROVIDER_API,
+    budget: quality => ({ low: 1, balanced: 2, high: 3 })[quality],
+    mount(context, params) {
+      calls.push(['mount', params.intensity])
+      context.layer('owned-layer')
+      let release
+      return {
+        layout(state, budget) { calls.push(['layout', budget]); return state.canvas },
+        resume() { calls.push('resume'); release = context.frames.add(() => calls.push('frame')) },
+        pause() { calls.push('pause'); release() },
+        dispose() { calls.push('dispose'); release?.() },
+      }
+    },
+  })
+  const registry = createProviderRegistry([provider])
+  const effect = declare(effectDefinitions.ambientLight)
+  const mount = () => registry.mount([effect, effect], base, () => {}, (id, stage) => assert.fail(`${id} ${stage}`))
+  const owners = mount()
+  assert.equal(owners.length, 1)
+  const [first] = owners
+  assert(first.layout({ ...providerLayout, quality: 'high' }))
+  first.update(providerPlayback)
+  first.update(providerPlayback)
+  assert.equal(time.pending(), 1)
+  time.step(0)
+  first.update({ ...providerPlayback, dynamic: false, visible: false })
+  assert.equal(time.pending(), 0)
+  first.update(providerPlayback)
+  assert.equal(time.pending(), 1)
+  first.dispose()
+  assert.equal(resources.size, 0)
+  const [second] = mount()
+  first.dispose()
+  assert.equal(resources.size, 1)
+  second.dispose()
+  assert.equal(resources.size, 0)
+  assert.equal(time.pending(), 0)
+  assert.deepEqual(calls, [['mount', 0.14], ['layout', 3], 'resume', 'frame', 'pause', 'resume', 'dispose',
+    ['mount', 0.14], 'dispose'])
+})
+
+test('partial mount, draw and frame failures release owned resources and leave sibling effects running', () => {
+  const time = frameClock()
+  const scheduler = createFrameScheduler(time.clock)
+  const events = []
+  const base = { frames: scheduler }
+  const mount = (providers, effects) => createProviderRegistry(providers).mount(effects.map(declare), base, () => {},
+    (id, stage) => events.push([id, stage]))
+  const partial = defineProvider(effectDefinitions.refraction, {
+    api: EFFECT_PROVIDER_API, budget: () => 1,
+    mount(context) {
+      context.own(() => events.push('released partial mount'))
+      context.frames.add(() => assert.fail('failed mount retained a frame'))
+      throw new Error('allocation failed')
+    },
+    fallback(context, _params, stage) {
+      assert.equal(stage, 'mount')
+      context.own(() => events.push('released CSS fallback'))
+      return { layout: () => true }
+    },
+  })
+  const failingDraw = defineProvider(effectDefinitions.dust, {
+    api: EFFECT_PROVIDER_API, budget: () => 1,
+    mount() {
+      return { canvas: { visible: () => true, animated: () => false, draw() { throw new Error('paint failed') } },
+        dispose() { throw new Error('release failed') } }
+    },
+  })
+  const frameProvider = (definition, task) => defineProvider(definition, {
+    api: EFFECT_PROVIDER_API, budget: () => 1,
+    mount(context) {
+      context.own(() => events.push(`released ${definition.id}`))
+      return { resume() { context.frames.add(task) } }
+    },
+  })
+  const brokenFrame = frameProvider(effectDefinitions.ambientLight, () => { throw new Error('frame failed') })
+  let siblingFrames = 0
+  const sibling = frameProvider(effectDefinitions.aurora, () => { siblingFrames++ })
+  const owners = mount([partial, failingDraw, brokenFrame, sibling],
+    [effectDefinitions.refraction, effectDefinitions.dust, effectDefinitions.ambientLight, effectDefinitions.aurora])
+  assert(owners[0].layout(providerLayout))
+  assert.equal(time.pending(), 0)
+  for (const owner of owners) owner.update(providerPlayback)
+  assert.equal(time.pending(), 1)
+  const canvasState = []
+  owners[1].draw({ save: () => canvasState.push('save'), restore: () => canvasState.push('restore') }, 10, 10, 0)
+  assert.deepEqual(canvasState, ['save', 'restore'])
+  assert(!owners[1].canvas)
+  time.step(0)
+  time.step(34)
+  assert.equal(siblingFrames, 2)
+  assert.equal(time.pending(), 1)
+  for (const owner of owners) { owner.dispose(); owner.dispose() }
+  assert.equal(time.pending(), 0)
+  assert.deepEqual(events, ['released partial mount', ['glass.refraction', 'mount'], ['particles.dust', 'dispose'],
+    ['particles.dust', 'draw'], 'released ambient.light', ['ambient.light', 'frame'], 'released CSS fallback', 'released ambient.aurora'])
+})
+
+test('a new window owner replaces the previous owner before subscribers can select again', async () => {
+  const { clock } = frameClock()
+  const motionListeners = new Set()
+  const motion = { matches: false, addEventListener: (_event, fn) => motionListeners.add(fn),
+    removeEventListener: (_event, fn) => motionListeners.delete(fn) }
+  const runtime = createEffectsRuntime({ defaultView: { ...clock, matchMedia: () => motion } })
+  const mount = quality => runtime.mount([], undefined, quality, undefined, { static: [], light: [], dynamic: [] })
+  let releaseSubscriber
+  runtime.subscribe(() => {
+    if (!releaseSubscriber && runtime.getEffectiveQuality() === 'balanced') releaseSubscriber = mount('high')
+  })
+  const releaseFirst = mount('low')
+  const releaseSecond = mount('balanced')
+  assert.equal(motionListeners.size, 1)
+  await Promise.resolve()
+  assert.equal(runtime.getEffectiveQuality(), 'high')
+  releaseFirst()
+  releaseSecond()
+  assert.equal(motionListeners.size, 1)
+  releaseSubscriber()
+  releaseSubscriber()
+  assert.equal(motionListeners.size, 0)
+})
 
 test('artwork motion respects clip edges and coalesces only eligible input on the shared clock', () => {
   assert.equal(limitArtworkTravel(8, 250, -500, 760, 0.86), 8)

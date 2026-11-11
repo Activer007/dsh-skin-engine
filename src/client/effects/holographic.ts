@@ -9,7 +9,7 @@ const spectra = {
   warm: '#ffd197, #f6a6b7, #d6a1f7, #f8c288',
 }
 
-export function createHolographic(node: HTMLElement, params: Holographic, scheduler: ReturnType<typeof createFrameScheduler>) {
+export function createHolographic(node: HTMLElement, params: Holographic, scheduler: Pick<ReturnType<typeof createFrameScheduler>, 'add'>) {
   const { iridescence, edgeWidth, pointerInfluence, spectrum, intensity } = params
   const style = node.style
   style.setProperty('--dsh-holo-spectrum', spectra[spectrum])

@@ -20,12 +20,21 @@ export function createEffectsRuntime(document: Document) {
   let skin: { update: () => void; dispose: () => void; preset: () => ScenePreset | undefined } | undefined
   let scenePreset: ScenePreset = 'dynamic'
   const listeners = new Set<() => void>()
+  let notificationQueued = false
   const preference = () => qualityOverride ?? skinQuality
   function quality(): Quality {
     const chosen = preference()
     return chosen === 'auto' ? auto.get() : chosen
   }
-  function notify() { for (const listener of listeners) listener() }
+  function notify() {
+    // Publish after ownership has settled. A subscriber may select another scene.
+    if (notificationQueued) return
+    notificationQueued = true
+    queueMicrotask(() => {
+      notificationQueued = false
+      for (const listener of listeners) listener()
+    })
+  }
   function reportRefraction(status: RefractionStatus) {
     if (refraction === status) return
     refraction = status
