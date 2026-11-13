@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react'
 import { auditedSurfaceStyles } from '../adapter/surface-map.js'
 import { AUDIT_PATH, type AuditStatus } from '../shared/audit.js'
 import { preferencesFor, qualityLevels, type QualityChoice } from '../shared/preferences.js'
@@ -8,6 +8,7 @@ import type { ScenePreset } from './scene/presets.js'
 import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
 import type { createSettingsSession } from './settings-session.js'
 import { SkinDetail } from './skin-detail.js'
+import { SkinPreviewImage } from './skin-preview-image.js'
 import type { createSkinSwitch } from './skin-switch.js'
 
 declare const MANAGER_STYLES: string
@@ -16,6 +17,8 @@ declare const SKIN_ENGINE_VERSION: string
 
 const scenePresets = ['static', 'light', 'dynamic'] as const
 const windowModes = ['dynamic', 'static', 'economy', 'off'] as const
+const pages = ['gallery', 'effectsPage', 'managePage'] as const
+type Page = (typeof pages)[number]
 type HostCheck = { version?: string; persisted: boolean } | { error: string }
 
 export interface PanelProps {
@@ -38,17 +41,26 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
   const refraction = useSyncExternalStore(effects.subscribe, effects.getRefraction)
   useSyncExternalStore(settingsSession.subscribe, settingsSession.getSnapshot)
   const panel = useRef<HTMLElement>(null)
+  const [activePage, setActivePage] = useState<Page>('gallery')
+  const [showDetails, setShowDetails] = useState(false)
+  const detailBack = useRef<HTMLButtonElement>(null)
+  const card = useRef<HTMLButtonElement>(null)
+  const searchInput = useRef<HTMLInputElement>(null)
+  const focusTarget = useRef<'detail' | 'gallery' | undefined>(undefined)
+  const tabId = useId()
   const [query, search] = useState('')
   const [tag, filterTag] = useState('')
   const [source, filterSource] = useState('')
+  const [compatibleOnly, filterCompatibility] = useState(false)
   const [hostStatus, setHostStatus] = useState<HostCheck | null>()
   const [versionNotice, setVersionNotice] = useState<((t: TranslateSettings) => string) | undefined>()
   const detailId = useId()
   const choices = state.catalogue?.skins ?? []
   const tags = [...new Set(choices.flatMap(item => item.manifest.tags ?? []))].sort()
   const term = query.trim().toLowerCase()
-  const visible = choices.filter(({ manifest, source: origin }) => {
+  const visible = choices.filter(({ manifest, source: origin, compatibility }) => {
     if (source && source !== origin) return false
+    if (compatibleOnly && compatibility) return false
     if (tag && !manifest.tags?.includes(tag)) return false
     return !term || [manifest.name, manifest.nameEn, manifest.author, manifest.id, ...(manifest.tags ?? [])]
       .some(value => value?.toLowerCase().includes(term))
@@ -58,14 +70,44 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
     ?? choices[0]
   const editingId = choice?.manifest.id
   const draft = editingId ? settingsSession.getDraft(editingId) : undefined
-  const name = (id: string | null | undefined) => choices.find(item => item.manifest.id === id)?.manifest.name ?? id ?? t('defaultSkin')
+  const displayName = (manifest: { name: string; nameEn?: string }) =>
+    /^en(?:-|$)/i.test(language) ? manifest.nameEn || manifest.name : manifest.name
+  const name = (id: string | null | undefined) => {
+    const item = choices.find(item => item.manifest.id === id)
+    return item ? displayName(item.manifest) : id ?? t('defaultSkin')
+  }
   const scheme = getColorScheme()
   const previewing = state.preview !== null || state.pending === 'preview'
+  const filtersActive = Boolean(query || tag || source || compatibleOnly)
+  const placeholder = state.catalogue?.placeholderUrl
+
+  function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let next: number
+    switch (event.key) {
+      case 'ArrowLeft': next = (index + pages.length - 1) % pages.length; break
+      case 'ArrowRight': next = (index + 1) % pages.length; break
+      case 'Home': next = 0; break
+      case 'End': next = pages.length - 1; break
+      default: return
+    }
+    event.preventDefault()
+    const page = pages[next]!
+    setActivePage(page)
+    document.getElementById(`${tabId}-tab-${page}`)?.focus()
+  }
+
+  useEffect(() => {
+    const target = focusTarget.current
+    focusTarget.current = undefined
+    if (target === 'detail') detailBack.current?.focus()
+    if (target === 'gallery') (card.current ?? searchInput.current)?.focus()
+  }, [showDetails])
 
   function clearFilters() {
     search('')
     filterTag('')
     filterSource('')
+    filterCompatibility(false)
   }
 
   useEffect(() => {
@@ -77,12 +119,11 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
   }, [controller, settingsSession])
 
   useEffect(() => {
-    if (translate) return
     const root = document.documentElement
     const observer = new MutationObserver(() => setLanguage(root.lang))
     observer.observe(root, { attributes: true, attributeFilter: ['lang'] })
     return () => observer.disconnect()
-  }, [translate])
+  }, [])
 
   async function checkHost() {
     setHostStatus(null)
@@ -114,7 +155,7 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
             <h2>{t('title')}</h2>
             <span className="dsh-skin-muted">{t('clientVersion', { version: SKIN_ENGINE_VERSION })}</span>
           </div>
-          <p className="dsh-skin-muted">
+          <p className="dsh-skin-muted" data-saved-skin={state.saved ? state.saved.skinId ?? '' : undefined}>
             <strong>{t('saved')}</strong> {state.saved ? name(state.saved.skinId) : t('unavailable')}
             {state.rendered !== state.saved?.skinId ? <> · <strong>{t('showing')}</strong> {name(state.rendered)}</> : null}
           </p>
@@ -131,7 +172,13 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
       <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving') : state.pending ? t('loading')
         : versionNotice?.(t)}</p>
       {state.catalogueNotice ? <p role="alert">{settingsError(t, state.catalogueNotice, 'error.selection')}</p> : null}
-      <div className="dsh-skin-layout">
+      <div className="dsh-skin-tabs" role="tablist" aria-label={t('settingsPages')}>
+        {pages.map((page, index) => <button key={page} type="button" role="tab" id={`${tabId}-tab-${page}`}
+          aria-controls={`${tabId}-page-${page}`} aria-selected={activePage === page} tabIndex={activePage === page ? 0 : -1}
+          onClick={() => setActivePage(page)} onKeyDown={event => moveTab(event, index)}>{t(page)}</button>)}
+      </div>
+      <div className="dsh-skin-layout" role="tabpanel" id={`${tabId}-page-gallery`} aria-labelledby={`${tabId}-tab-gallery`}
+        hidden={activePage !== 'gallery'} data-detail={showDetails && Boolean(choice)}>
         <section className="dsh-skin-library" aria-label={t('gallery')}>
           <header className="dsh-skin-library-header">
             <h3>{t('gallery')}</h3>
@@ -141,7 +188,7 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
             }} />
           </header>
           <div className="dsh-skin-fields">
-            <label>{t('search')}<input type="search" value={query} onChange={event => search(event.currentTarget.value)} /></label>
+            <label>{t('search')}<input ref={searchInput} type="search" value={query} onChange={event => search(event.currentTarget.value)} /></label>
             <label>{t('tag')}
               <select value={tag} onChange={event => filterTag(event.currentTarget.value)}>
                 <option value="">{t('allTags')}</option>
@@ -156,10 +203,12 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
               </select>
             </label>
           </div>
-          {state.catalogue && visible.length === 0 ? (
-            <div className="dsh-skin-actions"><p>{t('noMatches')}</p><button type="button" onClick={clearFilters}>{t('clearFilters')}</button></div>
-          ) : null}
-          {choice && !visible.includes(choice) ? <p>{t('editingOutsideFilter', { name: choice.manifest.name })}</p> : null}
+          <div className="dsh-skin-gallery-summary">
+            {state.catalogue ? <span role="status">{visible.length ? t('galleryCount', { count: visible.length }) : t('noMatches')}</span> : null}
+            <label><input type="checkbox" checked={compatibleOnly} onChange={event => filterCompatibility(event.currentTarget.checked)} />{t('compatibleOnly')}</label>
+            {filtersActive ? <button type="button" onClick={clearFilters}>{t('clearFilters')}</button> : null}
+          </div>
+          {choice && !visible.includes(choice) ? <p>{t('editingOutsideFilter', { name: displayName(choice.manifest) })}</p> : null}
           <ul className="dsh-skin-gallery">
             {visible.map(item => {
               const { manifest } = item
@@ -169,17 +218,17 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
                     : item.managed ? 'installed' : item.source === 'local' ? 'local' : 'builtin'
               return (
                 <li key={manifest.id}>
-                  <button type="button" aria-pressed={choice === item} aria-controls={detailId} onClick={() => settingsSession.select(manifest.id)}>
-                    <img alt="" loading="lazy" decoding="async" width="320" height="180"
-                      src={new URL(item.previews[manifest.colorScheme === 'both' ? scheme : manifest.colorScheme ?? scheme], document.baseURI).href}
-                      onError={event => {
-                        const fallback = state.catalogue?.placeholderUrl
-                        if (!fallback) return
-                        const url = new URL(fallback, document.baseURI).href
-                        if (event.currentTarget.src !== url) event.currentTarget.src = url
-                      }} />
+                  <button ref={choice === item ? card : undefined} type="button" data-skin-card={manifest.id}
+                    aria-pressed={choice === item} aria-controls={detailId}
+                    onClick={() => {
+                      settingsSession.select(manifest.id)
+                      if (!showDetails) focusTarget.current = 'detail'
+                      setShowDetails(true)
+                    }}>
+                    <SkinPreviewImage path={item.previews[manifest.colorScheme === 'both' ? scheme : manifest.colorScheme ?? scheme]}
+                      placeholder={placeholder} />
                     <span className="dsh-skin-card-caption">
-                      <strong>{manifest.name}</strong>
+                      <strong>{displayName(manifest)}</strong>
                       <small className="dsh-skin-badge" data-status={status}>{t(status)}</small>
                     </span>
                   </button>
@@ -188,14 +237,23 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
             })}
           </ul>
         </section>
-        {choice ? <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} t={t} id={detailId} choice={choice} scheme={scheme} controller={controller}
+        {choice ? <div className="dsh-skin-inspector">
+          <button ref={detailBack} type="button" className="dsh-skin-back" onClick={() => {
+            focusTarget.current = 'gallery'
+            setShowDetails(false)
+          }}>{t('backToGallery')}</button>
+          <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} t={t} id={detailId} choice={choice} scheme={scheme} controller={controller}
+          displayName={displayName(choice.manifest)}
+          placeholder={placeholder} onOpenEffects={() => setActivePage('effectsPage')} onOpenManagement={() => setActivePage('managePage')}
           preferences={preferencesFor(state.saved?.preferences, choice.manifest.id)} revision={state.saved?.revision}
           draft={draft} onDraft={value => settingsSession.setDraft(choice.manifest.id, value)}
           readDraft={() => settingsSession.getDraft(choice.manifest.id)}
           applied={state.preview === null && state.rendered === choice.manifest.id && state.saved?.skinId === choice.manifest.id}
-          busy={state.saving} onVersionNotice={message => setVersionNotice(() => message)} /> : null}
+          busy={state.saving} onVersionNotice={message => setVersionNotice(() => message)} />
+        </div> : null}
       </div>
-      <div className="dsh-skin-utilities">
+      <div className="dsh-skin-utilities" role="tabpanel" id={`${tabId}-page-effectsPage`} aria-labelledby={`${tabId}-tab-effectsPage`}
+        hidden={activePage !== 'effectsPage'}>
         <details open className="dsh-skin-disclosure">
           <summary>{t('windowEffects')}</summary>
           <div className="dsh-skin-fields">
@@ -226,6 +284,9 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
             </p>
           ) : null}
         </details>
+      </div>
+      <div className="dsh-skin-utilities" role="tabpanel" id={`${tabId}-page-managePage`} aria-labelledby={`${tabId}-tab-managePage`}
+        hidden={activePage !== 'managePage'}>
         <details open className="dsh-skin-disclosure">
           <summary>{t('maintenance')}
             {state.catalogue?.issues.length ? <> ({state.catalogue.issues.length})</> : null}

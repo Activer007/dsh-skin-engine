@@ -17,7 +17,9 @@ import { performanceComparison, visibilityCycle } from './rendering.mjs'
 import { checkSceneMotion } from './scene-motion.mjs'
 import { checkSceneSamples } from './scenes.mjs'
 import { checkSettingsLocale, installLocaleFixture } from './settings-locale.mjs'
+import { checkSettingsGallery } from './settings-gallery.mjs'
 import { checkSettingsState } from './settings-state.mjs'
+import { checkSettingsTabs } from './settings-tabs.mjs'
 import { checkSurfaces, seedSurfaceHistory } from './surfaces.mjs'
 import { installTokenProbe } from './token-probe.mjs'
 import { checkTokens } from './tokens.mjs'
@@ -59,6 +61,8 @@ const effects = options.suite === 'effects-runtime'
 const ambientPreferences = options.suite === 'ambient-preferences'
 const settingsLocale = options.suite === 'settings-locale'
 const settingsState = options.suite === 'settings-state'
+const settingsTabs = options.suite === 'settings-tabs'
+const settingsGallery = options.suite === 'settings-gallery'
 const sceneMotion = options.suite === 'scene-motion'
 const artwork = options.suite === 'artwork'
 const tokens = options.suite === 'tokens'
@@ -66,11 +70,11 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || sceneMotion || options.suite === 'surfaces'
+assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
-assert(!(sample || sceneMotion) || options['sample-zip'], 'Sample acceptance needs --sample-zip')
+assert(!(sample || sceneMotion || settingsGallery) || options['sample-zip'], 'Sample acceptance needs --sample-zip')
 assert(!appearance || !desktop, 'Appearance acceptance targets the official Web host')
 assert(!options['provider-demo'] || effects, 'Provider demonstration needs --suite effects-runtime')
 assert(desktop ? process.platform === 'win32' && options['desktop-exe'] : options['web-cli'] && options.chrome,
@@ -91,7 +95,8 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || ambientPreferences || settingsLocale || settingsState || sceneMotion || catalogueCache ? new AbortController() : undefined
+const settingsChecks = settingsLocale || settingsState || settingsTabs || settingsGallery
+const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
 const includes = name => suites.includes(name)
@@ -110,7 +115,7 @@ if (interruption) {
 async function enter(open, lifecycle, appearance) {
   session = await open(lifecycle)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
-  if ((tokens || dual || effects || ambientPreferences || settingsLocale || settingsState || sceneMotion || catalogueCache || characters) && desktop) await session.show()
+  if ((tokens || dual || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache || characters) && desktop) await session.show()
   return settings(session.page, desktop, appearance)
 }
 
@@ -197,6 +202,20 @@ try {
     await checkSettingsState(stateUi, directory, run.settingsState, session.show)
     interruption.signal.throwIfAborted()
     console.log('Verified draft lifetime, native language change, and revision conflict recovery')
+  }
+  if (settingsTabs) {
+    const tabsUi = await enter(open, false)
+    run.settingsTabs = {}
+    await checkSettingsTabs(tabsUi, session, directory, run.settingsTabs)
+    interruption.signal.throwIfAborted()
+    console.log('Verified keyboard tabs, responsive details, and cross-page preview')
+  }
+  if (settingsGallery) {
+    const galleryUi = await enter(open, false)
+    run.settingsGallery = {}
+    await checkSettingsGallery(galleryUi, session, resolve(options['sample-zip']), directory, run.settingsGallery)
+    interruption.signal.throwIfAborted()
+    console.log('Verified the skin gallery, dual previews, and responsive details')
   }
   if (sceneMotion) {
     const motionUi = await enter(open, false)
@@ -313,9 +332,9 @@ try {
 } finally {
   try {
     try {
-      if (effects || ambientPreferences || settingsLocale || settingsState || sceneMotion || catalogueCache || characters) await save()
+      if (effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache || characters) await save()
     } finally { await session?.close() }
-    if ((artwork || scenes || tokens || dual || effects || ambientPreferences || settingsLocale || settingsState || sceneMotion || catalogueCache || characters) && session) run.browserDisconnected = !session.browser.isConnected()
+    if ((artwork || scenes || tokens || dual || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache || characters) && session) run.browserDisconnected = !session.browser.isConnected()
   } finally {
     if (interruption) {
       process.off('SIGINT', interrupt)

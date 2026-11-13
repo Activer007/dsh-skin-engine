@@ -1,0 +1,75 @@
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { deepOcean } from './browser.mjs'
+import { packagePanel, zipJson } from './packages.mjs'
+
+export async function checkSettingsGallery(ui, session, archive, directory, evidence) {
+  const { page, panel, detail, card, activate, button, selection, waitForSkin } = ui
+  await session.resize(1280, 820)
+  await ui.open()
+  const initial = await selection()
+  const bytes = await readFile(archive)
+  const skin = await zipJson(bytes)
+  await packagePanel(ui).install('dual-person.dshskin.zip', bytes)
+  await ui.choose(skin)
+  assert.equal(await card(skin).getAttribute('aria-pressed'), 'true')
+  await waitForSkin(initial.skinId)
+  assert.deepEqual(await selection(), initial)
+  const detailImage = detail(skin).getByRole('img')
+  const load = image => image.evaluate(async node => {
+    await node.decode()
+    return { width: node.naturalWidth, url: node.currentSrc, fit: getComputedStyle(node).objectFit }
+  })
+  const dark = await load(detailImage)
+  assert.equal(new URL(dark.url).searchParams.get('scheme'), 'dark')
+  assert.equal(dark.fit, 'contain')
+  const imageScheme = detail(skin).getByRole('combobox', { name: 'Preview image appearance' })
+  await imageScheme.selectOption('light')
+  const light = await load(detailImage)
+  assert.equal(new URL(light.url).searchParams.get('scheme'), 'light')
+  assert(dark.width > 1 && light.width > 1)
+  assert.deepEqual(await selection(), initial)
+  const thumb = card(skin).locator('img')
+  assert.equal(await thumb.getAttribute('loading'), 'lazy')
+  await thumb.evaluate(node => node.scrollIntoView({ block: 'nearest' }))
+  assert.equal((await load(thumb)).fit, 'cover')
+  assert.notEqual(dark.url, light.url)
+  evidence.images = { dark: dark.width, light: light.width, thumbnailLazy: true }
+
+  const search = panel.getByRole('searchbox', { name: 'Search skins' })
+  await search.fill('nothing-matches-this')
+  await panel.getByText('No matching skins.', { exact: true }).waitFor()
+  assert(await detail(skin).isVisible())
+  await activate(button(panel, 'Clear filters'))
+  await search.fill(skin.nameEn ?? skin.name)
+  await panel.getByRole('status').filter({ hasText: /^Skins: 1$/ }).waitFor()
+  await activate(button(detail(skin), 'Preview'))
+  await waitForSkin(skin.id)
+  await activate(button(panel, 'Clear filters'))
+  await ui.choose(deepOcean)
+  assert.equal(await card(deepOcean).getAttribute('aria-pressed'), 'true')
+  assert.equal(await card(skin).locator('[data-status]').getAttribute('data-status'), 'previewing')
+  await activate(button(panel, 'Cancel preview'))
+  await waitForSkin(initial.skinId)
+  assert.deepEqual(await selection(), initial)
+  await ui.apply(skin)
+  assert.equal((await selection()).skinId, skin.id)
+  await ui.apply(null)
+  await ui.choose(skin)
+  await panel.evaluate(node => node.scrollIntoView({ block: 'start' }))
+  await page.screenshot({ path: join(directory, 'gallery-1280.png'), scale: 'css' })
+  await session.resize(760, 820)
+  const back = button(panel, 'Back to gallery')
+  await back.waitFor()
+  await panel.evaluate(node => node.scrollIntoView({ block: 'start' }))
+  await page.screenshot({ path: join(directory, 'gallery-760.png'), scale: 'css' })
+  await activate(back)
+  assert(await card(skin).evaluate(node => node === document.activeElement))
+  await session.resize(1280, 820)
+  await ui.switchLanguage('zh')
+  await ui.openSkinSection()
+  await panel.locator(`[data-skin-card="${skin.id}"]`).getByText(skin.name, { exact: true }).waitFor()
+  evidence.selection = { filterPreserved: true, independentPreview: true, nativeUnchanged: true, narrowFocus: true, localizedName: true }
+  evidence.content = await panel.evaluate(node => ({ viewport: [innerWidth, innerHeight], width: node.clientWidth }))
+}

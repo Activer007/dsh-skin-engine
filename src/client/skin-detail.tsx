@@ -8,6 +8,7 @@ import { settingsError, type TranslateSettings } from './settings-copy.js'
 import type { SettingsDraft } from './settings-session.js'
 import { canActivate, type SkinChoice, type SkinData } from './skin-api.js'
 import type { createSkinSwitch } from './skin-switch.js'
+import { SkinPreviewImage } from './skin-preview-image.js'
 
 function pickerColor(color: string | undefined) {
   if (!color) return '#000000'
@@ -19,9 +20,13 @@ function pickerColor(color: string | undefined) {
 interface DetailProps {
   t: TranslateSettings
   id: string
+  displayName: string
   choice: SkinChoice
   scheme: ColorScheme
   controller: ReturnType<typeof createSkinSwitch>
+  placeholder?: string
+  onOpenEffects(): void
+  onOpenManagement(): void
   preferences?: SkinPreferences
   revision?: number
   draft?: SettingsDraft
@@ -32,8 +37,10 @@ interface DetailProps {
   onVersionNotice(message: ((t: TranslateSettings) => string) | undefined): void
 }
 
-export function SkinDetail({ t, id, choice, scheme, controller, preferences, revision, draft, onDraft, readDraft, applied, busy, onVersionNotice }: DetailProps) {
+export function SkinDetail({ t, id, displayName, choice, scheme, controller, placeholder, onOpenEffects, onOpenManagement,
+  preferences, revision, draft, onDraft, readDraft, applied, busy, onVersionNotice }: DetailProps) {
   const [result, setResult] = useState<{ data?: SkinData; error?: string }>()
+  const [previewScheme, setPreviewScheme] = useState<ColorScheme>()
   const statusId = useId()
   const { manifest, compatibility } = choice
   const colors = result?.data && resolveSkinColors(result.data.tokens, scheme)
@@ -46,6 +53,7 @@ export function SkinDetail({ t, id, choice, scheme, controller, preferences, rev
   const previewBlock = !blocked ? controller.getAppearanceBlock(choice) : undefined
   const applyBlock = !blocked ? controller.getAppearanceBlock(choice, 'apply') : undefined
   const appearance = t(`appearance.${manifest.colorScheme ?? 'any'}`)
+  const imageScheme = manifest.colorScheme === 'both' ? previewScheme ?? scheme : manifest.colorScheme ?? scheme
   const activationStatus = applyBlock ? settingsError(t, applyBlock, 'error.generic') : busy ? t('saving') : previewBlock
     ? t('appearanceSwitch', { scheme: appearance }) : applied && !draft ? t('skinApplied') : ''
   useEffect(() => {
@@ -81,13 +89,24 @@ export function SkinDetail({ t, id, choice, scheme, controller, preferences, rev
   }
 
   return (
-    <section id={id} className="dsh-skin-detail" aria-label={t('details', { name: manifest.name })}>
+    <section id={id} className="dsh-skin-detail" data-skin-detail={manifest.id} aria-label={t('details', { name: displayName })}>
       <header>
-        <h3>{manifest.name}</h3>
-        <p className="dsh-skin-muted">{t('editingSkin', { name: manifest.name })}</p>
-        <p className="dsh-skin-muted">{t('skinVersion', { version: manifest.version })} · {manifest.author ?? t('unknownAuthor')} · {t('appearance', { scheme: appearance })}</p>
+        <h3>{displayName}</h3>
+        <p className="dsh-skin-muted">{t('editingSkin', { name: displayName })}</p>
+        <p className="dsh-skin-muted">{t('skinVersion', { version: manifest.version })} · {manifest.author ?? t('unknownAuthor')} · {t('appearance', { scheme: appearance })} · {t(choice.source === 'built-in' ? 'builtin' : 'local')}</p>
         {manifest.description ? <p>{manifest.description}</p> : null}
       </header>
+      <div className="dsh-skin-preview-art">
+        <SkinPreviewImage path={choice.previews[imageScheme]} placeholder={placeholder}
+          alt={t('previewImage', { name: displayName, scheme: t(`appearance.${imageScheme}`) })} />
+        {manifest.colorScheme === 'both' ? <label>{t('previewImageAppearance')}
+          <select value={previewScheme ?? ''} onChange={event => setPreviewScheme(event.currentTarget.value as ColorScheme || undefined)}>
+            <option value="">{t('followDshAppearance')}</option>
+            <option value="light">{t('appearance.light')}</option>
+            <option value="dark">{t('appearance.dark')}</option>
+          </select>
+        </label> : null}
+      </div>
       {blocked ? <p>{compatibility?.code === 'unsupported-host'
         ? t('error.unsupportedHost', { version: MINIMUM_DSH_VERSION })
         : t(compatibility ? 'error.compatibility' : 'validatedRequired')}</p> : null}
@@ -181,6 +200,10 @@ export function SkinDetail({ t, id, choice, scheme, controller, preferences, rev
         </details>
       ) : null}
       {canActivate(choice) ? <PackageActions t={t} choice={choice} controller={controller} disabled={busy} onVersionNotice={onVersionNotice} /> : null}
+      <div className="dsh-skin-actions">
+        <button type="button" onClick={onOpenEffects}>{t('openEffects')}</button>
+        <button type="button" onClick={onOpenManagement}>{t('openManagement')}</button>
+      </div>
       <p className="dsh-skin-muted">{t('engineApi')} {manifest.engineApi}{manifest.dshCompatibility ? ` · DSH ${manifest.dshCompatibility}` : ''}</p>
     </section>
   )

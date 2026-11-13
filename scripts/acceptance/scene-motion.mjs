@@ -68,6 +68,7 @@ export async function checkSceneMotion(session, ui, archive, directory, evidence
   }
   const select = async (control, value) => {
     await open()
+    await ui.showEffects()
     await control.selectOption(value)
     await close()
   }

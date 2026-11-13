@@ -49,6 +49,10 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite settings-state` 验证筛选、原生语言切换、跨皮肤草稿、修订冲突和关闭设置清理。 [UI-03 专项记录](#ui-03-设置状态验收)
 
+`--suite settings-tabs` 验证三页导航、宽窄内容区、详情返回焦点及跨页预览。 [UI-04 专项记录](#ui-04-设置导航验收)
+
+`--suite settings-gallery --sample-zip <晨昏观测 ZIP>` 验证筛选与选中、人物双明暗预览和窄窗返回。 [UI-05 专项记录](#ui-05-皮肤库验收)
+
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 
 `--suite catalogue-cache` 在两端记录 10/100 包的冷扫描、热读和缩略图请求，并核对更新、回滚与卸载后的预览失效。 [缓存行为与专项记录](catalogue-cache.md)
@@ -107,6 +111,40 @@ Auto Review 后，重复包和版本未提高的提示提供双语恢复动作�
 | Windows Desktop | 1280 × 860 / 879 | `.cache/ui-03/host/desktop-1TS8Vt/` |
 
 目录含 `result.json` 和 `settings-conflict.png`。验收脚本提交为 `7a3ae76e02d67b9b6d3997c6dbf54c24697d74b9`。初次自动化误把技术详情和可见状态匹配为同一定位器，缩小到可见状态区域后两端通过，未改动候选包。类型检查、lint、68 项本地测试通过。两端页面异常为空，测试启动的 DSH、Web Host 与浏览器均已退出。
+
+## UI-04 设置导航验收
+
+官方 DSH Web 和 Windows Desktop 0.2.2-rc.1 安装同一 Skin Engine 1.8.2 tarball，并核对 Host 和 Client 字节。构建提交 `8669c6eadeac186fac22a28002e9ea9522f4a464`，SHA-256 `41e405743d817122f8c930be4a9d9c6043e177752d35987e2a43d882f06f2644`。
+
+两端以方向键、Home、End 切换三页，每次只有一个可访问的活动面板。换页保留草稿与预览，能从效果页取消预览，Host 保存未变。内容宽达到 840 CSS 像素显示画廊和详情，低于断点显示带返回按钮的详情子视图。返回画廊恢复卡片焦点，窄窗无横向溢出。Escape 能关闭设置。回焦用固定 1280 像素的独立开关循环验证，避免窄窗替换宿主账号菜单节点后仍要求回到原节点。
+
+| 平台 | 1280 × 820 内容宽 | 760 × 820 内容宽 | 结果目录 |
+| --- | --- | --- | --- |
+| Web | 884 | 728 | `.cache/ui-04/host/web-ktar7U/` |
+| Windows Desktop | 879 | 471 | `.cache/ui-04/host/desktop-qwJCs9/` |
+
+目录含 `result.json` 和两种宽度截图。专项脚本提交 `f68d362adc2ee75abc22b78d41298e5ab07dcfd6`。Auto Review 后调整旧场景夹具进入效果页的路径。以 `5200a5c2107ae44db8c5329971f10c31971b1d80` 复跑 Web `scene-previews` 和 Desktop `scene-motion`，证据为 `.cache/ui-04/scene-recheck/web-2Zm5v2/` 和 `.cache/ui-04/scene-recheck/desktop-mMH95l/`。使用同一 tarball 和 NEXT-05 / NEXT-09 的已验收样例。类型检查、lint 和 9 项定向本地测试通过。上述隔离进程已退出。
+
+原有 `surfaces` 用例现在先在画廊解码缩略图，再进入窄窗详情。以脚本提交 `152515c219377adc0791e229e098cda05aa560d6` 复跑官方 Web 通过，继续使用同一 tarball。弹窗宽度、输入框透明度、系统回退和 Default 证据在 `.cache/ui-04/surface-recheck/web-U8ZxbT/`。
+
+完整 `scenes` 用例在恢复窗口质量后返回画廊，随后能导入第三套场景。官方 Web 用同一 tarball 和脚本提交 `4a12354eb59be042dba565627e1b6f9838ed2a88` 通过，证据在 `.cache/ui-04/scene-recheck/web-tobmyq/`。
+
+Desktop 的 `upgrade` 用例在切到管理页前读取皮肤包版本，随后检查 Host 版本、版本不同、旧 Host 缺少版本和不可达提示。官方 Desktop 以 `239e1e1d5932bba7f8c5b64ba273e5b20f6caa02` 和同一 tarball 通过 1.8.1 → 1.8.2 升级，原偏好未变，结果在 `.cache/ui-04/upgrade-recheck/desktop-ZRMMy8/`。
+
+## UI-05 皮肤库验收
+
+官方 DSH Web 和 Windows Desktop 0.2.2-rc.1 安装同一 Skin Engine 1.8.2 候选包，核对 Host 和 Client 字节。构建提交 `ca0234e8c2a92d3c28627f3933384111052da6c7`，SHA-256 `a84311d8282e94601a8bb95114de7ef4b0b79291f2b6d0c4ae40ccf2f39eafd8`。使用已交付的 [晨昏观测独立 ZIP](character-author-templates.md)，包含浅色与深色人物预览。
+
+双端验证卡片选中不触发应用、空筛选保留详情、双明暗大图使用受控预览 URL 且不改变 Host 保存选择、卡片独立呈现选中与预览状态、窄窗返回时还原卡片焦点，并验证中文原名及英文备用名。大图采用完整比例容纳，画廊缩略图保持懒加载。截图以 1280 和 760 CSS 像素采集。
+
+| 平台 | 1280 × 820 内容宽 | 证据目录 |
+| --- | --- | --- |
+| Web | 884 | `.cache/ui-05/host/web-RsUX10/` |
+| Windows Desktop | 879 | `.cache/ui-05/host/desktop-dMeOnQ/` |
+
+记录含 `result.json`、`gallery-1280.png` 和 `gallery-760.png`。类型检查、lint 和 13 项定向本地测试通过。两端页面异常为空，隔离宿主和浏览器已退出。复跑沿用 [运行示例](#运行)，传入 `--suite settings-gallery --sample-zip <example.twilight-shift.dshskin.zip>`。
+
+Auto Review 后，验收脚本按皮肤 ID 核对保存状态，兼容英文环境下有独立译名的皮肤。修正包构建自 `736347ba74e09b2cd042f888d9223006bd0a4372`，SHA-256 `eeaa08d567c3ad8d78a3abb066b52922765ff6d7d5c699eab37f65a51ceb03c9`。同一包在官方双端复跑通过，并补验英文状态下应用晨昏观测和恢复默认。结果在 `.cache/ui-05/host/web-VKqdzk/` 和 `.cache/ui-05/host/desktop-LExMZz/`，隔离进程均已退出。
 
 ## v1.5.0 Web 外观专项 NEXT-01
 

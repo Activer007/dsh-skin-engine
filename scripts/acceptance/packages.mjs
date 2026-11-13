@@ -21,7 +21,6 @@ export async function zipJson(bytes, name = 'skin.json') {
 
 export function packagePanel(ui, foreground) {
   const { page, panel, button, detail, activate } = ui
-  const gallery = panel.getByRole('region', { name: 'Skin gallery', exact: true })
   const importer = panel.getByRole('region', { name: 'Import skin package' })
   const getCatalogue = () => page.evaluate(async path => {
     const start = performance.now()
@@ -39,12 +38,13 @@ export function packagePanel(ui, foreground) {
     if (!await uninstall.isVisible()) await activate(actions.locator('summary'))
     await activate(uninstall)
     await activate(button(actions, 'Confirm uninstall'))
-    await gallery.getByRole('button', { name: new RegExp(`^${RegExp.escape(skin.name)} `) }).waitFor({ state: 'detached' })
+    await ui.card(skin).waitFor({ state: 'detached' })
   }
 
   async function loadPreview(skin) {
     await foreground?.()
-    const image = gallery.getByRole('button', { name: new RegExp(`^${RegExp.escape(skin.name)} `) }).locator('img')
+    await ui.showGallery()
+    const image = ui.card(skin).locator('img')
     const handle = await image.elementHandle()
     try {
       await handle.evaluate(node => node.scrollIntoView({ block: 'nearest' }))
@@ -224,7 +224,7 @@ export const palette = page => page.locator('body').evaluate(node => {
 async function checkFilters(ui, manifest) {
   const gallery = ui.panel.getByRole('region', { name: 'Skin gallery', exact: true })
   const cards = gallery.locator('.dsh-skin-gallery button')
-  const card = cards.filter({ hasText: manifest.name })
+  const card = cards.filter({ hasText: new RegExp([manifest.name, manifest.nameEn].filter(Boolean).map(RegExp.escape).join('|')) })
   const search = gallery.getByRole('searchbox', { name: 'Search skins' })
   const tag = gallery.getByRole('combobox', { name: 'Tag', exact: true })
   const source = gallery.getByRole('combobox', { name: 'Source', exact: true })

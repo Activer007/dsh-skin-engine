@@ -30,7 +30,10 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
   const panel = dialog.locator('[data-dsh-skin-engine]')
   const tab = dialog.getByRole('button', { name: /^(Skin Engine|皮肤引擎)$/ })
   const gallery = panel.getByRole('region', { name: 'Skin gallery', exact: true })
-  const detail = skin => panel.getByRole('region', { name: `${skin.name} details`, exact: true })
+  const detail = skin => panel.locator(`[data-skin-detail="${skin.id}"]:visible`).or(panel.getByRole('region', { name: `${skin.name} details`, exact: true }))
+  const card = skin => gallery.locator(`[data-skin-card="${skin.id}"]`).or(
+    gallery.getByRole('button', { name: new RegExp(`^${RegExp.escape(skin.name)} `) }))
+  const pageTab = name => panel.getByRole('tab', { name, exact: true })
 
   function button(parent, name) { return parent.getByRole('button', { name, exact: true }) }
   async function activate(control) {
@@ -80,7 +83,16 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
     await tab.press('Enter')
     await panel.getByRole('heading', { name: 'Skin Engine', exact: true }).waitFor()
   }
-  const choose = skin => activate(gallery.getByRole('button').filter({ has: page.getByText(skin.name, { exact: true }) }))
+  async function showGallery() {
+    const galleryTab = pageTab('Skin gallery')
+    if (await galleryTab.count() && await galleryTab.getAttribute('aria-selected') !== 'true') await activate(galleryTab)
+    const back = button(panel, 'Back to gallery')
+    if (await back.isVisible()) await activate(back)
+  }
+  async function choose(skin) {
+    await showGallery()
+    await activate(card(skin))
+  }
   const waitForSkin = id => page.waitForFunction(id => document.documentElement.getAttribute('data-dsh-skin-id') === id, id, { polling: 100 })
   const selection = () => page.evaluate(async () => {
     const response = await fetch(new URL('api/dsh-skin-engine/selection', document.baseURI), { cache: 'no-store' })
@@ -94,13 +106,23 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
     } else {
       await activate(button(panel, 'Restore Default'))
     }
-    await panel.locator('p').first().filter({ hasText: `Saved ${skin?.name ?? 'Default'}` }).waitFor()
+    const saved = panel.locator('[data-saved-skin]')
+    if (await saved.count()) await panel.locator(`[data-saved-skin="${skin?.id ?? ''}"]`).waitFor()
+    else await panel.locator('p').first().filter({ hasText: `Saved ${skin?.name ?? 'Default'}` }).waitFor()
     await waitForSkin(skin?.id ?? null)
   }
   async function mode(value) {
+    const previous = panel.getByRole('tab', { selected: true })
+    const previousName = await previous.count() ? await previous.innerText() : undefined
+    await showEffects()
     const control = panel.getByRole('combobox', { name: /^Effects in this window/ })
     await expand(panel.locator('summary').filter({ hasText: /^Window effects$/ }))
     await control.selectOption(value)
+    if (previousName && previousName !== 'Effects & performance') await activate(pageTab(previousName))
+  }
+  async function showEffects() {
+    const tab = pageTab('Effects & performance')
+    if (await tab.count() && await tab.getAttribute('aria-selected') !== 'true') await activate(tab)
   }
 
   await open()
@@ -110,7 +132,7 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
   await choose(deepOcean)
   await button(detail(deepOcean), 'Apply').waitFor()
   await close()
-  return { cdp, page, panel, detail, button, activate, expand, open, openSkinSection, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding, switchLanguage }
+  return { cdp, page, panel, detail, card, button, activate, expand, open, openSkinSection, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding, switchLanguage, pageTab, showEffects, showGallery }
 }
 
 export async function switchSkins(ui, count) {

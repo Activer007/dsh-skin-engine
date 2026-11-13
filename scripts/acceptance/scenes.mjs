@@ -127,6 +127,7 @@ export async function checkSceneSamples(session, ui, sampleDir, directory, evide
     }
     await apply(skin)
     for (const preset of previewsOnly ? ['dynamic'] : ['static', 'light', 'dynamic']) {
+      await ui.showEffects()
       await presetControl.selectOption(preset)
       await close()
       const layers = scene.presets[preset].map(id => effects[id]).sort()
@@ -157,6 +158,7 @@ export async function checkSceneSamples(session, ui, sampleDir, directory, evide
       await open()
     }
     if (!previewsOnly && slug === 'morning-observatory') {
+      await ui.showEffects()
       await quality.selectOption('low')
       await panel.locator('[data-dsh-skin-effective-quality]').filter({ hasText: /^low$/ }).waitFor()
       await close()
@@ -183,7 +185,9 @@ export async function checkSceneSamples(session, ui, sampleDir, directory, evide
       await resize(1280)
       await page.locator(artwork).waitFor()
       await open()
+      await ui.showEffects()
       await quality.selectOption('')
+      await ui.showGallery()
       result.lowQualityReducedMotionAndFallback = true
     }
   }

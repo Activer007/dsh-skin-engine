@@ -27,10 +27,13 @@ export async function verifyUpgrade(ui, version, before) {
   const detail = ui.detail(deepOcean)
   const skinVersion = detail.getByText(/^Skin package v1\.0\.0/)
   await skinVersion.waitFor()
+  const versionText = await skinVersion.innerText()
   await detail.getByText(/^Engine API \^1\.0\.0/).waitFor()
   await expand(detail.locator('summary').filter({ hasText: /^Customize skin$/ }))
   assert.equal(await qualityControl(ui).inputValue(), 'low')
 
+  const manage = ui.pageTab('Skin management')
+  if (await manage.count()) await activate(manage)
   const diagnostics = panel.locator('details').filter({ has: page.locator('summary').filter({ hasText: /^Maintenance and diagnostics/ }) })
   await expand(diagnostics.locator('summary'))
   const check = ui.button(diagnostics, 'Check Host')
@@ -62,5 +65,5 @@ export async function verifyUpgrade(ui, version, before) {
     }, { body, code })
     diagnosticExamples.push(await read(text))
   }
-  return { before, after: await ui.selection(), host, skin: await skinVersion.innerText(), diagnosticExamples }
+  return { before, after: await ui.selection(), host, skin: versionText, diagnosticExamples }
 }
