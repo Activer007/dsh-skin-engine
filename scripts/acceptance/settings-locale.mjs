@@ -48,13 +48,14 @@ export async function installLocaleFixture(directory, installLocalBundle) {
 }
 
 export async function checkSettingsLocale(ui, session, directory, evidence) {
-  const { page, panel, activate, button, detail, selection, waitForSkin, choose } = ui
+  const { page, panel, activate, button, selection, waitForSkin, choose } = ui
   await ui.open()
   await choose(deepOcean)
   const before = await selection()
-  const english = detail(deepOcean).getByRole('combobox', { name: 'Skin effect quality' })
+  const effects = await ui.editSkinEffects(deepOcean)
+  const english = effects.getByRole('combobox', { name: 'Skin effect quality' })
   await english.selectOption('low')
-  await activate(button(detail(deepOcean), 'Preview'))
+  await activate(button(effects, 'Preview'))
   await waitForSkin(deepOcean.id)
   await page.locator('[data-dsh-skin-locale-fixture]').waitFor()
   async function change(language) {
@@ -74,7 +75,7 @@ export async function checkSettingsLocale(ui, session, directory, evidence) {
   await panel.getByRole('heading', { name: '皮肤引擎', exact: true }).waitFor()
   const chinese = panel.getByRole('combobox', { name: '皮肤效果质量' })
   assert.equal(await chinese.inputValue(), 'low')
-  assert(await panel.getByText('偏好尚未保存。可以在当前窗口预览，或应用并保存。').isVisible())
+  assert(await effects.getByText('偏好尚未保存。可以在当前窗口预览，或应用并保存。').isVisible())
   assert(await panel.getByRole('slider', { name: '液态玻璃强度' }).getAttribute('aria-valuetext'))
   await waitForSkin(deepOcean.id)
   assert.deepEqual(await selection(), before)

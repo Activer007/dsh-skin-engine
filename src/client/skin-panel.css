@@ -191,6 +191,9 @@
 [data-dsh-skin-engine] .dsh-skin-detail header { display: grid; gap: 4px; }
 [data-dsh-skin-engine] .dsh-skin-detail fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 [data-dsh-skin-engine] .dsh-skin-detail legend { padding: 0; margin-block-end: 6px; font-weight: 600; }
+[data-dsh-skin-engine] :is(.dsh-skin-effect-fields, .dsh-skin-effects-choice) { display: grid; gap: 10px; }
+[data-dsh-skin-engine] .dsh-skin-effects-choice { gap: 4px; justify-self: start; max-width: 100%; }
+[data-dsh-skin-engine] .dsh-skin-effect-fields > .dsh-skin-fields { max-width: 280px; }
 [data-dsh-skin-engine] .dsh-skin-effects { list-style: none; padding: 0; margin: 0; }
 [data-dsh-skin-engine] .dsh-skin-effects li {
   display: flex;

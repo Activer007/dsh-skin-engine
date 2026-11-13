@@ -91,7 +91,7 @@ export async function checkCharacterSamples(session, ui, sampleDir, directory, e
     assert.deepEqual(await selection(), savedBefore)
     await clean()
     sample.previewCancelled = true
-    if (manifest.colorScheme === 'both') await detail(skin).getByLabel('Skin effect quality').selectOption('low')
+    if (manifest.colorScheme === 'both') await (await ui.editSkinEffects(skin)).getByLabel('Skin effect quality').selectOption('low')
     await apply(skin)
     const applied = await selection()
     if (manifest.colorScheme === 'both') assert.equal(applied.preferences[skin.id].quality, 'low')

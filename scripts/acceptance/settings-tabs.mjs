@@ -10,10 +10,11 @@ export async function checkSettingsTabs(ui, session, directory, evidence) {
   const gallery = pageTab('Skin gallery')
   const effects = pageTab('Effects & performance')
   const manage = pageTab('Skin management')
-  const quality = detail(deepOcean).getByRole('combobox', { name: 'Skin effect quality' })
   await ui.choose(deepOcean)
+  const preferences = await ui.editSkinEffects(deepOcean)
+  const quality = preferences.getByRole('combobox', { name: 'Skin effect quality' })
   await quality.selectOption('low')
-  await activate(button(detail(deepOcean), 'Preview'))
+  await activate(button(preferences, 'Preview'))
   await waitForSkin(deepOcean.id)
   async function active(tab) {
     assert.equal(await tab.getAttribute('aria-selected'), 'true')
@@ -21,13 +22,14 @@ export async function checkSettingsTabs(ui, session, directory, evidence) {
     assert.equal(await panel.getByRole('tabpanel').count(), 1)
     assert(await button(panel, 'Cancel preview').isVisible())
   }
+  await activate(gallery)
   await gallery.press('ArrowRight')
   await active(effects)
+  assert.equal(await quality.inputValue(), 'low')
   await effects.press('End')
   await active(manage)
   await manage.press('Home')
   await active(gallery)
-  assert.equal(await quality.inputValue(), 'low')
   assert.deepEqual(await selection(), initial)
 
   async function dimensions() {

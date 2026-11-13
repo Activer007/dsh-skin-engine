@@ -53,6 +53,8 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite settings-gallery --sample-zip <晨昏观测 ZIP>` 验证筛选与选中、人物双明暗预览和窄窗返回。 [UI-05 专项记录](#ui-05-皮肤库验收)
 
+`--suite settings-effects` 验证九项控件、窗口与皮肤的作用域、实际档位及折射回退。 [UI-06 专项记录](#ui-06-效果与性能验收)
+
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 
 `--suite catalogue-cache` 在两端记录 10/100 包的冷扫描、热读和缩略图请求，并核对更新、回滚与卸载后的预览失效。 [缓存行为与专项记录](catalogue-cache.md)
@@ -145,6 +147,21 @@ Desktop 的 `upgrade` 用例在切到管理页前读取皮肤包版本，随后�
 记录含 `result.json`、`gallery-1280.png` 和 `gallery-760.png`。类型检查、lint 和 13 项定向本地测试通过。两端页面异常为空，隔离宿主和浏览器已退出。复跑沿用 [运行示例](#运行)，传入 `--suite settings-gallery --sample-zip <example.twilight-shift.dshskin.zip>`。
 
 Auto Review 后，验收脚本按皮肤 ID 核对保存状态，兼容英文环境下有独立译名的皮肤。修正包构建自 `736347ba74e09b2cd042f888d9223006bd0a4372`，SHA-256 `eeaa08d567c3ad8d78a3abb066b52922765ff6d7d5c699eab37f65a51ceb03c9`。同一包在官方双端复跑通过，并补验英文状态下应用晨昏观测和恢复默认。结果在 `.cache/ui-05/host/web-VKqdzk/` 和 `.cache/ui-05/host/desktop-LExMZz/`，隔离进程均已退出。
+
+## UI-06 效果与性能验收
+
+官方 DSH Web 和 Windows Desktop 0.2.2-rc.1 使用同一 Skin Engine 1.8.2 tarball。构建提交 `877905742f85a6ec40f6609c1bedeedfbac67e81`，SHA-256 `99d8aa00f3cdb447fb84ef3e99041d08e67fefaa855f90952cae28900bdc7118`。复跑沿用本页命令，传入 `--suite settings-effects`。用例生成一份声明全部九项效果的本地 ZIP。
+
+两端验证环境、材质、交互分组各有 5、3、1 项。默认编辑已保存皮肤，从画廊进入可编辑另一套皮肤，切换目标后保留草稿。环境光默认显示 64%，设为 50% 后按 0.5 保存。折射保持显式启用，模拟 WebGL 上下文不可用时界面显示 CSS 回退。窗口质量 High 与保存的 Low 独立，Economy 强制 Low，Off 隐藏有效档位并禁用窗口质量，系统减少动效时说明降级。Host 回读确认预览和窗口控制未写入 Profile，应用只保存皮肤偏好，丢弃草稿恢复已保存值。
+
+| 平台 | 实际视口 | 插件内容宽 | 结果目录 |
+| --- | --- | --- | --- |
+| Web | 1280 × 820 | 884 | `.cache/ui-06/host/web-b8W8QV/` |
+| Windows Desktop | 1280 × 820 | 879 | `.cache/ui-06/host/desktop-Gg99Tx/` |
+
+同一包另通过官方 Desktop 的场景动效与草稿冲突复验，以及官方 Web 的挂载中语言切换与 760 像素宽度检查。证据目录分别为 `.cache/ui-06/recheck/desktop-lFWLmf/`、`.cache/ui-06/recheck/desktop-5cHNfE/`、`.cache/ui-06/recheck/web-IUzNcx/`。Web 语言用例首次定位到了两个页面共用的草稿提示，限制到当前效果区域后通过。Auto Review 后以脚本提交 `b554ed39c25ff76fe1914688b24f5c5ded1b844b` 复跑 Desktop 旧布局到新布局的同版本换包，确认旧偏好、Host 诊断及原生设置可用，记录为 `.cache/ui-06/recheck/desktop-EhM2Ev/`。
+
+类型检查、lint 和 27 项 SkinSwitch/效果本地测试通过。以上专项无未捕获页面异常，隔离进程已退出。发布级性能对照留到发布关口。
 
 ## v1.5.0 Web 外观专项 NEXT-01
 

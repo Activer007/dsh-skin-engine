@@ -10,6 +10,7 @@ export function createSettingsSession(document: Document, onClose: () => void) {
   const listeners = new Set<() => void>()
   let revision = 0
   let selected = ''
+  let editingEffects = ''
   let dialog: Element | null = null
   let observer: MutationObserver | undefined
 
@@ -23,6 +24,7 @@ export function createSettingsSession(document: Document, onClose: () => void) {
     observer = undefined
     dialog = null
     selected = ''
+    editingEffects = ''
     drafts.clear()
     publish()
   }
@@ -55,6 +57,12 @@ export function createSettingsSession(document: Document, onClose: () => void) {
     select(id: string) {
       if (selected === id) return
       selected = id
+      publish()
+    },
+    get editingEffects() { return editingEffects },
+    editEffects(id: string) {
+      if (editingEffects === id) return
+      editingEffects = id
       publish()
     },
     getDraft(id: string) { return drafts.get(id) },

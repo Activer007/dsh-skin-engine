@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react'
 import { auditedSurfaceStyles } from '../adapter/surface-map.js'
 import { AUDIT_PATH, type AuditStatus } from '../shared/audit.js'
-import { preferencesFor, qualityLevels, type QualityChoice } from '../shared/preferences.js'
-import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
+import type { createEffectsRuntime } from './effects/p0.js'
 import { ImportSkin } from './package-controls.js'
-import type { ScenePreset } from './scene/presets.js'
+import { SkinEffects, WindowEffects } from './skin-effects.js'
+import { useSkinEditor } from './skin-editor.js'
 import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
 import type { createSettingsSession } from './settings-session.js'
 import { SkinDetail } from './skin-detail.js'
@@ -15,8 +15,6 @@ declare const MANAGER_STYLES: string
 declare const PROBE_ASSET: string
 declare const SKIN_ENGINE_VERSION: string
 
-const scenePresets = ['static', 'light', 'dynamic'] as const
-const windowModes = ['dynamic', 'static', 'economy', 'off'] as const
 const pages = ['gallery', 'effectsPage', 'managePage'] as const
 type Page = (typeof pages)[number]
 type HostCheck = { version?: string; persisted: boolean } | { error: string }
@@ -33,12 +31,6 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
   const [language, setLanguage] = useState(() => document.documentElement.lang)
   const t = translate ?? fallbackSettingsCopy(language)
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
-  const effectMode = useSyncExternalStore(effects.subscribe, effects.getMode)
-  const scenePreset = useSyncExternalStore(effects.subscribe, effects.getScenePreset)
-  const effectiveScenePreset = useSyncExternalStore(effects.subscribe, effects.getEffectiveScenePreset)
-  const quality = useSyncExternalStore(effects.subscribe, effects.getQuality)
-  const effectiveQuality = useSyncExternalStore(effects.subscribe, effects.getEffectiveQuality)
-  const refraction = useSyncExternalStore(effects.subscribe, effects.getRefraction)
   useSyncExternalStore(settingsSession.subscribe, settingsSession.getSnapshot)
   const panel = useRef<HTMLElement>(null)
   const [activePage, setActivePage] = useState<Page>('gallery')
@@ -68,8 +60,14 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
   const choice = choices.find(item => item.manifest.id === settingsSession.selected)
     ?? choices.find(item => item.manifest.id === state.saved?.skinId)
     ?? choices[0]
-  const editingId = choice?.manifest.id
-  const draft = editingId ? settingsSession.getDraft(editingId) : undefined
+  const effectsChoice = choices.find(item => item.manifest.id === settingsSession.editingEffects)
+    ?? choices.find(item => item.manifest.id === state.saved?.skinId)
+    ?? choices[0]
+  const galleryEditor = useSkinEditor(choice, controller, settingsSession, state)
+  const alternateEditor = useSkinEditor(activePage === 'effectsPage' && effectsChoice !== choice ? effectsChoice : undefined,
+    controller, settingsSession, state)
+  const effectsEditor = effectsChoice === choice ? galleryEditor : alternateEditor
+
   const displayName = (manifest: { name: string; nameEn?: string }) =>
     /^en(?:-|$)/i.test(language) ? manifest.nameEn || manifest.name : manifest.name
   const name = (id: string | null | undefined) => {
@@ -80,6 +78,12 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
   const previewing = state.preview !== null || state.pending === 'preview'
   const filtersActive = Boolean(query || tag || source || compatibleOnly)
   const placeholder = state.catalogue?.placeholderUrl
+
+  useEffect(() => {
+    if (activePage === 'effectsPage' && effectsChoice && !settingsSession.editingEffects) {
+      settingsSession.editEffects(effectsChoice.manifest.id)
+    }
+  }, [activePage, effectsChoice, settingsSession])
 
   function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     let next: number
@@ -243,47 +247,26 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
             setShowDetails(false)
           }}>{t('backToGallery')}</button>
           <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} t={t} id={detailId} choice={choice} scheme={scheme} controller={controller}
-          displayName={displayName(choice.manifest)}
-          placeholder={placeholder} onOpenEffects={() => setActivePage('effectsPage')} onOpenManagement={() => setActivePage('managePage')}
-          preferences={preferencesFor(state.saved?.preferences, choice.manifest.id)} revision={state.saved?.revision}
-          draft={draft} onDraft={value => settingsSession.setDraft(choice.manifest.id, value)}
-          readDraft={() => settingsSession.getDraft(choice.manifest.id)}
-          applied={state.preview === null && state.rendered === choice.manifest.id && state.saved?.skinId === choice.manifest.id}
-          busy={state.saving} onVersionNotice={message => setVersionNotice(() => message)} />
+            displayName={displayName(choice.manifest)}
+            placeholder={placeholder} onOpenEffects={() => {
+              settingsSession.editEffects(choice.manifest.id)
+              setActivePage('effectsPage')
+              document.getElementById(`${tabId}-tab-effectsPage`)?.focus()
+            }} onOpenManagement={() => setActivePage('managePage')}
+            editor={galleryEditor} onVersionNotice={message => setVersionNotice(() => message)} />
         </div> : null}
       </div>
       <div className="dsh-skin-utilities" role="tabpanel" id={`${tabId}-page-effectsPage`} aria-labelledby={`${tabId}-tab-effectsPage`}
         hidden={activePage !== 'effectsPage'}>
-        <details open className="dsh-skin-disclosure">
-          <summary>{t('windowEffects')}</summary>
-          <div className="dsh-skin-fields">
-            <label>{t('windowMode')}
-              <select value={effectMode} onChange={event => effects.setMode(event.currentTarget.value as EffectMode)}>
-                {windowModes.map(mode => <option key={mode} value={mode}>{t(`mode.${mode}`)}</option>)}
-              </select>
-            </label>
-            <label>{t('windowQuality')}
-              <select value={quality ?? ''} disabled={effectMode === 'economy' || effectMode === 'off'}
-                onChange={event => effects.setQuality(event.currentTarget.value as QualityChoice || undefined)}>
-                <option value="">{t('useSkinQuality')}</option>
-                {qualityLevels.map(level => <option key={level} value={level}>{t(`quality.${level}`)}</option>)}
-              </select>
-            </label>
-            {scenePreset ? (
-              <label>{t('scenePreset')}
-                <select value={scenePreset} onChange={event => effects.setScenePreset(event.currentTarget.value as ScenePreset)}>
-                  {scenePresets.map(value => <option key={value} value={value}>{t(`scene.${value}`)}</option>)}
-                </select>
-              </label>
-            ) : null}
-          </div>
-          {effectiveScenePreset ? <p className="dsh-skin-muted">{t('effectivePreset')} · {t(`scene.${effectiveScenePreset}`)}</p> : null}
-          {state.rendered && effectMode !== 'off' ? (
-            <p className="dsh-skin-muted">{t('effectiveQuality')} · <strong data-dsh-skin-effective-quality>{t(`quality.${effectiveQuality}`)}</strong>
-              {refraction !== 'off' ? <> · {t('effect.glass.refraction')} · {refraction === 'webgl' ? 'WebGL' : t('cssFallback')}</> : null}
-            </p>
-          ) : null}
-        </details>
+        <WindowEffects t={t} runtime={effects} showing={state.rendered ? name(state.rendered) : undefined} />
+        {effectsChoice ? <>
+          <label className="dsh-skin-effects-choice">{t('selectEditingSkin')}
+            <select value={effectsChoice.manifest.id} onChange={event => settingsSession.editEffects(event.currentTarget.value)}>
+              {choices.map(item => <option key={item.manifest.id} value={item.manifest.id}>{displayName(item.manifest)}</option>)}
+            </select>
+          </label>
+          <SkinEffects t={t} choice={effectsChoice} editor={effectsEditor} displayName={displayName(effectsChoice.manifest)} />
+        </> : null}
       </div>
       <div className="dsh-skin-utilities" role="tabpanel" id={`${tabId}-page-managePage`} aria-labelledby={`${tabId}-tab-managePage`}
         hidden={activePage !== 'managePage'}>

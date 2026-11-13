@@ -10,7 +10,7 @@ import { checkArtwork } from './artwork.mjs'
 import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
 import { checkCharacterSamples } from './character-samples.mjs'
 import { checkDualAppearance } from './dual-appearance.mjs'
-import { checkAmbientPreferences, checkAmbientProvider, checkEffectsRuntime } from './effects-runtime.mjs'
+import { checkAmbientPreferences, checkAmbientProvider, checkEffectsRuntime, checkSettingsEffects } from './effects-runtime.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
 import { checkPackages, checkSample } from './packages.mjs'
 import { performanceComparison, visibilityCycle } from './rendering.mjs'
@@ -63,6 +63,7 @@ const settingsLocale = options.suite === 'settings-locale'
 const settingsState = options.suite === 'settings-state'
 const settingsTabs = options.suite === 'settings-tabs'
 const settingsGallery = options.suite === 'settings-gallery'
+const settingsEffects = options.suite === 'settings-effects'
 const sceneMotion = options.suite === 'scene-motion'
 const artwork = options.suite === 'artwork'
 const tokens = options.suite === 'tokens'
@@ -70,7 +71,7 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || sceneMotion || options.suite === 'surfaces'
+assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
@@ -95,7 +96,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const settingsChecks = settingsLocale || settingsState || settingsTabs || settingsGallery
+const settingsChecks = settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects
 const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
@@ -216,6 +217,13 @@ try {
     await checkSettingsGallery(galleryUi, session, resolve(options['sample-zip']), directory, run.settingsGallery)
     interruption.signal.throwIfAborted()
     console.log('Verified the skin gallery, dual previews, and responsive details')
+  }
+  if (settingsEffects) {
+    const effectsUi = await enter(open, false)
+    run.settingsEffects = {}
+    await checkSettingsEffects(effectsUi, session, directory, run.settingsEffects)
+    interruption.signal.throwIfAborted()
+    console.log('Verified all nine controls, preference scope, renderer fallback, and window modes')
   }
   if (sceneMotion) {
     const motionUi = await enter(open, false)

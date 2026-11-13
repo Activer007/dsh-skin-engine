@@ -1,15 +1,12 @@
 import assert from 'node:assert/strict'
 import { deepOcean } from './browser.mjs'
 
-const qualityControl = ui => ui.detail(deepOcean).getByRole('combobox', { name: /^Skin effect quality/ })
+const qualityControl = async ui => (await ui.editSkinEffects(deepOcean)).getByRole('combobox', { name: /^Skin effect quality/ })
 
 export async function saveOldSelection(ui) {
   await ui.open()
   await ui.choose(deepOcean)
-  const quality = qualityControl(ui)
-  const customize = ui.detail(deepOcean).locator('summary').filter({ hasText: /^Customize skin$/ })
-  await customize.or(quality).first().waitFor()
-  if (await customize.isVisible()) await ui.expand(customize)
+  const quality = await qualityControl(ui)
   await quality.selectOption('low')
   await ui.apply(deepOcean)
   const selection = await ui.selection()
@@ -29,8 +26,7 @@ export async function verifyUpgrade(ui, version, before) {
   await skinVersion.waitFor()
   const versionText = await skinVersion.innerText()
   await detail.getByText(/^Engine API \^1\.0\.0/).waitFor()
-  await expand(detail.locator('summary').filter({ hasText: /^Customize skin$/ }))
-  assert.equal(await qualityControl(ui).inputValue(), 'low')
+  assert.equal(await (await qualityControl(ui)).inputValue(), 'low')
 
   const manage = ui.pageTab('Skin management')
   if (await manage.count()) await activate(manage)

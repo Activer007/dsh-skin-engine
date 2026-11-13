@@ -88,7 +88,7 @@ export async function checkDualAppearance(openInProfile, directory, evidence, de
   evidence.sampleSha256 = createHash('sha256').update(zip).digest('hex')
   await packagePanel(ui).install(`${skin.id}.dshskin.zip`, zip)
   await ui.choose(skin)
-  await ui.detail(skin).getByLabel('Skin effect quality').selectOption('low')
+  await (await ui.editSkinEffects(skin)).getByLabel('Skin effect quality').selectOption('low')
   await ui.apply(skin)
   const selection = await ui.selection()
   assert.equal(selection.preferences[skin.id].quality, 'low')

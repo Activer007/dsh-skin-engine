@@ -4,7 +4,7 @@ import { readFile, realpath, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { buffer } from 'node:stream/consumers'
 import { ZipFile } from 'yazl'
-import { resources } from './browser.mjs'
+import { deepOcean, resources } from './browser.mjs'
 import { packagePanel } from './packages.mjs'
 import { visibilityCycle } from './rendering.mjs'
 
@@ -17,11 +17,12 @@ const refraction = layers('refraction')
 const fallback = layers('refraction-fallback')
 const source = new URL('../../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/', import.meta.url)
 
-async function oldFormatZip() {
+async function oldFormatZip(withAmbient = false) {
   const [ocean, neon] = await Promise.all(['deep-ocean', 'obsidian-neon'].map(async name =>
     JSON.parse(await readFile(new URL(`${name}/effects.json`, source), 'utf8')).effects))
   const effects = [...ocean, ...neon.filter(effect => !ocean.some(entry => entry.id === effect.id))]
   assert.equal(effects.length, 8)
+  if (withAmbient) effects.push({ id: 'ambient.light', renderer: 'css', enabled: true, params: {} })
   return effectsZip(skin, effects, ['tokens', 'css', 'effects:css', 'effects:canvas2d', 'effects:webgl'])
 }
 
@@ -93,7 +94,7 @@ async function staticSignature(page) {
 }
 
 export async function checkEffectsRuntime(session, ui, seconds, evidence, sampleNativeEvents = false) {
-  const { page, open, close, apply, choose, mode, detail } = ui
+  const { page, open, close, apply, choose, mode } = ui
   const read = () => page.evaluate(() => window.__skinEffectAudit.read())
   const ready = () => page.waitForFunction(() => document.visibilityState === 'visible', undefined, { polling: 100 })
   const zip = await oldFormatZip()
@@ -116,7 +117,7 @@ export async function checkEffectsRuntime(session, ui, seconds, evidence, sample
     await open()
     await mode('dynamic')
     await choose(skin)
-    const toggle = detail(skin).getByRole('checkbox', { name: 'Liquid Refraction', exact: true })
+    const toggle = (await ui.editSkinEffects(skin)).getByRole('checkbox', { name: 'Liquid Refraction', exact: true })
     await toggle.press('Space')
     assert(await toggle.isChecked())
     await apply(skin)
@@ -183,6 +184,85 @@ export async function checkEffectsRuntime(session, ui, seconds, evidence, sample
   } finally { await page.evaluate(() => window.__skinEffectAudit?.clean()).catch(() => {}) }
 }
 
+export async function checkSettingsEffects(ui, session, directory, evidence) {
+  const { page, panel, button, activate, selection, waitForSkin, cdp } = ui
+  await session.resize(1280, 820)
+  await ui.open()
+  await ui.apply(deepOcean)
+  const saved = await selection()
+  const packages = packagePanel(ui)
+  const zip = await oldFormatZip(true)
+  await packages.install('settings-effects.dshskin.zip', zip)
+  await ui.choose(skin)
+  await ui.showEffects()
+  const editor = panel.getByRole('combobox', { name: 'Skin to edit' })
+  assert.equal(await editor.inputValue(), deepOcean.id)
+  await ui.showGallery({ resetDetails: false })
+  const controls = await ui.editSkinEffects(skin)
+  const windowEffects = panel.getByRole('region', { name: 'Window effects' })
+  const windowMode = windowEffects.getByRole('combobox', { name: 'Effects in this window' })
+  const windowQuality = windowEffects.getByRole('combobox', { name: 'Effect quality in this window' })
+  const effectiveQuality = windowEffects.locator('[data-dsh-skin-effective-quality]')
+  const quality = controls.getByRole('combobox', { name: 'Skin effect quality' })
+  const ambient = controls.getByRole('slider', { name: 'Ambient Light strength' })
+  const refractionToggle = controls.getByRole('checkbox', { name: 'Liquid Refraction' })
+  await ambient.waitFor()
+  assert.equal(await editor.inputValue(), skin.id)
+  assert.deepEqual(await Promise.all(['Environment', 'Materials', 'Interaction'].map(group =>
+    controls.getByRole('group', { name: group, exact: true }).getByRole('checkbox').count())), [5, 3, 1])
+  assert.equal(await ambient.inputValue(), '64')
+  assert.equal(await refractionToggle.isChecked(), false)
+  await quality.selectOption('low')
+  await ambient.fill('50')
+  await windowQuality.selectOption('high')
+  assert.equal(await quality.inputValue(), 'low')
+  assert.equal(await effectiveQuality.textContent(), 'high')
+  assert.deepEqual(await selection(), saved)
+  await editor.selectOption(deepOcean.id)
+  await editor.selectOption(skin.id)
+  assert.equal(await ambient.inputValue(), '50')
+  await probeRenderer(page, canvas, attribute)
+  try {
+    await refractionToggle.press('Space')
+    await activate(button(controls, 'Preview'))
+    await waitForSkin(skin.id)
+    await windowEffects.getByText(/Liquid Refraction · CSS fallback/).waitFor()
+    assert.deepEqual(await selection(), saved)
+    await windowMode.selectOption('economy')
+    assert(await windowQuality.isDisabled())
+    assert.equal(await effectiveQuality.textContent(), 'low')
+    await windowMode.selectOption('off')
+    await windowEffects.getByText('Effects are off in this window.').waitFor()
+    assert.equal(await effectiveQuality.count(), 0)
+    assert(await windowQuality.isDisabled())
+    assert(await refractionToggle.isChecked())
+    await windowMode.selectOption('dynamic')
+    await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
+    await windowEffects.getByText('The system’s reduced motion setting limits animations.').waitFor()
+    await cdp.send('Emulation.setEmulatedMedia', { features: [] })
+    await activate(button(panel, 'Cancel preview'))
+    await waitForSkin(deepOcean.id)
+    await activate(button(controls, 'Apply'))
+    await panel.locator('[data-saved-skin="' + skin.id + '"]').waitFor()
+    const applied = await selection()
+    assert.deepEqual(applied.preferences[skin.id], {
+      quality: 'low', effects: { 'ambient.light': { strength: 0.5 }, 'glass.refraction': { enabled: true } },
+    })
+    assert.equal(await windowQuality.inputValue(), 'high')
+    await ambient.fill('75')
+    await activate(button(controls, 'Discard changes'))
+    assert.equal(await ambient.inputValue(), '50')
+    assert.deepEqual(await selection(), applied)
+    evidence.saved = applied.preferences[skin.id]
+    evidence.window = { scope: 'current window', economy: 'low', off: true, reducedMotion: true, cssFallback: true }
+    evidence.viewport = await panel.evaluate(node => ({ viewport: [innerWidth, innerHeight], content: node.clientWidth }))
+    await page.screenshot({ path: join(directory, 'settings-effects-1280.png'), scale: 'css' })
+    await ui.apply(null)
+  } finally {
+    await page.evaluate(() => window.__skinEffectAudit?.clean())
+  }
+}
+
 export async function checkAmbientProvider(ui, directory, evidence) {
   const { page, open, close, mode, choose, detail, button, activate, panel, waitForSkin, apply } = ui
   const selector = layers('ambient-light')
@@ -247,20 +327,19 @@ export async function checkAmbientProvider(ui, directory, evidence) {
 }
 
 export async function checkAmbientPreferences(ui, directory, profileDir, evidence, rollback, foreground) {
-  const { page, panel, detail, activate, button, choose, selection, apply, waitForSkin } = ui
+  const { page, panel, activate, button, choose, selection, apply, waitForSkin } = ui
   const light = page.locator(layers('ambient-light'))
   const name = 'Ambient Light'
-  const effect = detail(demo).getByRole('checkbox', { name, exact: true })
-  const strength = detail(demo).getByRole('slider', { name: `${name} strength` })
   await ui.open()
   await ui.mode('static')
   const packages = packagePanel(ui)
   const oldZip = await oldFormatZip()
   await packages.install(`${skin.id}.dshskin.zip`, oldZip)
   await choose(skin)
-  assert.equal(await detail(skin).getByRole('checkbox', { name, exact: true }).count(), 0)
-  const quality = detail(skin).getByRole('combobox', { name: /^Skin effect quality/ })
+  const oldControls = await ui.editSkinEffects(skin)
+  const quality = oldControls.getByRole('combobox', { name: /^Skin effect quality/ })
   await quality.selectOption('low')
+  assert.equal(await oldControls.getByRole('checkbox', { name, exact: true }).count(), 0)
   await apply(skin)
   const before = await selection()
   assert.equal(before.preferences[skin.id].quality, 'low')
@@ -276,15 +355,18 @@ export async function checkAmbientPreferences(ui, directory, profileDir, evidenc
   ], ['tokens', 'css', 'effects:css'])
   await packages.install(`${demo.id}.dshskin.zip`, ambientZip)
   await choose(demo)
+  const controls = await ui.editSkinEffects(demo)
+  const effect = controls.getByRole('checkbox', { name, exact: true })
+  const strength = controls.getByRole('slider', { name: `${name} strength` })
   await strength.waitFor()
   assert.equal(await strength.inputValue(), '64')
   assert(await effect.isChecked())
-  await detail(demo).getByRole('combobox', { name: /^Skin effect quality/ }).selectOption('high')
+  await controls.getByRole('combobox', { name: /^Skin effect quality/ }).selectOption('high')
   evidence.intensities = []
   for (const [percent, expected] of [[0, 0], [50, 0.11], [100, 0.22]]) {
     await strength.fill(String(percent))
     assert.equal(Number(await strength.inputValue()), percent)
-    await activate(button(detail(demo), 'Preview'))
+    await activate(button(controls, 'Preview'))
     await waitForSkin(demo.id)
     if (expected) {
       await page.waitForFunction(({ selector, expected }) => Number(document.querySelector(selector)?.style.opacity) === expected,
@@ -302,6 +384,7 @@ export async function checkAmbientPreferences(ui, directory, profileDir, evidenc
   assert.equal(await light.count(), 0)
   evidence.disabled = (await selection()).preferences[demo.id].effects['ambient.light']
   assert.deepEqual(evidence.disabled, { enabled: false, strength: 1 })
+  await ui.editSkinEffects(demo)
   await effect.press('Space')
   await apply(demo)
   await page.waitForFunction(selector => Number(document.querySelector(selector)?.style.opacity) === 0.22, layers('ambient-light'))
