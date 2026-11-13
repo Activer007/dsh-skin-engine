@@ -18,6 +18,7 @@ import { checkSceneMotion } from './scene-motion.mjs'
 import { checkSceneSamples } from './scenes.mjs'
 import { checkSettingsLocale, installLocaleFixture } from './settings-locale.mjs'
 import { checkSettingsGallery } from './settings-gallery.mjs'
+import { checkSettingsPackages } from './settings-packages.mjs'
 import { checkSettingsState } from './settings-state.mjs'
 import { checkSettingsTabs } from './settings-tabs.mjs'
 import { checkSurfaces, seedSurfaceHistory } from './surfaces.mjs'
@@ -64,6 +65,7 @@ const settingsState = options.suite === 'settings-state'
 const settingsTabs = options.suite === 'settings-tabs'
 const settingsGallery = options.suite === 'settings-gallery'
 const settingsEffects = options.suite === 'settings-effects'
+const settingsPackages = options.suite === 'settings-packages'
 const sceneMotion = options.suite === 'scene-motion'
 const artwork = options.suite === 'artwork'
 const tokens = options.suite === 'tokens'
@@ -71,7 +73,7 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || sceneMotion || options.suite === 'surfaces'
+assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
@@ -96,7 +98,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const settingsChecks = settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects
+const settingsChecks = settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages
 const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
@@ -224,6 +226,13 @@ try {
     await checkSettingsEffects(effectsUi, session, directory, run.settingsEffects)
     interruption.signal.throwIfAborted()
     console.log('Verified all nine controls, preference scope, renderer fallback, and window modes')
+  }
+  if (settingsPackages) {
+    const packagesUi = await enter(open, false)
+    run.settingsPackages = {}
+    await checkSettingsPackages(packagesUi, session, directory, run.settingsPackages)
+    interruption.signal.throwIfAborted()
+    console.log('Verified package actions, cross-page upload, cancellation, and Host readback')
   }
   if (sceneMotion) {
     const motionUi = await enter(open, false)

@@ -11,24 +11,21 @@ export async function checkPackageUpdates(evidence, openWindow) {
   const [first, next] = await packageVersionPair()
   evidence.fixtures = [first, next].map(bytes => ({ bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') }))
   let ui = await openWindow('dark')
-  const actions = async () => {
-    const region = ui.detail(skin)
-    const summary = region.locator('summary').filter({ hasText: /^Package actions$/ })
-    await ui.expand(summary)
-    return region
-  }
+  const actions = () => packagePanel(ui).openActions(skin)
   const showVersion = version => ui.detail(skin).getByText(new RegExp(`^Skin package v${RegExp.escape(version)} ·`)).waitFor()
   const update = async () => {
     await (await actions()).getByLabel('Update from .dshskin.zip').setInputFiles(zipFile('1.1.0', next))
-    await showVersion('1.1.0')
     await ui.panel.getByRole('status').filter({ hasText: 'Skin updated to v1.1.0.' }).waitFor()
+    await ui.showGallery({ resetDetails: false })
+    await showVersion('1.1.0')
   }
   const rollback = async () => {
     const region = await actions()
     await ui.activate(ui.button(region, 'Roll back to v1.0.0…'))
     await ui.activate(ui.button(region, 'Confirm rollback'))
-    await showVersion('1.0.0')
     await ui.panel.getByRole('status').filter({ hasText: 'Skin rolled back to v1.0.0.' }).waitFor()
+    await ui.showGallery({ resetDetails: false })
+    await showVersion('1.0.0')
   }
   const compare = async (saved, color, hasCanvas) => {
     assert.deepEqual(await ui.selection(), saved)

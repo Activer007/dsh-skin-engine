@@ -22,6 +22,10 @@ export async function zipJson(bytes, name = 'skin.json') {
 export function packagePanel(ui, foreground) {
   const { page, panel, button, detail, activate } = ui
   const importer = panel.getByRole('region', { name: 'Import skin package' })
+  async function showManagement() {
+    const tab = ui.pageTab('Skin management')
+    if (await panel.locator('.dsh-skin-packages').count() && await tab.getAttribute('aria-selected') !== 'true') await activate(tab)
+  }
   const getCatalogue = () => page.evaluate(async path => {
     const start = performance.now()
     const response = await fetch(new URL(`${path}/skins`, document.baseURI), { cache: 'no-store' })
@@ -29,15 +33,32 @@ export function packagePanel(ui, foreground) {
     return { ...await response.json(), ms: Math.round(performance.now() - start) }
   }, base)
   const install = async (name, bytes) => {
+    await ui.showGallery()
+    const modern = await panel.locator('.dsh-skin-packages').count() > 0
+    await showManagement()
     await importer.getByLabel('Import .dshskin.zip').setInputFiles({ name, mimeType: 'application/zip', buffer: bytes })
-    await importer.getByRole('status').filter({ hasText: 'Skin installed.' }).waitFor()
+    await (modern ? panel : importer).getByRole('status').filter({ hasText: 'Skin installed.' }).waitFor()
+    await ui.showGallery()
+  }
+  async function openActions(skin) {
+    await showManagement()
+    if (await panel.locator('.dsh-skin-packages').count()) {
+      await activate(panel.locator('[data-package-id="' + skin.id + '"]'))
+      return panel.locator('[data-managed-package="' + skin.id + '"]')
+    }
+    await ui.showGallery({ resetDetails: false })
+    const actions = detail(skin).locator('details').filter({ has: page.locator('summary').filter({ hasText: /^Package actions$/ }) })
+    await ui.expand(actions.locator('summary'))
+    return actions
   }
   async function remove(skin) {
-    const actions = detail(skin).locator('details').filter({ has: page.locator('summary').filter({ hasText: /^Package actions$/ }) })
-    const uninstall = button(actions, 'Uninstall…')
-    if (!await uninstall.isVisible()) await activate(actions.locator('summary'))
-    await activate(uninstall)
+    const actions = await openActions(skin)
+    await activate(button(actions, 'Uninstall…'))
     await activate(button(actions, 'Confirm uninstall'))
+    if (await panel.locator('.dsh-skin-packages').count()) {
+      await panel.getByRole('status').filter({ hasText: 'Skin uninstalled.' }).waitFor()
+      await ui.showGallery()
+    }
     await ui.card(skin).waitFor({ state: 'detached' })
   }
 
@@ -52,7 +73,7 @@ export function packagePanel(ui, foreground) {
     } finally { await handle.dispose() }
     return image.evaluate(node => ({ width: node.naturalWidth, height: node.naturalHeight }))
   }
-  return { getCatalogue, install, remove, loadPreview }
+  return { getCatalogue, install, remove, loadPreview, showManagement, openActions }
 }
 
 export async function checkPackages(sampleDir, profileDir, evidence, openWindow) {

@@ -103,9 +103,7 @@ export async function checkCatalogueCache({ ui, foreground }, profileDir, eviden
 async function checkMutations(ui, get) {
   const [first, next] = await packageVersionPair(await readFile(previewFile))
   const skin = versionedSkin
-  const detail = ui.detail(skin)
-  const actions = detail.locator('summary').filter({ hasText: /^Package actions$/ })
-  const { install, remove } = packagePanel(ui)
+  const { install, remove, openActions } = packagePanel(ui)
   async function current(version) {
     const entry = (await get(false)).skins.find(item => item.manifest.id === skin.id)
     assert.equal(entry?.manifest.version, version)
@@ -125,8 +123,7 @@ async function checkMutations(ui, get) {
   const validator = await preview(installed)
   assert.equal(validator.status, 200)
   assert(validator.etag)
-  await ui.expand(actions)
-  await detail.getByLabel('Update from .dshskin.zip').setInputFiles({
+  await (await openActions(skin)).getByLabel('Update from .dshskin.zip').setInputFiles({
     name: 'catalogue-v2.dshskin.zip', mimeType: 'application/zip', buffer: next,
   })
   await ui.panel.getByRole('status').filter({ hasText: 'Skin updated to v1.1.0.' }).waitFor()
@@ -136,9 +133,9 @@ async function checkMutations(ui, get) {
   assert.equal(staleUpdate, 404)
   assert.equal((await preview(updated)).status, 200)
 
-  await ui.expand(actions)
-  await ui.activate(ui.button(detail, 'Roll back to v1.0.0…'))
-  await ui.activate(ui.button(detail, 'Confirm rollback'))
+  const rollback = await openActions(skin)
+  await ui.activate(ui.button(rollback, 'Roll back to v1.0.0…'))
+  await ui.activate(ui.button(rollback, 'Confirm rollback'))
   await ui.panel.getByRole('status').filter({ hasText: 'Skin rolled back to v1.0.0.' }).waitFor()
   const restored = await current('1.0.0')
   assert.notEqual(restored.revision, installed.revision)

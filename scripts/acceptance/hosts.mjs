@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { spawn, execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { once } from 'node:events'
-import { access, readFile, realpath } from 'node:fs/promises'
+import { access, mkdir, readFile, realpath } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { dirname, join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -146,13 +146,14 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     if (lifecycle || options['desktop-disable-occlusion']) flags.push('--disable-features=CalculateNativeWinOcclusion')
     const app = launch(executable, flags, env, true)
     const keepRendering = settingsSuite || isolatedRenderer || ['dual-appearance', 'effects-runtime', 'scene-motion', 'ambient-preferences'].includes(options.suite)
-    const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size, keepRendering }) {
+    const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size, keepRendering, downloads }) {
       if (process.pid !== pid || process.env.DSH_HOME !== expectedHome) throw Error('Unexpected Desktop process')
       const load = process.mainModule?.require?.bind(process.mainModule)
         ?? process.getBuiltinModule('module').createRequire(process.execPath)
       const { app, BrowserWindow, screen } = load('electron')
       if (!app.isPackaged) throw Error('Expected packaged Desktop')
       if (action === 'exit') { setTimeout(() => app.quit(), 0); return true }
+      if (action === 'downloads') { app.setPath('downloads', downloads); return true }
       const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().startsWith('dsh-app://app/'))
       if (!window) return false
       if (action === 'hide') {
@@ -173,7 +174,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
         window.focus()
       }
       return true
-    }})(${JSON.stringify({ action, pid: app.child.pid, expectedHome: home, size, keepRendering })})`)
+    }})(${JSON.stringify({ action, pid: app.child.pid, expectedHome: home, size, keepRendering, downloads: join(directory, 'downloads') })})`)
     return {
       url: `http://${loopback}:${cdp}`, invoke, logs: app.logs,
       async ready() {
@@ -223,6 +224,10 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       const app = await startDesktop(lifecycle)
       try {
         await app.ready()
+        if (options.suite === 'settings-packages') {
+          await mkdir(join(directory, 'downloads'), { recursive: true })
+          await app.invoke('downloads')
+        }
         const browser = await chromium.connectOverCDP(app.url, { timeout: 20_000, noDefaults: true })
         const page = browser.contexts().flatMap(context => context.pages()).find(tab => tab.url().startsWith('dsh-app://app/'))
         assert(page, 'Missing Desktop renderer')

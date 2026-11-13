@@ -53,12 +53,12 @@ export async function checkSettingsState(ui, directory, evidence, foreground) {
   const dust = effectControls.getByRole('slider', { name: 'Floating Dust strength' })
   await dust.fill('50')
   await ui.showGallery({ resetDetails: false })
-  const actions = detail(versionedSkin).locator('details').filter({ has: page.locator('summary').filter({ hasText: /^Package actions$/ }) })
-  await ui.expand(actions.locator('summary'))
+  const actions = await packages.openActions(versionedSkin)
   await actions.getByLabel('Update from .dshskin.zip').setInputFiles({
     name: 'settings-state-update.dshskin.zip', mimeType: 'application/zip', buffer: update,
   })
-  await panel.getByText('Skin updated to v1.1.0.', { exact: true }).waitFor()
+  await panel.getByRole('status').filter({ hasText: 'Skin updated to v1.1.0.' }).waitFor()
+  await ui.showGallery({ resetDetails: false })
   assert(await button(detail(versionedSkin), 'Apply').isDisabled())
   assert.equal(await (await quality(versionedSkin)).inputValue(), 'high')
   await ui.showGallery({ resetDetails: false })

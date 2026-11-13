@@ -114,8 +114,7 @@ export async function checkSceneSamples(session, ui, sampleDir, directory, evide
       assert.deepEqual(await selection(), saved)
       assert.equal(await page.locator(resources).count(), 0)
       await choose(skin)
-      await ui.expand(detail(skin).locator('summary').filter({ hasText: /^Package actions$/ }))
-      await detail(skin).getByLabel('Update from .dshskin.zip').setInputFiles({
+      await (await packages.openActions(skin)).getByLabel('Update from .dshskin.zip').setInputFiles({
         name: filename, mimeType: 'application/zip', buffer: bytes,
       })
       await panel.getByRole('status').filter({ hasText: 'Skin updated to v' + manifest.version + '.' }).waitFor()

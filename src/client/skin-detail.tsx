@@ -2,11 +2,9 @@ import { useState } from 'react'
 import type { ColorScheme } from '../core/tokens.js'
 import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
 import { editableColors, resolveSkinColors, samePreferences } from '../shared/preferences.js'
-import { PackageActions } from './package-controls.js'
 import type { TranslateSettings } from './settings-copy.js'
 import { SkinEditorActions, type SkinEditor } from './skin-editor.js'
-import { canActivate, type SkinChoice } from './skin-api.js'
-import type { createSkinSwitch } from './skin-switch.js'
+import type { SkinChoice } from './skin-api.js'
 import { SkinPreviewImage } from './skin-preview-image.js'
 
 function pickerColor(color: string | undefined) {
@@ -22,16 +20,13 @@ interface DetailProps {
   displayName: string
   choice: SkinChoice
   scheme: ColorScheme
-  controller: ReturnType<typeof createSkinSwitch>
   placeholder?: string
   onOpenEffects(): void
   onOpenManagement(): void
   editor: SkinEditor
-  onVersionNotice(message: ((t: TranslateSettings) => string) | undefined): void
 }
 
-export function SkinDetail({ t, id, displayName, choice, scheme, controller, placeholder, onOpenEffects, onOpenManagement,
-  editor, onVersionNotice }: DetailProps) {
+export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, onOpenEffects, onOpenManagement, editor }: DetailProps) {
   const [previewScheme, setPreviewScheme] = useState<ColorScheme>()
   const { manifest, compatibility } = choice
   const { result, blocked, values, disabled, packageChanged, draft, busy, edit } = editor
@@ -93,7 +88,6 @@ export function SkinDetail({ t, id, displayName, choice, scheme, controller, pla
           </div>
         </details>
       ) : null}
-      {canActivate(choice) ? <PackageActions t={t} choice={choice} controller={controller} disabled={busy} onVersionNotice={onVersionNotice} /> : null}
       <div className="dsh-skin-actions">
         <button type="button" onClick={onOpenEffects}>{t('openEffects')}</button>
         <button type="button" onClick={onOpenManagement}>{t('openManagement')}</button>

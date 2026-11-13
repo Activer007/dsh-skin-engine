@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { packageVersionPair } from '../../test/fixtures/package-versions.mjs'
 import { deepOcean } from './browser.mjs'
+import { packagePanel } from './packages.mjs'
 
 const name = 'dsh-skin-locale-fixture'
 const event = 'dsh-skin-acceptance-locale'
@@ -98,15 +99,17 @@ export async function checkSettingsLocale(ui, session, directory, evidence) {
   await ui.apply(null)
   const [archive] = await packageVersionPair()
   const file = { name: 'locale-fixture.dshskin.zip', mimeType: 'application/zip', buffer: archive }
+  await packagePanel(ui).showManagement()
   const importer = panel.getByRole('region', { name: 'Import skin package' })
+  const messages = await panel.locator('.dsh-skin-packages').count() ? panel.locator('.dsh-skin-package-status') : importer
   await importer.getByLabel('Import .dshskin.zip').setInputFiles(file)
-  await importer.getByRole('status').filter({ hasText: 'Skin installed.' }).waitFor()
+  await messages.getByRole('status').filter({ hasText: 'Skin installed.' }).waitFor()
   await importer.getByLabel('Import .dshskin.zip').setInputFiles(file)
-  await importer.getByRole('status').filter({ hasText: 'This skin is already installed.' }).waitFor()
-  await activate(importer.getByText('Technical details', { exact: true }))
-  assert(await importer.getByText('duplicate-id', { exact: true }).isVisible())
+  await messages.getByRole('status').filter({ hasText: 'This skin is already installed.' }).waitFor()
+  await activate(messages.getByText('Technical details', { exact: true }))
+  assert(await messages.getByText('duplicate-id', { exact: true }).isVisible())
   await change('zh')
-  await panel.getByRole('region', { name: '导入皮肤包' }).getByRole('status').filter({ hasText: '此皮肤已安装。' }).waitFor()
+  await panel.getByRole('status').filter({ hasText: '此皮肤已安装。' }).waitFor()
   await change('en')
   await panel.getByRole('heading', { name: 'Skin Engine', exact: true }).waitFor()
   evidence.duplicateImport = { localized: true, code: 'duplicate-id' }

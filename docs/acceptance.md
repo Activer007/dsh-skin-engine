@@ -55,6 +55,8 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite settings-effects` 验证九项控件、窗口与皮肤的作用域、实际档位及折射回退。 [UI-06 专项记录](#ui-06-效果与性能验收)
 
+`--suite settings-packages` 验证管理页、ZIP 导出、跨页上传、取消、更新、回滚和卸载。 [UI-07 专项记录](#ui-07-皮肤管理验收)
+
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 
 `--suite catalogue-cache` 在两端记录 10/100 包的冷扫描、热读和缩略图请求，并核对更新、回滚与卸载后的预览失效。 [缓存行为与专项记录](catalogue-cache.md)
@@ -162,6 +164,19 @@ Auto Review 后，验收脚本按皮肤 ID 核对保存状态，兼容英文环�
 同一包另通过官方 Desktop 的场景动效与草稿冲突复验，以及官方 Web 的挂载中语言切换与 760 像素宽度检查。证据目录分别为 `.cache/ui-06/recheck/desktop-lFWLmf/`、`.cache/ui-06/recheck/desktop-5cHNfE/`、`.cache/ui-06/recheck/web-IUzNcx/`。Web 语言用例首次定位到了两个页面共用的草稿提示，限制到当前效果区域后通过。Auto Review 后以脚本提交 `b554ed39c25ff76fe1914688b24f5c5ded1b844b` 复跑 Desktop 旧布局到新布局的同版本换包，确认旧偏好、Host 诊断及原生设置可用，记录为 `.cache/ui-06/recheck/desktop-EhM2Ev/`。
 
 类型检查、lint 和 27 项 SkinSwitch/效果本地测试通过。以上专项无未捕获页面异常，隔离进程已退出。发布级性能对照留到发布关口。
+
+## UI-07 皮肤管理验收
+
+官方 DSH Web 和 Windows Desktop 0.2.2-rc.1 安装同一 Skin Engine 1.8.2 tarball，核对两端的 Host 和 Client 字节。构建提交 `9cfe3aca28ca481634651896568427003f9a90ba`，SHA-256 `4684070e0bb182647a496b5b3c0ee40e158e1a087b6a706d055bc6a5c18db15c`。复跑沿用本页命令，传入 `--suite settings-packages`。
+
+双端验证画廊跳转保留目标，内置皮肤可导出且无卸载入口，诊断默认折叠并能检查 Host。安装测试 ZIP 并应用，从界面导出后读取文件，确认皮肤 ID 和版本。模拟丢失取消回执时跨页看到上传和取消状态，Host 回读保留原版本与选择。再次上传只提交一次，离开管理页后仍显示更新结果。键盘可取消回滚确认并回焦原按钮，完成回滚后包修订更新，保存选择保留，卸载活动包后回到原生外观。
+
+| 平台 | 1280 × 820 内容宽 | 760 × 820 内容宽 | 证据目录 |
+| --- | --- | --- | --- |
+| Web | 884 | 728 | `.cache/ui-07/recheck/web-EiYKqy/` |
+| Windows Desktop | 879 | 471 | `.cache/ui-07/recheck/desktop-K0qiCb/` |
+
+首个候选在 Desktop 未收到浏览器下载事件。改用 Desktop 原生文件保存接口后，在隔离下载目录核对实际 ZIP 字节。Web 继续由浏览器下载。另用同一最终包在官方 Web 复跑草稿与包修订冲突，结果为 `.cache/ui-07/recheck/web-MzkWOs/`。类型检查、lint 和 19 项包管理及目录定向测试通过。以上专项无未捕获页面异常，隔离进程已退出。
 
 ## v1.5.0 Web 外观专项 NEXT-01
 
