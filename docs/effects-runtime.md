@@ -49,3 +49,18 @@ Windows `10.0.26200`、Node `24.16.0`，两端使用官方 DSH `0.2.2-rc.1`。We
 环境光样例 ZIP 的 SHA-256 为 `000049d4790bbaefb1512fbc7ee397670f31b91c45a1561f01da9d381fbaf3e7`。两端均实测预览取消清理、Apply 后只有一个环境光图层、Static 透明度稳定在 `0.14`、恢复动效沿用同一节点、Default 后无引擎资源残留。每端目录保存 `result.json` 和 `ambient-provider.png`。页面错误为空，隔离 DSH、Web Host 和浏览器均已关闭。
 
 类型检查、lint 和 66 项本地测试通过。Provider 定向测试覆盖严格 Schema 和注册版本、单实例所有权、过期释放、部分挂载失败、帧与绘制异常隔离，以及共享时钟和 GPU 回退。首轮 Web 在虹彩输入处超时，修复侧栏绑定后，两端用同一修复候选重新验证。该轮只运行 2 秒后台专项，长后台和性能对照仍按集成关口执行。
+
+## UI-01 环境光偏好验收
+
+两端使用官方 DSH 0.2.2-rc.1 和同一个 1.8.2 候选包。产物构建自 `9b3adfbb9f3b0b65ec769fc0a2b372fbe55b99f7`，SHA-256 为 `03e6381bcf140eef339ce759d94cb6f8e4b75b42b6e6725a8ea7e8b1d4adacd6`。安装后均核对 Host 和 Client 字节。
+
+| 平台 | CSS 视口 | 插件内容宽 | 结果 |
+| --- | --- | --- | --- |
+| Web | 1280 × 820 | 884 | 通过，记录位于 `.cache/ui-01/host/web-Mhy4nj/` |
+| Windows Desktop | 1280 × 860 | 879 | 通过，含回装与恢复，记录位于 `.cache/ui-01/host/desktop-wMEzQg/` |
+
+旧八效果 ZIP（SHA-256 `5c3b86e5da2a03d680aac1ca3840f2985588246cac39b7ea45c90d2442034f9d`）可安装、应用和保存质量，界面不显示环境光控制。环境光样例默认显示 64%。在 Static 和高质量下预览时，0% 不创建环境光层，50% 和 100% 分别渲染为 0.11 和 0.22。预览和取消保持原保存状态，关闭开关后无光层，再启用并应用时 Host 回读归一化强度 1。两端恢复 Default，页面异常为空，隔离 DSH、Web Host 和浏览器均已退出。
+
+Desktop 保持 1.8.2 写入的记录回装 1.8.1（SHA-256 `a66229ddfefaae3f354c64290b0824ab67f9ed74fbd78c30294eae232f6493c1`），显示原生外观，旧选择服务返回 `503 selection-unavailable`。旧版未改写该记录。关闭隔离宿主，恢复升级前的选择文件后，1.8.1 读回原八效果皮肤和低质量偏好，并可从设置恢复原生外观。回装按 [升级前备份步骤](release-v1.md#回滚) 执行。
+
+类型检查、lint 和 68 项本地测试通过。复跑使用 [验收命令](acceptance.md#运行) 的 `--suite ambient-preferences`，Desktop 加 `--from-archive <1.8.1.tgz>`。记录含 `result.json` 和 `ambient-preferences.png`。Desktop 首轮截图在渲染器被遮挡后超时，修正夹具前台保持后复测通过。Desktop 验收脚本提交为 `ceb473242283242b82fb29eb39a835a04f218c38`，使用同一候选包。完整性能对照留到发布关口。

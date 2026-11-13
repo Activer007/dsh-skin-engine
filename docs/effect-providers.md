@@ -34,6 +34,8 @@ Provider 由 Skin Engine 的可信 TypeScript 源码注册，并随 Client 一�
 
 在 `skin.json` 的 `entry.effects` 指向该文件，并在 `capabilities` 中声明 `effects:css`。`intensity` 范围为 `0` 至 `0.22`，`speed` 范围为 `0.1` 至 `1`。
 
+自 1.8.2 起，声明了环境光的皮肤在设置页可开关和调整强度。偏好以 0–1 归一化保存，渲染时乘以 0.22，实际亮度仍受当前质量档位和窗口状态约束。 [验证与旧版恢复](effects-runtime.md#ui-01-环境光偏好验收)
+
 ## 版本演进
 
 Provider API、皮肤包数据格式和 Engine API 分别版本化。当前注册表要求 Provider 源码声明与引擎构建内的 Provider API 版本完全一致。兼容扩展应保留现有钩子语义与资源所有权规则，随可信源码一起重新构建。变更必需钩子、生命周期顺序、预算或所有权语义时提升 Provider 主版本，同一 PR 迁移内置 Provider、版本校验和验收。已有 ZIP 的 ID、renderer、参数默认值和启用规则继续按数据契约读取。若未来需要不兼容的数据格式，单独定义新版和迁移规则。

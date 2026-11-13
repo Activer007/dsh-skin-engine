@@ -3,6 +3,7 @@ import { observeAppearance } from '../adapter/coexistence.js'
 import { createSkinTheme, SKIN_ATTRIBUTE, type ThemeService } from '../adapter/skin-theme.js'
 import type { PreparedArtwork } from '../shared/skins.js'
 import { createEffectsRuntime } from './effects/p0.js'
+import { SETTINGS_LOCALE, settingsCopy, type TranslateSettings } from './settings-copy.js'
 import { skinApi, type SkinData } from './skin-api.js'
 import { SkinPanel, type PanelProps } from './skin-panel.js'
 import { createSkinSwitch } from './skin-switch.js'
@@ -14,13 +15,18 @@ const SECTION = 'settings.section'
 interface ClientContext {
   effect(setup: () => () => void, label: string): unknown
   on(event: 'theme/change', listener: () => void): unknown
+  get?(key: 'locale'): {
+    bind(namespace: string): TranslateSettings
+    register(namespace: string, copy: typeof settingsCopy): () => void
+  } | undefined
   slots: {
     inject(slot: string, register: () => void): unknown
     register(options: {
       name: string
       id: string
       order: number
-      label: string
+      label: string | (() => string)
+      locale?: string
       inject: () => PanelProps
     }, component: ComponentType<PanelProps>): unknown
   }
@@ -81,8 +87,12 @@ export function apply(ctx: ClientContext): void {
   })
 
   ctx.slots.inject(SECTION, () => {
+    const locale = ctx.get?.('locale')
+    if (locale) ctx.effect(() => locale.register(SETTINGS_LOCALE, settingsCopy), 'skin-engine: settings locale')
     ctx.slots.register({
-      name: SECTION, id: 'dsh-skin-engine', order: 125, label: 'Skin Engine',
+      name: SECTION, id: 'dsh-skin-engine', order: 125,
+      label: locale ? () => locale.bind(SETTINGS_LOCALE)('title') : 'Skin Engine',
+      ...(locale && { locale: SETTINGS_LOCALE }),
       inject: () => ({ controller, effects, getColorScheme }),
     }, SkinPanel)
   })

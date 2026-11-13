@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-skin-engine",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "Declarative skin engine for DeepSeek Harness",
   "private": true,
   "type": "module",
@@ -30,6 +30,7 @@
     "client": {
       "platform": "web",
       "inject": [
+        "@deepseek-ai/dsh-client-locale",
         "@deepseek-ai/dsh-client-ui-settings",
         "@deepseek-ai/dsh-client-ui-theme"
       ]

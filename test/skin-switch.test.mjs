@@ -100,6 +100,27 @@ test('preview stays window-local and cancellation or expiry reads the authoritat
   assert.deepEqual(writes, ['a'])
 })
 
+test('environment light maps normalized draft values into renderer intensity without changing the default', async t => {
+  const intensities = []
+  const { controller, disk } = await switchFixture({
+    initial: 'a',
+    prepare: choice => ({ ...dataFor(choice), effects: [
+      { id: 'ambient.light', enabled: true, renderer: 'css', params: { intensity: 0.14, speed: 0.3 } },
+    ] }),
+    onMount(_id, { effects: [effect] }) {
+      intensities.push(effect.params.intensity)
+      assert.equal(effect.params.speed, 0.3)
+    },
+  })
+  t.after(() => controller.dispose())
+  for (const strength of [0, 0.5, 1]) {
+    await controller.preview('a', { value: { effects: { 'ambient.light': { strength } } }, revision: 0 })
+    assert.equal(controller.getSnapshot().preview, 'a')
+  }
+  assert.deepEqual(intensities, [0.14, 0, 0.11, 0.22])
+  assert.deepEqual(disk(), { skinId: 'a', revision: 0 })
+})
+
 test('catalogue refresh preserves the mounted revision and adopts a real package update', async t => {
   let revision = 'a'
   let loads = 0

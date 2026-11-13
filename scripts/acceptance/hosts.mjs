@@ -141,10 +141,10 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     const cdp = await port()
     const main = await port()
     const flags = [`--user-data-dir=${userDirectory}`, `--remote-debugging-port=${cdp}`, `--inspect=${loopback}:${main}`]
-    if (['artwork', 'scenes', 'tokens', 'dual-appearance', 'scene-motion', 'character-samples'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
+    if (['artwork', 'scenes', 'tokens', 'dual-appearance', 'scene-motion', 'character-samples', 'ambient-preferences', 'settings-locale'].includes(options.suite)) flags.push('--force-device-scale-factor=1')
     if (lifecycle || options['desktop-disable-occlusion']) flags.push('--disable-features=CalculateNativeWinOcclusion')
     const app = launch(executable, flags, env, true)
-    const keepRendering = isolatedRenderer || ['dual-appearance', 'effects-runtime', 'scene-motion'].includes(options.suite)
+    const keepRendering = isolatedRenderer || ['dual-appearance', 'effects-runtime', 'scene-motion', 'ambient-preferences', 'settings-locale'].includes(options.suite)
     const invoke = (action, size = { width: 1280, height: 860 }) => inspector(main, `(${function ({ action, pid, expectedHome, size, keepRendering }) {
       if (process.pid !== pid || process.env.DSH_HOME !== expectedHome) throw Error('Unexpected Desktop process')
       const load = process.mainModule?.require?.bind(process.mainModule)
@@ -272,7 +272,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
         browser = await chromium.launch({
           executablePath: resolve(options.chrome),
           headless: ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance', 'artwork', 'scenes', 'scene-previews',
-            'tokens', 'dual-appearance', 'scene-motion'].includes(options.suite),
+            'tokens', 'dual-appearance', 'scene-motion', 'ambient-preferences', 'settings-locale'].includes(options.suite),
           ...(signal ? { handleSIGINT: false, handleSIGTERM: false } : {}),
           ignoreDefaultArgs: ['--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'],
         })

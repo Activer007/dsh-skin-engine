@@ -46,7 +46,9 @@ async function storageFixture(t, initial = { skinId: null, revision: 0 }) {
       async load(id, revision, signal) {
         assert.equal(revision, packageRevision)
         signal.throwIfAborted()
-        return { source: id === 'local' ? 'local' : 'built-in', effects: [{ id: 'particles.dust' }] }
+        const effects = [{ id: 'particles.dust' }]
+        if (id === 'ambient') effects.push({ id: 'ambient.light' })
+        return { source: id === 'local' ? 'local' : 'built-in', effects }
       },
     }, controller.signal)
     t.after(async () => { controller.abort(); await drain() })
@@ -116,4 +118,18 @@ test('a rejected write is reconciled from a newly opened domain while the profil
   assert.deepEqual(await committed.json(), { skinId: 'b', revision: 1 })
   assert.deepEqual(await (await host.read()).json(), { skinId: 'b', revision: 1 })
   assert.equal(fixture.openCount(), 0)
+})
+
+test('environment light preferences use normalized strength and require a declared effect', async t => {
+  const legacy = { skinId: 'a', revision: 3, preferences: { a: { effects: { 'particles.dust': { strength: 0.25 } } } } }
+  const fixture = await storageFixture(t, legacy)
+  const host = fixture.host()
+  const preferences = { effects: { 'ambient.light': { enabled: true, strength: 0.5 } } }
+  assert.deepEqual(await (await host.read()).json(), legacy)
+  assert.equal((await host.save('a', 3, { preferences })).status, 400)
+  assert.equal((await host.save('ambient', 3, { preferences: { effects: { 'ambient.light': { strength: 1.01 } } } })).status, 400)
+  assert.equal((await host.save('ambient', 3, { preferences })).status, 200)
+  assert.deepEqual(await (await host.read()).json(), {
+    skinId: 'ambient', revision: 4, preferences: { ...legacy.preferences, ambient: preferences },
+  })
 })

@@ -1,4 +1,4 @@
-import type { SkinEffect } from '../core/effects.js'
+import { AMBIENT_LIGHT_MAX_INTENSITY, type SkinEffect } from '../core/effects.js'
 import type { ColorScheme, parseSkinTokens } from '../core/tokens.js'
 
 export const qualityLevels = ['low', 'balanced', 'high', 'auto'] as const
@@ -7,7 +7,7 @@ export type Quality = Exclude<QualityChoice, 'auto'>
 
 export const editableColors = ['canvas', 'surface', 'accent'] as const
 export const editableEffects = ['glass.liquid', 'ambient.aurora', 'light.flow', 'particles.dust',
-  'interaction.ripple', 'particles.starfield', 'glass.holographic', 'glass.refraction'] as const
+  'interaction.ripple', 'particles.starfield', 'glass.holographic', 'glass.refraction', 'ambient.light'] as const
 export type EditableEffect = (typeof editableEffects)[number]
 export interface EffectPreference { enabled?: boolean; strength?: number }
 
@@ -34,6 +34,7 @@ export function effectStrength(effect: SkinEffect): number | undefined {
     case 'ambient.aurora':
     case 'light.flow':
     case 'glass.holographic': return effect.params.intensity
+    case 'ambient.light': return effect.params.intensity / AMBIENT_LIGHT_MAX_INTENSITY
     case 'particles.dust': return effect.params.density
     case 'particles.starfield': return effect.params.brightness
     case 'interaction.ripple': return (effect.params.maxRadius - 80) / 140
@@ -60,6 +61,7 @@ function overrideEffect(effect: SkinEffect, overrides: SkinPreferences['effects'
     case 'interaction.ripple': return { ...next, params: { ...next.params, maxRadius: 80 + strength * 140 } }
     case 'particles.starfield': return { ...next, params: { ...next.params, brightness: strength } }
     case 'glass.holographic': return { ...next, params: { ...next.params, intensity: strength } }
+    case 'ambient.light': return { ...next, params: { ...next.params, intensity: strength * AMBIENT_LIGHT_MAX_INTENSITY } }
   }
 }
 

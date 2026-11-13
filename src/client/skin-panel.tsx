@@ -4,7 +4,8 @@ import { AUDIT_PATH, type AuditStatus } from '../shared/audit.js'
 import { preferencesFor, qualityLevels, type QualityChoice } from '../shared/preferences.js'
 import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
 import { ImportSkin } from './package-controls.js'
-import { scenePresetLabels, type ScenePreset } from './scene/presets.js'
+import type { ScenePreset } from './scene/presets.js'
+import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
 import { SkinDetail } from './skin-detail.js'
 import type { createSkinSwitch } from './skin-switch.js'
 
@@ -12,15 +13,20 @@ declare const MANAGER_STYLES: string
 declare const PROBE_ASSET: string
 declare const SKIN_ENGINE_VERSION: string
 
-const restartInstructions = 'Quit and reopen DSH Desktop, or restart the DSH Web Host and reload this page.'
+const scenePresets = ['static', 'light', 'dynamic'] as const
+const windowModes = ['dynamic', 'static', 'economy', 'off'] as const
+type HostCheck = { version?: string; persisted: boolean } | { error: string }
 
 export interface PanelProps {
   controller: ReturnType<typeof createSkinSwitch>
   effects: ReturnType<typeof createEffectsRuntime>
   getColorScheme(): 'light' | 'dark'
+  t?: TranslateSettings
 }
 
-export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
+export function SkinPanel({ controller, effects, getColorScheme, t: translate }: PanelProps) {
+  const [language, setLanguage] = useState(() => document.documentElement.lang)
+  const t = translate ?? fallbackSettingsCopy(language)
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
   const effectMode = useSyncExternalStore(effects.subscribe, effects.getMode)
   const scenePreset = useSyncExternalStore(effects.subscribe, effects.getScenePreset)
@@ -32,8 +38,8 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
   const [query, search] = useState('')
   const [tag, filterTag] = useState('')
   const [source, filterSource] = useState('')
-  const [hostStatus, setHostStatus] = useState<string | null>('')
-  const [versionNotice, setVersionNotice] = useState('')
+  const [hostStatus, setHostStatus] = useState<HostCheck | null>()
+  const [versionNotice, setVersionNotice] = useState<((t: TranslateSettings) => string) | undefined>()
   const detailId = useId()
   const choices = state.catalogue?.skins ?? []
   const tags = [...new Set(choices.flatMap(item => item.manifest.tags ?? []))].sort()
@@ -47,7 +53,7 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
   const choice = visible.find(item => item.manifest.id === choiceId)
     ?? visible.find(item => item.manifest.id === state.saved?.skinId)
     ?? visible[0]
-  const name = (id: string | null | undefined) => choices.find(item => item.manifest.id === id)?.manifest.name ?? id ?? 'Default'
+  const name = (id: string | null | undefined) => choices.find(item => item.manifest.id === id)?.manifest.name ?? id ?? t('defaultSkin')
   const scheme = getColorScheme()
   const previewing = state.preview !== null || state.pending === 'preview'
 
@@ -56,25 +62,34 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
     return () => { void controller.cancelPreview() }
   }, [controller])
 
+  useEffect(() => {
+    if (translate) return
+    const root = document.documentElement
+    const observer = new MutationObserver(() => setLanguage(root.lang))
+    observer.observe(root, { attributes: true, attributeFilter: ['lang'] })
+    return () => observer.disconnect()
+  }, [translate])
+
   async function checkHost() {
     setHostStatus(null)
     try {
       const response = await fetch(new URL(AUDIT_PATH, document.baseURI), { signal: AbortSignal.timeout(10_000) })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const result: AuditStatus = await response.json()
-      const version = result.engineVersion
-      const probe = `Saved probe ${result.persisted}.`
-      if (typeof version !== 'string' || version.length === 0) {
-        setHostStatus(`Host engine version unavailable. ${probe} ${restartInstructions}`)
-      } else {
-        const mismatch = version === SKIN_ENGINE_VERSION ? '' : ` Client and Host versions differ. ${restartInstructions}`
-        setHostStatus(`Host engine v${version}. ${probe}${mismatch}`)
-      }
+      setHostStatus({ version: result.engineVersion, persisted: result.persisted })
     } catch (error) {
-      const detail = error instanceof Error ? ` ${error.message}` : ''
-      setHostStatus(`Host unavailable.${detail}`)
+      setHostStatus({ error: error instanceof Error ? error.message : '' })
     }
   }
+
+  const hostMessage = hostStatus === null ? t('checkingHost') : hostStatus === undefined ? ''
+    : 'error' in hostStatus ? [t('hostUnavailable'), hostStatus.error].filter(Boolean).join(' ')
+      : [
+          hostStatus.version ? t('hostVersion', { version: hostStatus.version }) : t('hostNoVersion'),
+          t('probeSaved', { saved: t(hostStatus.persisted ? 'yes' : 'no') }),
+          hostStatus.version && hostStatus.version !== SKIN_ENGINE_VERSION ? t('versionMismatch') : '',
+          hostStatus.version === SKIN_ENGINE_VERSION ? '' : t('restart'),
+        ].filter(Boolean).join(' ')
 
   return (
     <section data-dsh-skin-engine>
@@ -82,30 +97,30 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
       <header className="dsh-skin-header">
         <div>
           <div className="dsh-skin-title">
-            <h2>Skin Engine</h2>
-            <span className="dsh-skin-muted">Client engine v{SKIN_ENGINE_VERSION}</span>
+            <h2>{t('title')}</h2>
+            <span className="dsh-skin-muted">{t('clientVersion', { version: SKIN_ENGINE_VERSION })}</span>
           </div>
           <p className="dsh-skin-muted">
-            <strong>Saved</strong> {state.saved ? name(state.saved.skinId) : 'Unavailable'}
-            {state.saved && state.rendered !== state.saved.skinId ? <> · <strong>Showing</strong> {name(state.rendered)}</> : null}
+            <strong>{t('saved')}</strong> {state.saved ? name(state.saved.skinId) : t('unavailable')}
+            {state.saved && state.rendered !== state.saved.skinId ? <> · <strong>{t('showing')}</strong> {name(state.rendered)}</> : null}
           </p>
         </div>
         <div className="dsh-skin-actions">
           {previewing ? (
-            <button type="button" disabled={state.saving} onClick={() => void controller.cancelPreview()}>Cancel preview</button>
+            <button type="button" disabled={state.saving} onClick={() => void controller.cancelPreview()}>{t('cancelPreview')}</button>
           ) : null}
           <button type="button" disabled={state.saving || state.saved === null || (!state.saved.skinId && !previewing)}
-            onClick={() => void controller.apply(null)}>Restore Default</button>
+            onClick={() => void controller.apply(null)}>{t('restoreDefault')}</button>
         </div>
       </header>
-      <p role="status">{state.notice || (state.saving ? 'Saving…' : state.pending ? 'Loading…'
-        : state.preview ? 'Window preview · expires after 30 seconds.' : versionNotice)}</p>
-      {state.catalogueNotice ? <p role="alert">{state.catalogueNotice}</p> : null}
+      <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving') : state.pending ? t('loading')
+        : state.preview ? t('previewExpiry') : versionNotice?.(t)}</p>
+      {state.catalogueNotice ? <p role="alert">{settingsError(t, state.catalogueNotice, 'error.selection')}</p> : null}
       <div className="dsh-skin-layout">
-        <section className="dsh-skin-library" aria-label="Skin gallery">
+        <section className="dsh-skin-library" aria-label={t('gallery')}>
           <header className="dsh-skin-library-header">
-            <h3>Skin gallery</h3>
-            <ImportSkin controller={controller} disabled={state.saving} onInstalled={id => {
+            <h3>{t('gallery')}</h3>
+            <ImportSkin t={t} controller={controller} disabled={state.saving} onInstalled={id => {
               search('')
               filterTag('')
               filterSource('')
@@ -113,29 +128,29 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
             }} />
           </header>
           <div className="dsh-skin-fields">
-            <label>Search skins<input type="search" value={query} onChange={event => search(event.currentTarget.value)} /></label>
-            <label>Tag
+            <label>{t('search')}<input type="search" value={query} onChange={event => search(event.currentTarget.value)} /></label>
+            <label>{t('tag')}
               <select value={tag} onChange={event => filterTag(event.currentTarget.value)}>
-                <option value="">All tags</option>
+                <option value="">{t('allTags')}</option>
                 {tags.map(value => <option key={value}>{value}</option>)}
               </select>
             </label>
-            <label>Source
+            <label>{t('source')}
               <select value={source} onChange={event => filterSource(event.currentTarget.value)}>
-                <option value="">All skins</option>
-                <option value="built-in">Built-in</option>
-                <option value="local">Local</option>
+                <option value="">{t('allSkins')}</option>
+                <option value="built-in">{t('builtin')}</option>
+                <option value="local">{t('local')}</option>
               </select>
             </label>
           </div>
-          {state.catalogue && visible.length === 0 ? <p>No matching skins.</p> : null}
+          {state.catalogue && visible.length === 0 ? <p>{t('noMatches')}</p> : null}
           <ul className="dsh-skin-gallery">
             {visible.map(item => {
               const { manifest } = item
-              const status = item.compatibility ? 'Incompatible'
-                : state.preview === manifest.id ? 'Previewing'
-                  : state.saved?.skinId === manifest.id ? (state.rendered === manifest.id ? 'Applied' : 'Saved')
-                    : item.managed ? 'Installed' : item.source === 'local' ? 'Local' : 'Built-in'
+              const status = item.compatibility ? 'incompatible'
+                : state.preview === manifest.id ? 'previewing'
+                  : state.saved?.skinId === manifest.id ? (state.rendered === manifest.id ? 'applied' : 'saved')
+                    : item.managed ? 'installed' : item.source === 'local' ? 'local' : 'builtin'
               return (
                 <li key={manifest.id}>
                   <button type="button" aria-pressed={choice === item} aria-controls={detailId} onClick={() => choose(manifest.id)}>
@@ -149,7 +164,7 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
                       }} />
                     <span className="dsh-skin-card-caption">
                       <strong>{manifest.name}</strong>
-                      <small className="dsh-skin-badge" data-status={status}>{status}</small>
+                      <small className="dsh-skin-badge" data-status={status}>{t(status)}</small>
                     </span>
                   </button>
                 </li>
@@ -157,55 +172,57 @@ export function SkinPanel({ controller, effects, getColorScheme }: PanelProps) {
             })}
           </ul>
         </section>
-        {choice ? <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} id={detailId} choice={choice} scheme={scheme} controller={controller}
+        {choice ? <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} t={t} id={detailId} choice={choice} scheme={scheme} controller={controller}
           preferences={preferencesFor(state.saved?.preferences, choice.manifest.id)} revision={state.saved?.revision}
           applied={state.preview === null && state.rendered === choice.manifest.id && state.saved?.skinId === choice.manifest.id}
-          busy={state.saving} onVersionNotice={setVersionNotice} /> : null}
+          busy={state.saving} onVersionNotice={message => setVersionNotice(() => message)} /> : null}
       </div>
       <div className="dsh-skin-utilities">
         <details open className="dsh-skin-disclosure">
-          <summary>Window effects</summary>
+          <summary>{t('windowEffects')}</summary>
           <div className="dsh-skin-fields">
-            <label>Effects in this window
+            <label>{t('windowMode')}
               <select value={effectMode} onChange={event => effects.setMode(event.currentTarget.value as EffectMode)}>
-                <option value="dynamic">Dynamic</option>
-                <option value="static">Static</option>
-                <option value="economy">Economy</option>
-                <option value="off">Off</option>
+                {windowModes.map(mode => <option key={mode} value={mode}>{t(`mode.${mode}`)}</option>)}
               </select>
             </label>
-            <label>Effect quality in this window
+            <label>{t('windowQuality')}
               <select value={quality ?? ''} disabled={effectMode === 'economy' || effectMode === 'off'}
                 onChange={event => effects.setQuality(event.currentTarget.value as QualityChoice || undefined)}>
-                <option value="">Use skin preference</option>
-                {qualityLevels.map(level => <option key={level} value={level}>{level}</option>)}
+                <option value="">{t('useSkinQuality')}</option>
+                {qualityLevels.map(level => <option key={level} value={level}>{t(`quality.${level}`)}</option>)}
               </select>
             </label>
             {scenePreset ? (
-              <label>Scene motion preset
+              <label>{t('scenePreset')}
                 <select value={scenePreset} onChange={event => effects.setScenePreset(event.currentTarget.value as ScenePreset)}>
-                  {Object.entries(scenePresetLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  {scenePresets.map(value => <option key={value} value={value}>{t(`scene.${value}`)}</option>)}
                 </select>
               </label>
             ) : null}
           </div>
-          {effectiveScenePreset ? <p className="dsh-skin-muted">Effective scene preset · {scenePresetLabels[effectiveScenePreset]}</p> : null}
+          {effectiveScenePreset ? <p className="dsh-skin-muted">{t('effectivePreset')} · {t(`scene.${effectiveScenePreset}`)}</p> : null}
           {state.rendered && effectMode !== 'off' ? (
-            <p className="dsh-skin-muted">Effective quality · <strong data-dsh-skin-effective-quality>{effectiveQuality}</strong>
-              {refraction !== 'off' ? <> · Liquid Refraction · {refraction === 'webgl' ? 'WebGL' : 'CSS fallback'}</> : null}
+            <p className="dsh-skin-muted">{t('effectiveQuality')} · <strong data-dsh-skin-effective-quality>{t(`quality.${effectiveQuality}`)}</strong>
+              {refraction !== 'off' ? <> · {t('effect.glass.refraction')} · {refraction === 'webgl' ? 'WebGL' : t('cssFallback')}</> : null}
             </p>
           ) : null}
         </details>
         <details open className="dsh-skin-disclosure">
-          <summary>Maintenance and diagnostics
+          <summary>{t('maintenance')}
             {state.catalogue?.issues.length ? <> ({state.catalogue.issues.length})</> : null}
           </summary>
           <div className="dsh-skin-actions">
-            <button type="button" disabled={state.saving} onClick={() => void controller.refresh('force')}>Reload skins</button>
-            <button type="button" disabled={hostStatus === null} onClick={() => void checkHost()}>Check Host</button>
+            <button type="button" disabled={state.saving} onClick={() => void controller.refresh('force')}>{t('reload')}</button>
+            <button type="button" disabled={hostStatus === null} onClick={() => void checkHost()}>{t('checkHost')}</button>
             <img src={PROBE_ASSET} alt="" width="28" height="28" />
           </div>
-          <p role="status">{hostStatus ?? 'Checking Host…'}</p>
+          <p role="status">{hostMessage}</p>
+          {state.notice || state.catalogueNotice ? <details>
+            <summary>{t('error.diagnostics')}</summary>
+            {state.notice ? <p>{state.notice}</p> : null}
+            {state.catalogueNotice ? <p>{state.catalogueNotice}</p> : null}
+          </details> : null}
           {state.catalogue?.issues.length ? (
             <ul>{state.catalogue.issues.map(issue => (
               <li key={JSON.stringify(issue)}>{issue.id ?? (issue.directory || issue.source)} · {issue.code}</li>

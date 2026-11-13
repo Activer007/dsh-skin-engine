@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { readFile, realpath, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import { buffer } from 'node:stream/consumers'
 import { ZipFile } from 'yazl'
 import { resources } from './browser.mjs'
@@ -244,4 +244,93 @@ export async function checkAmbientProvider(ui, directory, evidence) {
     evidence.remaining = await page.locator(resources).count()
     assert.equal(evidence.remaining, 0)
   } finally { await owner.dispose() }
+}
+
+export async function checkAmbientPreferences(ui, directory, profileDir, evidence, rollback, foreground) {
+  const { page, panel, detail, activate, button, choose, selection, apply, waitForSkin } = ui
+  const light = page.locator(layers('ambient-light'))
+  const name = 'Ambient Light'
+  const effect = detail(demo).getByRole('checkbox', { name, exact: true })
+  const strength = detail(demo).getByRole('slider', { name: `${name} strength` })
+  await ui.open()
+  await ui.mode('static')
+  const packages = packagePanel(ui)
+  const oldZip = await oldFormatZip()
+  await packages.install(`${skin.id}.dshskin.zip`, oldZip)
+  await choose(skin)
+  assert.equal(await detail(skin).getByRole('checkbox', { name, exact: true }).count(), 0)
+  const quality = detail(skin).getByRole('combobox', { name: /^Skin effect quality/ })
+  await quality.selectOption('low')
+  await apply(skin)
+  const before = await selection()
+  assert.equal(before.preferences[skin.id].quality, 'low')
+  evidence.legacy = { zipSha256: createHash('sha256').update(oldZip).digest('hex'), selection: before }
+
+  const real = await realpath(profileDir)
+  const key = createHash('sha256').update(process.platform === 'win32' ? real.toLowerCase() : real).digest('hex')
+  const storage = join(dirname(dirname(profileDir)), 'storages', `skin_engine_selection_${key}.json`)
+  const backup = rollback ? await readFile(storage) : undefined
+
+  const ambientZip = await effectsZip(demo, [
+    { id: 'ambient.light', renderer: 'css', enabled: true, params: {} },
+  ], ['tokens', 'css', 'effects:css'])
+  await packages.install(`${demo.id}.dshskin.zip`, ambientZip)
+  await choose(demo)
+  await strength.waitFor()
+  assert.equal(await strength.inputValue(), '64')
+  assert(await effect.isChecked())
+  await detail(demo).getByRole('combobox', { name: /^Skin effect quality/ }).selectOption('high')
+  evidence.intensities = []
+  for (const [percent, expected] of [[0, 0], [50, 0.11], [100, 0.22]]) {
+    await strength.fill(String(percent))
+    assert.equal(Number(await strength.inputValue()), percent)
+    await activate(button(detail(demo), 'Preview'))
+    await waitForSkin(demo.id)
+    if (expected) {
+      await page.waitForFunction(({ selector, expected }) => Number(document.querySelector(selector)?.style.opacity) === expected,
+        { selector: layers('ambient-light'), expected })
+    } else assert.equal(await light.count(), 0)
+    evidence.intensities.push({ percent, opacity: expected })
+    assert.deepEqual(await selection(), before)
+    await activate(button(panel, 'Cancel preview'))
+    await waitForSkin(skin.id)
+  }
+  await effect.press('Space')
+  assert.equal(await effect.isChecked(), false)
+  assert(await strength.isDisabled())
+  await apply(demo)
+  assert.equal(await light.count(), 0)
+  evidence.disabled = (await selection()).preferences[demo.id].effects['ambient.light']
+  assert.deepEqual(evidence.disabled, { enabled: false, strength: 1 })
+  await effect.press('Space')
+  await apply(demo)
+  await page.waitForFunction(selector => Number(document.querySelector(selector)?.style.opacity) === 0.22, layers('ambient-light'))
+  evidence.saved = await selection()
+  assert.deepEqual(evidence.saved.preferences[demo.id].effects['ambient.light'], { enabled: true, strength: 1 })
+  assert.equal(evidence.saved.preferences[skin.id].quality, 'low')
+  evidence.viewport = await page.evaluate(() => [innerWidth, innerHeight])
+  evidence.contentWidth = await panel.evaluate(node => node.getBoundingClientRect().width)
+  await foreground?.()
+  await page.screenshot({ path: join(directory, 'ambient-preferences.png'), scale: 'css' })
+
+  if (rollback) {
+    const old = await rollback.installOld()
+    const rejected = await old.page.evaluate(async () => {
+      const response = await fetch(new URL('api/dsh-skin-engine/selection', document.baseURI))
+      return { status: response.status, body: await response.json() }
+    })
+    assert.deepEqual(rejected, { status: 503, body: { error: 'selection-unavailable' } })
+    await old.waitForSkin(null)
+    const restored = await rollback.restore(async () => {
+      assert.deepEqual(await readFile(storage).then(JSON.parse).then(data => data.global), evidence.saved)
+      await writeFile(storage, backup)
+    })
+    assert.deepEqual(await restored.selection(), before)
+    await restored.waitForSkin(skin.id)
+    await restored.open()
+    await restored.apply(null)
+    evidence.rollback = { rejected, restored: before, native: await restored.selection() }
+  } else {
+    await apply(null)
+  }
 }

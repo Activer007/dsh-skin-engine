@@ -10,12 +10,13 @@ import { checkArtwork } from './artwork.mjs'
 import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
 import { checkCharacterSamples } from './character-samples.mjs'
 import { checkDualAppearance } from './dual-appearance.mjs'
-import { checkAmbientProvider, checkEffectsRuntime } from './effects-runtime.mjs'
+import { checkAmbientPreferences, checkAmbientProvider, checkEffectsRuntime } from './effects-runtime.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
 import { checkPackages, checkSample } from './packages.mjs'
 import { performanceComparison, visibilityCycle } from './rendering.mjs'
 import { checkSceneMotion } from './scene-motion.mjs'
 import { checkSceneSamples } from './scenes.mjs'
+import { checkSettingsLocale, installLocaleFixture } from './settings-locale.mjs'
 import { checkSurfaces, seedSurfaceHistory } from './surfaces.mjs'
 import { installTokenProbe } from './token-probe.mjs'
 import { checkTokens } from './tokens.mjs'
@@ -54,6 +55,8 @@ const packageUpdate = options.suite === 'package-update'
 const appearance = options.suite === 'appearance'
 const dual = options.suite === 'dual-appearance'
 const effects = options.suite === 'effects-runtime'
+const ambientPreferences = options.suite === 'ambient-preferences'
+const settingsLocale = options.suite === 'settings-locale'
 const sceneMotion = options.suite === 'scene-motion'
 const artwork = options.suite === 'artwork'
 const tokens = options.suite === 'tokens'
@@ -61,7 +64,7 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || sceneMotion || options.suite === 'surfaces'
+assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
@@ -86,7 +89,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || sceneMotion || catalogueCache ? new AbortController() : undefined
+const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || ambientPreferences || settingsLocale || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
 const includes = name => suites.includes(name)
@@ -105,7 +108,7 @@ if (interruption) {
 async function enter(open, lifecycle, appearance) {
   session = await open(lifecycle)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
-  if ((tokens || dual || effects || sceneMotion || catalogueCache || characters) && desktop) await session.show()
+  if ((tokens || dual || effects || ambientPreferences || settingsLocale || sceneMotion || catalogueCache || characters) && desktop) await session.show()
   return settings(session.page, desktop, appearance)
 }
 
@@ -151,6 +154,40 @@ try {
       interruption.signal.throwIfAborted()
       console.log('Verified the ambient Provider, one owned layer, Static pause, and Default')
     }
+  }
+  if (ambientPreferences) {
+    const ambientUi = await enter(open, false)
+    run.ambientPreferences = {}
+    const previous = options['from-archive'] && resolve(options['from-archive'])
+    const stop = async () => {
+      await session.close()
+      assert(!session.browser.isConnected())
+      session = undefined
+    }
+    const rollback = previous ? {
+      async installOld() {
+        await stop()
+        run.fromArtifact = await identify(previous, run.hostVersion)
+        await install(previous, run.fromArtifact)
+        return enter(open, false, null)
+      },
+      async restore(restoreSelection) {
+        await stop()
+        await restoreSelection()
+        return enter(open, false, null)
+      },
+    } : undefined
+    await checkAmbientPreferences(ambientUi, directory, profileDir, run.ambientPreferences, rollback, session.show)
+    interruption.signal.throwIfAborted()
+    console.log('Verified environment light preferences, legacy ZIP and native restoration')
+  }
+  if (settingsLocale) {
+    await installLocaleFixture(directory, installLocalBundle)
+    const localeUi = await enter(open, false)
+    run.settingsLocale = {}
+    await checkSettingsLocale(localeUi, session, directory, run.settingsLocale)
+    interruption.signal.throwIfAborted()
+    console.log('Verified host language switching without losing a draft or preview')
   }
   if (sceneMotion) {
     const motionUi = await enter(open, false)
@@ -267,9 +304,9 @@ try {
 } finally {
   try {
     try {
-      if (effects || sceneMotion || catalogueCache || characters) await save()
+      if (effects || ambientPreferences || settingsLocale || sceneMotion || catalogueCache || characters) await save()
     } finally { await session?.close() }
-    if ((artwork || scenes || tokens || dual || effects || sceneMotion || catalogueCache || characters) && session) run.browserDisconnected = !session.browser.isConnected()
+    if ((artwork || scenes || tokens || dual || effects || ambientPreferences || settingsLocale || sceneMotion || catalogueCache || characters) && session) run.browserDisconnected = !session.browser.isConnected()
   } finally {
     if (interruption) {
       process.off('SIGINT', interrupt)

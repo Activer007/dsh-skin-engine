@@ -43,6 +43,10 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite effects-runtime --hidden-seconds 2` 在两端运行同一个旧格式八效果 ZIP，核对静态输出、输入绑定、共享绘制、短后台暂停恢复、GPU 回退和 Default 清理。加 `--provider-demo` 可在同一轮验证环境光 Provider 的单层所有权、暂停恢复和清理。 [运行时结构与专项](effects-runtime.md)
 
+`--suite ambient-preferences` 在两端复用八效果 ZIP，并验证环境光默认百分比、强度边界、预览与偏好保存。Desktop 加 `--from-archive <1.8.1.tgz>`，在同一隔离 profile 回装旧版，验证旧版读取结果及升级前备份的恢复路径。 [UI-01 专项记录](effects-runtime.md#ui-01-环境光偏好验收)
+
+`--suite settings-locale` 验证设置页语言更新和预览、草稿。 [UI-02 专项记录](#ui-02-设置语言验收)
+
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 
 `--suite catalogue-cache` 在两端记录 10/100 包的冷扫描、热读和缩略图请求，并核对更新、回滚与卸载后的预览失效。 [缓存行为与专项记录](catalogue-cache.md)
@@ -73,6 +77,21 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --s
 | 暂停与恢复 | Web 单独启动隔离 Chrome，保留浏览器原生焦点语义，使用标签切换或最小化。Desktop 单独启动测试进程，由 Electron 最小化并隐藏，再还原。隐藏期间按实际经过时间采样，要求零新绘制、Canvas 缓冲归零、极光缓存释放及 CSS 暂停。恢复时核对同一场景和画布、首笔粒子位置、缓存重建及持续绘制。 |
 
 Desktop 性能阶段默认使用正常启动参数。如果隔离窗口虽可见却无法持续提交帧，可用 `--desktop-disable-occlusion` 对整轮关闭 Windows 自动遮挡检测，并单独标记该数据。两个后台夹具均关闭 Windows 自动遮挡检测，依靠显式的原生标签或窗口动作触发 `visibilitychange`。失焦或可见性变化会使本轮无效，结果保留失败状态和已完成的样本，重跑时重新采集配对数据。报告保留重复超线或长任务的证据。
+
+## UI-02 设置语言验收
+
+Skin Engine 1.8.2 候选包构建自 `86fe062d2f1a83772d25456569fe778614e11e15`，SHA-256 `acf5d64f89963e9e04b2b92d87cb7576021f4ae888ee0cb872f3b113478546e5`。官方 DSH Web 和 Windows Desktop 0.2.2-rc.1 均安装同一份 tarball，并核对 Host 和 Client 入口字节。声明支持范围仍为 `>=0.2.2-rc.1`。
+
+两端通过「通用设置 → 语言」建立英文基线。在 Skin Engine 修改 Deep Ocean 的质量草稿并开始预览后，用仅安装在隔离配置的测试插件调用同一个 DSH Locale 服务，保持该 Section 挂载，按 English → 中文 → English 切换。中英文标题、质量控件和强度滑块辅助文字更新，草稿值和当前预览保持，Host 保存记录未变。取消预览后草稿仍在，Apply 保存质量，随后可恢复 Default。DSH 在切到另一个原生设置 Section 时会卸载原 Section。此用例验证的是同一 Section 挂载中的语言变化。
+
+| 平台 | 英文视口 / 内容宽 | 中文视口 / 内容宽 | 证据目录 |
+| --- | --- | --- | --- |
+| Web | 1280 × 820 / 884 | 760 × 820 / 728 | `.cache/ui-02/host/web-BERxRt/` |
+| Windows Desktop | 1280 × 820 / 879 | 760 × 820 / 471 | `.cache/ui-02/host/desktop-ZBCj0v/` |
+
+中文窄窗无横向溢出。目录含 `result.json`、`settings-zh-760.png`、`settings-en-1280.png`。两端页面异常为空，隔离 DSH、Web Host 和浏览器均已退出。类型检查、lint 和 68 项测试通过。复跑沿用 [运行示例](#运行)，将 `--suite` 设为 `settings-locale`。
+
+Auto Review 后，重复包和版本未提高的提示提供双语恢复动作，技术详情保留原始错误。两端用同一修正 tarball 复跑全部 Locale 专项，并验证第二次导入同一有效 ZIP 显示双语提示及 `duplicate-id`。产物构建自 `3644a971fdc5e43bffc8a4686eb3e4be80b00fa3`，SHA-256 `c82784456fde61dadac80bd8524319e1c07dd1315673748b28ea2648b24d5372`。验收脚本提交 `ff46c693ac95d3ab29c2672baa6ed91aa153f876`，用现有有效 ZIP 替换首轮缺少必需入口的临时夹具。最终结果为 `.cache/ui-02/host/web-QcdPNq/` 和 `.cache/ui-02/host/desktop-ALEUtV/`。定向本地复测 22 项通过，隔离进程均已退出。
 
 ## v1.5.0 Web 外观专项 NEXT-01
 

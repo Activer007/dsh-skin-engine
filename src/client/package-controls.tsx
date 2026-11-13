@@ -1,15 +1,27 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { settingsError, type TranslateSettings } from './settings-copy.js'
 import { skinApi, type SkinChoice } from './skin-api.js'
 import type { createSkinSwitch } from './skin-switch.js'
 
-export function ImportSkin({ controller, disabled, onInstalled }: {
+type Notice = (t: TranslateSettings) => string
+
+function PackageErrorDetails({ t, detail }: { t: TranslateSettings; detail: string }) {
+  return detail ? <details>
+    <summary>{t('error.diagnostics')}</summary>
+    <p>{detail}</p>
+  </details> : null
+}
+
+export function ImportSkin({ t, controller, disabled, onInstalled }: {
+  t: TranslateSettings
   controller: ReturnType<typeof createSkinSwitch>
   disabled: boolean
   onInstalled(id: string): void
 }) {
   const operation = useRef<AbortController | undefined>(undefined)
   const [progress, setProgress] = useState<{ received: number; total: number }>()
-  const [notice, setNotice] = useState('')
+  const [notice, setNotice] = useState<Notice>()
+  const [errorDetail, setErrorDetail] = useState('')
   useEffect(() => () => operation.current?.abort(), [])
 
   async function install(event: ChangeEvent<HTMLInputElement>) {
@@ -19,15 +31,18 @@ export function ImportSkin({ controller, disabled, onInstalled }: {
     const abort = new AbortController()
     operation.current = abort
     setProgress({ received: 0, total: file.size })
-    setNotice('')
+    setNotice(undefined)
+    setErrorDetail('')
     try {
       const { skinId } = await skinApi.import(file, abort.signal, received => setProgress({ received, total: file.size }))
       await controller.refresh(true)
       onInstalled(skinId)
-      setNotice('Skin installed.')
+      setNotice(() => (t: TranslateSettings) => t('package.installed'))
     } catch (error) {
       if (abort.signal.aborted) await controller.refresh(true)
-      setNotice(error instanceof Error ? error.message : 'Skin import failed.')
+      const detail = error instanceof Error ? error.message : ''
+      setErrorDetail(detail)
+      setNotice(() => (t: TranslateSettings) => settingsError(t, detail, 'package.importFailed'))
     } finally {
       operation.current = undefined
       setProgress(undefined)
@@ -35,33 +50,36 @@ export function ImportSkin({ controller, disabled, onInstalled }: {
   }
 
   return (
-    <section className="dsh-skin-import" aria-label="Import skin package">
-      <label className="dsh-skin-file-button">Import ZIP
-        <input type="file" aria-label="Import .dshskin.zip" accept=".zip,application/zip" disabled={disabled || Boolean(progress)}
+    <section className="dsh-skin-import" aria-label={t('package.importRegion')}>
+      <label className="dsh-skin-file-button">{t('package.import')}
+        <input type="file" aria-label={t('package.importFile')} accept=".zip,application/zip" disabled={disabled || Boolean(progress)}
           onChange={event => void install(event)} />
       </label>
       {progress ? (
         <div className="dsh-skin-actions">
-          <progress max={progress.total || 1} value={progress.received} aria-label="ZIP upload progress" />
-          <span>{progress.received === progress.total ? 'Validating ZIP…' : 'Uploading ZIP…'}</span>
-          <button type="button" onClick={() => operation.current?.abort()}>Cancel upload</button>
+          <progress max={progress.total || 1} value={progress.received} aria-label={t('package.uploadProgress')} />
+          <span>{t(progress.received === progress.total ? 'package.validating' : 'package.uploading')}</span>
+          <button type="button" onClick={() => operation.current?.abort()}>{t('package.cancelUpload')}</button>
         </div>
       ) : null}
-      <p role="status">{notice}</p>
+      <p role="status">{notice?.(t)}</p>
+      <PackageErrorDetails t={t} detail={errorDetail} />
     </section>
   )
 }
 
-export function PackageActions({ choice, controller, disabled, onVersionNotice }: {
+export function PackageActions({ t, choice, controller, disabled, onVersionNotice }: {
+  t: TranslateSettings
   choice: SkinChoice
   controller: ReturnType<typeof createSkinSwitch>
   disabled: boolean
-  onVersionNotice(message: string): void
+  onVersionNotice(message: Notice | undefined): void
 }) {
   const [assets, includeAssets] = useState(false)
   const [preferences, includePreferences] = useState(false)
   const [confirm, setConfirm] = useState<'remove' | 'rollback'>()
-  const [notice, setNotice] = useState('')
+  const [notice, setNotice] = useState<Notice>()
+  const [errorDetail, setErrorDetail] = useState('')
   const [pending, setPending] = useState(false)
   const [progress, setProgress] = useState<{ received: number; total: number }>()
   const operation = useRef<AbortController | undefined>(undefined)
@@ -72,8 +90,9 @@ export function PackageActions({ choice, controller, disabled, onVersionNotice }
     const abort = new AbortController()
     operation.current = abort
     setPending(true)
-    setNotice('')
-    onVersionNotice('')
+    setNotice(undefined)
+    setErrorDetail('')
+    onVersionNotice(undefined)
     const versionChange = action !== 'export' && action !== 'remove'
     try {
       if (action === 'export') {
@@ -84,7 +103,7 @@ export function PackageActions({ choice, controller, disabled, onVersionNotice }
         link.download = `${choice.manifest.id}.dshskin.zip`
         link.click()
         setTimeout(() => URL.revokeObjectURL(url), 1000)
-        setNotice('Skin archive prepared.')
+        setNotice(() => (t: TranslateSettings) => t('package.prepared'))
       } else if (action === 'remove') {
         await skinApi.remove(choice, abort.signal)
         await controller.refresh(true)
@@ -97,15 +116,18 @@ export function PackageActions({ choice, controller, disabled, onVersionNotice }
         }
         await controller.refresh(true)
         const visible = controller.getSnapshot().catalogue?.skins.find(skin => skin.manifest.id === result.skinId)
-        onVersionNotice(visible?.revision === result.revision
-          ? `Skin ${action === 'rollback' ? 'rolled back' : 'updated'} to v${result.version}.`
-          : `Host committed v${result.version}. Reload skins to confirm the current version.`)
+        const key = visible?.revision === result.revision
+          ? action === 'rollback' ? 'package.rolledBack' : 'package.updated'
+          : 'package.reloadToConfirm'
+        onVersionNotice(t => t(key, { version: result.version }))
       }
     } catch (error) {
       if (action !== 'export') await controller.refresh(true)
-      const message = error instanceof Error ? error.message : 'Skin package operation failed.'
-      if (versionChange) onVersionNotice(message)
-      else setNotice(message)
+      const detail = error instanceof Error ? error.message : ''
+      setErrorDetail(detail)
+      const notice: Notice = t => settingsError(t, detail, 'error.package')
+      if (versionChange) onVersionNotice(notice)
+      else setNotice(() => notice)
     } finally {
       operation.current = undefined
       setConfirm(undefined)
@@ -116,17 +138,17 @@ export function PackageActions({ choice, controller, disabled, onVersionNotice }
 
   return (
     <details className="dsh-skin-disclosure dsh-skin-package-controls">
-      <summary>Package actions</summary>
+      <summary>{t('package.actions')}</summary>
       <label><input type="checkbox" checked={assets} onChange={event => includeAssets(event.currentTarget.checked)} />
-        Include package images and other assets</label>
+        {t('package.assets')}</label>
       <label><input type="checkbox" checked={preferences} onChange={event => includePreferences(event.currentTarget.checked)} />
-        Include saved preferences</label>
+        {t('package.preferences')}</label>
       <div className="dsh-skin-actions">
-        <button type="button" disabled={disabled || pending} onClick={() => void run('export')}>Export ZIP</button>
+        <button type="button" disabled={disabled || pending} onClick={() => void run('export')}>{t('package.export')}</button>
         {choice.managed && !confirm ? (
           <>
-            <label className="dsh-skin-file-button">Update ZIP
-              <input type="file" aria-label="Update from .dshskin.zip" accept=".zip,application/zip" disabled={disabled || pending}
+            <label className="dsh-skin-file-button">{t('package.update')}
+              <input type="file" aria-label={t('package.updateFile')} accept=".zip,application/zip" disabled={disabled || pending}
                 onChange={event => {
                   const file = event.currentTarget.files?.[0]
                   event.currentTarget.value = ''
@@ -135,38 +157,39 @@ export function PackageActions({ choice, controller, disabled, onVersionNotice }
             </label>
             {choice.previousVersion ? (
               <button type="button" disabled={disabled || pending} onClick={() => setConfirm('rollback')}>
-                Roll back to v{choice.previousVersion}…
+                {t('package.rollbackTo', { version: choice.previousVersion })}
               </button>
             ) : null}
-            <button type="button" disabled={disabled || pending} onClick={() => setConfirm('remove')}>Uninstall…</button>
+            <button type="button" disabled={disabled || pending} onClick={() => setConfirm('remove')}>{t('package.uninstall')}</button>
           </>
         ) : null}
       </div>
       {progress ? (
         <div className="dsh-skin-actions">
-          <progress max={progress.total || 1} value={progress.received} aria-label="ZIP update progress" />
-          <button type="button" onClick={() => operation.current?.abort()}>Cancel update</button>
+          <progress max={progress.total || 1} value={progress.received} aria-label={t('package.updateProgress')} />
+          <button type="button" onClick={() => operation.current?.abort()}>{t('package.cancelUpdate')}</button>
         </div>
       ) : null}
       {confirm === 'remove' ? (
         <div>
-          <p>Remove {choice.manifest.name} from this profile? If it is active, the window will return to Default.</p>
+          <p>{t('package.confirmRemoveText', { name: choice.manifest.name })}</p>
           <div className="dsh-skin-actions">
-            <button type="button" disabled={disabled || pending} onClick={() => void run('remove')}>Confirm uninstall</button>
-            <button type="button" disabled={pending} onClick={() => setConfirm(undefined)}>Keep skin</button>
+            <button type="button" disabled={disabled || pending} onClick={() => void run('remove')}>{t('package.confirmUninstall')}</button>
+            <button type="button" disabled={pending} onClick={() => setConfirm(undefined)}>{t('package.keepSkin')}</button>
           </div>
         </div>
       ) : null}
       {confirm === 'rollback' ? (
         <div>
-          <p>Restore {choice.manifest.name} v{choice.previousVersion}? Saved preferences will be kept.</p>
+          <p>{t('package.confirmRollbackText', { name: choice.manifest.name, version: choice.previousVersion ?? '' })}</p>
           <div className="dsh-skin-actions">
-            <button type="button" disabled={disabled || pending} onClick={() => void run('rollback')}>Confirm rollback</button>
-            <button type="button" disabled={pending} onClick={() => setConfirm(undefined)}>Keep current version</button>
+            <button type="button" disabled={disabled || pending} onClick={() => void run('rollback')}>{t('package.confirmRollback')}</button>
+            <button type="button" disabled={pending} onClick={() => setConfirm(undefined)}>{t('package.keepVersion')}</button>
           </div>
         </div>
       ) : null}
-      <p role="status">{notice}</p>
+      <p role="status">{notice?.(t)}</p>
+      <PackageErrorDetails t={t} detail={errorDetail} />
     </details>
   )
 }

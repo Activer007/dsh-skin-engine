@@ -4,6 +4,7 @@ import { invalid, parseFile, type SkinDiagnostic } from './validation.js'
 import type { SkinManifest } from './manifest.js'
 
 export type EffectRenderer = 'css' | 'canvas2d' | 'webgl'
+export const AMBIENT_LIGHT_MAX_INTENSITY = 0.22
 
 function number(min: number, max: number, initial: number) {
   return z._default(z.number().check(z.minimum(min), z.maximum(max)), initial)
@@ -86,7 +87,7 @@ export const effectDefinitions = {
     quality: z._default(z.enum(['low', 'balanced', 'high']), 'balanced'),
   })),
   ambientLight: defineEffect('ambient.light', 'css', z.strictObject({
-    intensity: number(0, 0.22, 0.14),
+    intensity: number(0, AMBIENT_LIGHT_MAX_INTENSITY, 0.14),
     speed: number(0.1, 1, 0.3),
   })),
 } as const

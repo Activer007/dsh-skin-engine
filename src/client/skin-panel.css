@@ -124,7 +124,7 @@
   color: var(--dsw-alias-label-secondary, GrayText);
   background: var(--dsw-alias-bg-layer-3, Canvas);
 }
-[data-dsh-skin-engine] .dsh-skin-badge:is([data-status="Applied"], [data-status="Previewing"]) {
+[data-dsh-skin-engine] .dsh-skin-badge:is([data-status="applied"], [data-status="previewing"]) {
   color: var(--dsw-alias-label-primary, CanvasText);
   font-weight: 600;
 }

@@ -1,10 +1,10 @@
-import { effectDefinitions } from '../../../core/effects.js'
+import { AMBIENT_LIGHT_MAX_INTENSITY, effectDefinitions } from '../../../core/effects.js'
 import { defineProvider, EFFECT_PROVIDER_API } from './contract.js'
 
 const budgets = {
   low: { opacity: 0.08, pulse: false },
   balanced: { opacity: 0.16, pulse: true },
-  high: { opacity: 0.22, pulse: true },
+  high: { opacity: AMBIENT_LIGHT_MAX_INTENSITY, pulse: true },
 } as const
 
 export const ambientLight = defineProvider(effectDefinitions.ambientLight, {

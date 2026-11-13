@@ -4,10 +4,6 @@ import type { EffectMode } from '../effects/p0.js'
 
 export type ScenePreset = keyof SceneSpec['presets']
 
-export const scenePresetLabels: Record<ScenePreset, string> = {
-  static: 'Static', light: 'Light motion', dynamic: 'Standard motion',
-}
-
 export function effectiveScenePreset(preset: ScenePreset, mode: EffectMode, reducedMotion: boolean): ScenePreset {
   if (reducedMotion || mode === 'static' || mode === 'off') return 'static'
   return mode === 'economy' && preset === 'dynamic' ? 'light' : preset

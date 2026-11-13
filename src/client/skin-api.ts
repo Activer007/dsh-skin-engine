@@ -14,7 +14,7 @@ export interface SkinChoice {
   source: 'built-in' | 'local'
   managed?: boolean
   previousVersion?: string
-  compatibility: { message: string } | null
+  compatibility: { code?: string; message: string } | null
 }
 
 export interface SkinCatalogue {

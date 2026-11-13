@@ -28,7 +28,7 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
   await dismissOnboarding()
   const dialog = page.getByRole('dialog', { name: /^(设置|Settings)$/ })
   const panel = dialog.locator('[data-dsh-skin-engine]')
-  const tab = button(dialog, 'Skin Engine')
+  const tab = dialog.getByRole('button', { name: /^(Skin Engine|皮肤引擎)$/ })
   const gallery = panel.getByRole('region', { name: 'Skin gallery', exact: true })
   const detail = skin => panel.getByRole('region', { name: `${skin.name} details`, exact: true })
 
@@ -48,7 +48,21 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
     await activate(account)
     await activate(page.getByRole('menuitem', { name: /^(设置|Settings)$/ }))
     await tab.press('Enter')
-    await panel.getByRole('heading', { name: 'Skin Engine', exact: true }).waitFor()
+    const heading = panel.getByRole('heading', { name: /^(Skin Engine|皮肤引擎)$/ })
+    await heading.waitFor()
+    // Legacy suites assert English copy. The Locale suite switches languages explicitly.
+    if (await heading.textContent() === '皮肤引擎') {
+      await switchLanguage('en')
+      await tab.press('Enter')
+      await button(panel, 'Restore Default').waitFor()
+    }
+  }
+  async function switchLanguage(language) {
+    await activate(dialog.getByRole('button', { name: /^(通用设置|General)$/ }))
+    const row = dialog.getByText(/^(语言|Language)$/).locator('../..')
+    await activate(row.getByRole('button', { name: /^(中文|English)$/ }))
+    await activate(page.getByRole('menuitem', { name: language === 'en' ? 'English' : '中文', exact: true }))
+    await page.waitForFunction(expected => document.documentElement.lang.toLowerCase().split('-')[0] === expected, language)
   }
   async function close() {
     await activate(dialog.getByRole('button', { name: /^(关闭|Close)(设置| settings)?$/i }))
@@ -92,7 +106,7 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
   await choose(deepOcean)
   await button(detail(deepOcean), 'Apply').waitFor()
   await close()
-  return { cdp, page, panel, detail, button, activate, expand, open, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding }
+  return { cdp, page, panel, detail, button, activate, expand, open, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding, switchLanguage }
 }
 
 export async function switchSkins(ui, count) {
