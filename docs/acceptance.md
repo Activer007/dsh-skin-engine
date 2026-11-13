@@ -47,6 +47,8 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite settings-locale` 验证设置页语言更新和预览、草稿。 [UI-02 专项记录](#ui-02-设置语言验收)
 
+`--suite settings-state` 验证筛选、原生语言切换、跨皮肤草稿、修订冲突和关闭设置清理。 [UI-03 专项记录](#ui-03-设置状态验收)
+
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 
 `--suite catalogue-cache` 在两端记录 10/100 包的冷扫描、热读和缩略图请求，并核对更新、回滚与卸载后的预览失效。 [缓存行为与专项记录](catalogue-cache.md)
@@ -92,6 +94,19 @@ Skin Engine 1.8.2 候选包构建自 `86fe062d2f1a83772d25456569fe778614e11e15`�
 中文窄窗无横向溢出。目录含 `result.json`、`settings-zh-760.png`、`settings-en-1280.png`。两端页面异常为空，隔离 DSH、Web Host 和浏览器均已退出。类型检查、lint 和 68 项测试通过。复跑沿用 [运行示例](#运行)，将 `--suite` 设为 `settings-locale`。
 
 Auto Review 后，重复包和版本未提高的提示提供双语恢复动作，技术详情保留原始错误。两端用同一修正 tarball 复跑全部 Locale 专项，并验证第二次导入同一有效 ZIP 显示双语提示及 `duplicate-id`。产物构建自 `3644a971fdc5e43bffc8a4686eb3e4be80b00fa3`，SHA-256 `c82784456fde61dadac80bd8524319e1c07dd1315673748b28ea2648b24d5372`。验收脚本提交 `ff46c693ac95d3ab29c2672baa6ed91aa153f876`，用现有有效 ZIP 替换首轮缺少必需入口的临时夹具。最终结果为 `.cache/ui-02/host/web-QcdPNq/` 和 `.cache/ui-02/host/desktop-ALEUtV/`。定向本地复测 22 项通过，隔离进程均已退出。
+
+## UI-03 设置状态验收
+
+官方 DSH Web 和 Windows Desktop 0.2.2-rc.1 使用同一 Skin Engine 1.8.2 tarball。构建提交为 `5c8bfaffc3692d562951d18947aa4a23d59a794b`，SHA-256 `64e22a45363c42ef38b185e0758006d3afd8e6193e5f1e1f76c0d408c590136a`。安装后核对 Host 与 Client 字节。声明支持范围为 `>=0.2.2-rc.1`。
+
+两端验证筛选无结果时保留编辑对象和草稿、两款皮肤的草稿分别保存到设置会话、经 DSH 通用设置切换中英文后仍能回到预览和草稿。新版 ZIP 移除浮尘后，旧草稿禁止直接应用。确认继承后，仅兼容设置参与保存。另用同一 profile 发起真实竞争写入，随后触发 409，界面按 Host 回读显示已保存项并保留草稿。用户确认使用当前修订后可保存。关闭 DSH 设置会清理草稿并取消预览。重新打开可看到最后已保存值，并可恢复默认外观。
+
+| 平台 | CSS 视口 / 内容宽 | 结果目录 |
+| --- | --- | --- |
+| Web | 1280 × 820 / 884 | `.cache/ui-03/host/web-m331JL/` |
+| Windows Desktop | 1280 × 860 / 879 | `.cache/ui-03/host/desktop-1TS8Vt/` |
+
+目录含 `result.json` 和 `settings-conflict.png`。验收脚本提交为 `7a3ae76e02d67b9b6d3997c6dbf54c24697d74b9`。初次自动化误把技术详情和可见状态匹配为同一定位器，缩小到可见状态区域后两端通过，未改动候选包。类型检查、lint、68 项本地测试通过。两端页面异常为空，测试启动的 DSH、Web Host 与浏览器均已退出。
 
 ## v1.5.0 Web 外观专项 NEXT-01
 

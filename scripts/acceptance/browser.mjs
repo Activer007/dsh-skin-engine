@@ -47,15 +47,19 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
   async function open() {
     await activate(account)
     await activate(page.getByRole('menuitem', { name: /^(设置|Settings)$/ }))
-    await tab.press('Enter')
+    await openSkinSection()
     const heading = panel.getByRole('heading', { name: /^(Skin Engine|皮肤引擎)$/ })
-    await heading.waitFor()
     // Legacy suites assert English copy. The Locale suite switches languages explicitly.
     if (await heading.textContent() === '皮肤引擎') {
       await switchLanguage('en')
-      await tab.press('Enter')
+      await openSkinSection()
       await button(panel, 'Restore Default').waitFor()
     }
+  }
+  async function openSkinSection() {
+    await tab.press('Enter')
+    const heading = panel.getByRole('heading', { name: /^(Skin Engine|皮肤引擎)$/ })
+    await heading.waitFor()
   }
   async function switchLanguage(language) {
     await activate(dialog.getByRole('button', { name: /^(通用设置|General)$/ }))
@@ -106,7 +110,7 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
   await choose(deepOcean)
   await button(detail(deepOcean), 'Apply').waitFor()
   await close()
-  return { cdp, page, panel, detail, button, activate, expand, open, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding, switchLanguage }
+  return { cdp, page, panel, detail, button, activate, expand, open, openSkinSection, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding, switchLanguage }
 }
 
 export async function switchSkins(ui, count) {

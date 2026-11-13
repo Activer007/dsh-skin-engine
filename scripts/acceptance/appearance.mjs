@@ -98,7 +98,7 @@ export async function checkAppearance(report, openInProfile, signal) {
     await page.route(applyPath, conflict, { times: 1 })
     try {
       await ui.activate(ui.button(ui.detail(dawn), 'Apply'))
-      await ui.panel.getByText('Another window saved a different selection or preferences.', { exact: true }).waitFor()
+      await ui.panel.getByRole('status').filter({ hasText: /^Another window saved a different selection or preferences\.$/ }).waitFor()
     } finally {
       await page.unroute(applyPath, conflict)
     }

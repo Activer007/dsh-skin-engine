@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, useSyncExternalStore } from 'react'
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { auditedSurfaceStyles } from '../adapter/surface-map.js'
 import { AUDIT_PATH, type AuditStatus } from '../shared/audit.js'
 import { preferencesFor, qualityLevels, type QualityChoice } from '../shared/preferences.js'
@@ -6,6 +6,7 @@ import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
 import { ImportSkin } from './package-controls.js'
 import type { ScenePreset } from './scene/presets.js'
 import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
+import type { createSettingsSession } from './settings-session.js'
 import { SkinDetail } from './skin-detail.js'
 import type { createSkinSwitch } from './skin-switch.js'
 
@@ -21,10 +22,11 @@ export interface PanelProps {
   controller: ReturnType<typeof createSkinSwitch>
   effects: ReturnType<typeof createEffectsRuntime>
   getColorScheme(): 'light' | 'dark'
+  settingsSession: ReturnType<typeof createSettingsSession>
   t?: TranslateSettings
 }
 
-export function SkinPanel({ controller, effects, getColorScheme, t: translate }: PanelProps) {
+export function SkinPanel({ controller, effects, getColorScheme, settingsSession, t: translate }: PanelProps) {
   const [language, setLanguage] = useState(() => document.documentElement.lang)
   const t = translate ?? fallbackSettingsCopy(language)
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
@@ -34,7 +36,8 @@ export function SkinPanel({ controller, effects, getColorScheme, t: translate }:
   const quality = useSyncExternalStore(effects.subscribe, effects.getQuality)
   const effectiveQuality = useSyncExternalStore(effects.subscribe, effects.getEffectiveQuality)
   const refraction = useSyncExternalStore(effects.subscribe, effects.getRefraction)
-  const [choiceId, choose] = useState('')
+  useSyncExternalStore(settingsSession.subscribe, settingsSession.getSnapshot)
+  const panel = useRef<HTMLElement>(null)
   const [query, search] = useState('')
   const [tag, filterTag] = useState('')
   const [source, filterSource] = useState('')
@@ -50,17 +53,28 @@ export function SkinPanel({ controller, effects, getColorScheme, t: translate }:
     return !term || [manifest.name, manifest.nameEn, manifest.author, manifest.id, ...(manifest.tags ?? [])]
       .some(value => value?.toLowerCase().includes(term))
   })
-  const choice = visible.find(item => item.manifest.id === choiceId)
-    ?? visible.find(item => item.manifest.id === state.saved?.skinId)
-    ?? visible[0]
+  const choice = choices.find(item => item.manifest.id === settingsSession.selected)
+    ?? choices.find(item => item.manifest.id === state.saved?.skinId)
+    ?? choices[0]
+  const editingId = choice?.manifest.id
+  const draft = editingId ? settingsSession.getDraft(editingId) : undefined
   const name = (id: string | null | undefined) => choices.find(item => item.manifest.id === id)?.manifest.name ?? id ?? t('defaultSkin')
   const scheme = getColorScheme()
   const previewing = state.preview !== null || state.pending === 'preview'
 
+  function clearFilters() {
+    search('')
+    filterTag('')
+    filterSource('')
+  }
+
   useEffect(() => {
-    void controller.refresh(true)
-    return () => { void controller.cancelPreview() }
-  }, [controller])
+    if (!panel.current) return
+    const release = settingsSession.attach(panel.current)
+    const current = controller.getSnapshot()
+    if (current.preview === null && current.pending === null) void controller.refresh(true)
+    return release
+  }, [controller, settingsSession])
 
   useEffect(() => {
     if (translate) return
@@ -92,7 +106,7 @@ export function SkinPanel({ controller, effects, getColorScheme, t: translate }:
         ].filter(Boolean).join(' ')
 
   return (
-    <section data-dsh-skin-engine>
+    <section ref={panel} data-dsh-skin-engine>
       <style>{auditedSurfaceStyles.settings + MANAGER_STYLES}</style>
       <header className="dsh-skin-header">
         <div>
@@ -102,7 +116,7 @@ export function SkinPanel({ controller, effects, getColorScheme, t: translate }:
           </div>
           <p className="dsh-skin-muted">
             <strong>{t('saved')}</strong> {state.saved ? name(state.saved.skinId) : t('unavailable')}
-            {state.saved && state.rendered !== state.saved.skinId ? <> · <strong>{t('showing')}</strong> {name(state.rendered)}</> : null}
+            {state.rendered !== state.saved?.skinId ? <> · <strong>{t('showing')}</strong> {name(state.rendered)}</> : null}
           </p>
         </div>
         <div className="dsh-skin-actions">
@@ -113,18 +127,17 @@ export function SkinPanel({ controller, effects, getColorScheme, t: translate }:
             onClick={() => void controller.apply(null)}>{t('restoreDefault')}</button>
         </div>
       </header>
+      {state.preview ? <p role="status"><strong>{t('previewing')} · {name(state.preview)}</strong> · {t('previewExpiry')}</p> : null}
       <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving') : state.pending ? t('loading')
-        : state.preview ? t('previewExpiry') : versionNotice?.(t)}</p>
+        : versionNotice?.(t)}</p>
       {state.catalogueNotice ? <p role="alert">{settingsError(t, state.catalogueNotice, 'error.selection')}</p> : null}
       <div className="dsh-skin-layout">
         <section className="dsh-skin-library" aria-label={t('gallery')}>
           <header className="dsh-skin-library-header">
             <h3>{t('gallery')}</h3>
             <ImportSkin t={t} controller={controller} disabled={state.saving} onInstalled={id => {
-              search('')
-              filterTag('')
-              filterSource('')
-              choose(id)
+              clearFilters()
+              settingsSession.select(id)
             }} />
           </header>
           <div className="dsh-skin-fields">
@@ -143,7 +156,10 @@ export function SkinPanel({ controller, effects, getColorScheme, t: translate }:
               </select>
             </label>
           </div>
-          {state.catalogue && visible.length === 0 ? <p>{t('noMatches')}</p> : null}
+          {state.catalogue && visible.length === 0 ? (
+            <div className="dsh-skin-actions"><p>{t('noMatches')}</p><button type="button" onClick={clearFilters}>{t('clearFilters')}</button></div>
+          ) : null}
+          {choice && !visible.includes(choice) ? <p>{t('editingOutsideFilter', { name: choice.manifest.name })}</p> : null}
           <ul className="dsh-skin-gallery">
             {visible.map(item => {
               const { manifest } = item
@@ -153,7 +169,7 @@ export function SkinPanel({ controller, effects, getColorScheme, t: translate }:
                     : item.managed ? 'installed' : item.source === 'local' ? 'local' : 'builtin'
               return (
                 <li key={manifest.id}>
-                  <button type="button" aria-pressed={choice === item} aria-controls={detailId} onClick={() => choose(manifest.id)}>
+                  <button type="button" aria-pressed={choice === item} aria-controls={detailId} onClick={() => settingsSession.select(manifest.id)}>
                     <img alt="" loading="lazy" decoding="async" width="320" height="180"
                       src={new URL(item.previews[manifest.colorScheme === 'both' ? scheme : manifest.colorScheme ?? scheme], document.baseURI).href}
                       onError={event => {
@@ -174,6 +190,8 @@ export function SkinPanel({ controller, effects, getColorScheme, t: translate }:
         </section>
         {choice ? <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} t={t} id={detailId} choice={choice} scheme={scheme} controller={controller}
           preferences={preferencesFor(state.saved?.preferences, choice.manifest.id)} revision={state.saved?.revision}
+          draft={draft} onDraft={value => settingsSession.setDraft(choice.manifest.id, value)}
+          readDraft={() => settingsSession.getDraft(choice.manifest.id)}
           applied={state.preview === null && state.rendered === choice.manifest.id && state.saved?.skinId === choice.manifest.id}
           busy={state.saving} onVersionNotice={message => setVersionNotice(() => message)} /> : null}
       </div>

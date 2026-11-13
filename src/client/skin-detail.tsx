@@ -5,8 +5,9 @@ import { editableColors, effectStrength, qualityLevels, resolveSkinColors, sameP
   type SkinPreferences } from '../shared/preferences.js'
 import { PackageActions } from './package-controls.js'
 import { settingsError, type TranslateSettings } from './settings-copy.js'
+import type { SettingsDraft } from './settings-session.js'
 import { canActivate, type SkinChoice, type SkinData } from './skin-api.js'
-import type { createSkinSwitch, PreferenceDraft } from './skin-switch.js'
+import type { createSkinSwitch } from './skin-switch.js'
 
 function pickerColor(color: string | undefined) {
   if (!color) return '#000000'
@@ -23,20 +24,25 @@ interface DetailProps {
   controller: ReturnType<typeof createSkinSwitch>
   preferences?: SkinPreferences
   revision?: number
+  draft?: SettingsDraft
+  onDraft(value: SettingsDraft | undefined): void
+  readDraft(): SettingsDraft | undefined
   applied: boolean
   busy: boolean
   onVersionNotice(message: ((t: TranslateSettings) => string) | undefined): void
 }
 
-export function SkinDetail({ t, id, choice, scheme, controller, preferences, revision, applied, busy, onVersionNotice }: DetailProps) {
+export function SkinDetail({ t, id, choice, scheme, controller, preferences, revision, draft, onDraft, readDraft, applied, busy, onVersionNotice }: DetailProps) {
   const [result, setResult] = useState<{ data?: SkinData; error?: string }>()
-  const [draft, setDraft] = useState<PreferenceDraft>()
   const statusId = useId()
   const { manifest, compatibility } = choice
   const colors = result?.data && resolveSkinColors(result.data.tokens, scheme)
   const blocked = Boolean(compatibility) || !canActivate(choice)
   const values = (draft ? draft.value : preferences) ?? {}
   const disabled = busy || revision === undefined || Boolean(blocked) || !result?.data
+  const packageChanged = Boolean(draft && draft.packageRevision !== choice.revision)
+  const profileChanged = Boolean(draft && revision !== undefined && draft.revision !== revision)
+  const stale = packageChanged || profileChanged
   const previewBlock = !blocked ? controller.getAppearanceBlock(choice) : undefined
   const applyBlock = !blocked ? controller.getAppearanceBlock(choice, 'apply') : undefined
   const appearance = t(`appearance.${manifest.colorScheme ?? 'any'}`)
@@ -54,17 +60,31 @@ export function SkinDetail({ t, id, choice, scheme, controller, preferences, rev
   }, [choice, blocked, controller])
 
   function edit(value: SkinPreferences | null) {
-    if (revision !== undefined) setDraft(previous => ({ value, revision: previous?.revision ?? revision }))
+    if (revision !== undefined) onDraft({
+      value, revision: draft?.revision ?? revision, packageRevision: draft?.packageRevision ?? choice.revision,
+    })
   }
 
   async function apply() {
-    if (await controller.apply(manifest.id, draft)) setDraft(undefined)
+    if (stale) return
+    if (await controller.apply(manifest.id, draft) && readDraft() === draft) onDraft(undefined)
+  }
+
+  function reviewDraft() {
+    if (!draft || revision === undefined || !result?.data) return
+    const value = draft.value
+    const declared = new Set<string>(result.data.effects.map(effect => effect.id))
+    const effects = packageChanged && value?.effects
+      ? { ...preferences?.effects, ...Object.fromEntries(Object.entries(value.effects).filter(([id]) => declared.has(id))) }
+      : value?.effects
+    onDraft({ value: value && { ...value, effects }, revision, packageRevision: choice.revision })
   }
 
   return (
     <section id={id} className="dsh-skin-detail" aria-label={t('details', { name: manifest.name })}>
       <header>
         <h3>{manifest.name}</h3>
+        <p className="dsh-skin-muted">{t('editingSkin', { name: manifest.name })}</p>
         <p className="dsh-skin-muted">{t('skinVersion', { version: manifest.version })} · {manifest.author ?? t('unknownAuthor')} · {t('appearance', { scheme: appearance })}</p>
         {manifest.description ? <p>{manifest.description}</p> : null}
       </header>
@@ -78,17 +98,24 @@ export function SkinDetail({ t, id, choice, scheme, controller, preferences, rev
       {result?.error ? <p role="alert">{settingsError(t, result.error, 'readSkinFailed')}</p> : null}
       {!blocked && !result ? <p role="status">{t('loadingDetails')}</p> : null}
       <div className="dsh-skin-actions">
-        <button type="button" disabled={disabled || Boolean(previewBlock)} aria-describedby={statusId}
+        <button type="button" disabled={disabled || packageChanged || Boolean(previewBlock)} aria-describedby={statusId}
           onClick={() => void controller.preview(manifest.id, draft)}>{t('preview')}</button>
-        <button type="button" className="dsh-skin-primary" disabled={disabled || Boolean(applyBlock)} aria-describedby={statusId}
+        <button type="button" className="dsh-skin-primary" disabled={disabled || stale || Boolean(applyBlock)} aria-describedby={statusId}
           onClick={() => void apply()}>{t('apply')}</button>
       </div>
       <p id={statusId} role="status">{activationStatus}</p>
       {draft ? <p role="status">{t('unsaved')}</p> : null}
+      {draft ? <p className="dsh-skin-muted">{t('draftLifetime')}</p> : null}
+      {stale ? <div role="status">
+        <p>{t(packageChanged ? 'draftPackageChanged' : 'draftProfileChanged')}</p>
+        {revision !== undefined && result?.data ? (
+          <button type="button" disabled={busy} onClick={reviewDraft}>{t(packageChanged ? 'rebasePackageDraft' : 'rebaseDraft')}</button>
+        ) : null}
+      </div> : null}
       {result?.data ? (
         <details open className="dsh-skin-disclosure">
           <summary>{t('customize')}</summary>
-          <fieldset disabled={disabled}>
+          <fieldset disabled={disabled || packageChanged}>
             <legend>{t('preferences')}</legend>
             <div className="dsh-skin-fields">
               {editableColors.filter(key => colors?.[key] !== undefined || values.colors?.[key] !== undefined).map(key => (
@@ -138,15 +165,15 @@ export function SkinDetail({ t, id, choice, scheme, controller, preferences, rev
             </details> : null}
           </fieldset>
           <div className="dsh-skin-actions">
-            <button type="button" disabled={disabled || samePreferences(values)} onClick={() => edit(null)}>{t('resetPreferences')}</button>
+            <button type="button" disabled={disabled || packageChanged || samePreferences(values)} onClick={() => edit(null)}>{t('resetPreferences')}</button>
             {result.data.bundledPreferences ? (
-              <button type="button" disabled={disabled} onClick={() => edit(result.data?.bundledPreferences ?? null)}>
+              <button type="button" disabled={disabled || packageChanged} onClick={() => edit(result.data?.bundledPreferences ?? null)}>
                 {t('useIncluded')}
               </button>
             ) : null}
             {draft ? (
               <button type="button" disabled={busy} onClick={() => {
-                setDraft(undefined)
+                onDraft(undefined)
                 if (controller.getSnapshot().preview === manifest.id) void controller.cancelPreview()
               }}>{t('discard')}</button>
             ) : null}

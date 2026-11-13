@@ -4,6 +4,7 @@ import { createSkinTheme, SKIN_ATTRIBUTE, type ThemeService } from '../adapter/s
 import type { PreparedArtwork } from '../shared/skins.js'
 import { createEffectsRuntime } from './effects/p0.js'
 import { SETTINGS_LOCALE, settingsCopy, type TranslateSettings } from './settings-copy.js'
+import { createSettingsSession } from './settings-session.js'
 import { skinApi, type SkinData } from './skin-api.js'
 import { SkinPanel, type PanelProps } from './skin-panel.js'
 import { createSkinSwitch } from './skin-switch.js'
@@ -63,12 +64,14 @@ export function apply(ctx: ClientContext): void {
       }
     },
   })
+  const settingsSession = createSettingsSession(document, () => { void controller.cancelPreview() })
   const observer = new MutationObserver(controller.appearanceChanged)
   const refreshOnFocus = () => {
     const state = controller.getSnapshot()
     if (!state.preview && !state.pending) void controller.refresh(true)
   }
   ctx.effect(() => () => {
+    settingsSession.clear()
     observer.disconnect()
     window.removeEventListener('focus', refreshOnFocus)
     controller.dispose()
@@ -93,7 +96,7 @@ export function apply(ctx: ClientContext): void {
       name: SECTION, id: 'dsh-skin-engine', order: 125,
       label: locale ? () => locale.bind(SETTINGS_LOCALE)('title') : 'Skin Engine',
       ...(locale && { locale: SETTINGS_LOCALE }),
-      inject: () => ({ controller, effects, getColorScheme }),
+      inject: () => ({ controller, effects, getColorScheme, settingsSession }),
     }, SkinPanel)
   })
   void controller.refresh()
