@@ -11,11 +11,8 @@ type Controller = ReturnType<typeof createSkinSwitch>
 type Session = ReturnType<typeof createAppearanceSession>
 type Snapshot = ReturnType<Controller['getSnapshot']>
 
-export function useSkinEditor(choice: SkinChoice | undefined, controller: Controller, session: Session, state: Snapshot, options: {
-  persistentDrafts?: boolean; previewAvailable?: boolean; chatPreview?: ChatPreview['start']
-} = {}) {
-  const { persistentDrafts = false, previewAvailable = true, chatPreview } = options
-  const chatHidden = Boolean(document.querySelector('[data-slot="main"] [data-dsh-skin-appearance]'))
+export function useSkinEditor(choice: SkinChoice | undefined, controller: Controller, session: Session, state: Snapshot,
+  chatPreview?: ChatPreview['start']) {
   const [loaded, setLoaded] = useState<{ choice: SkinChoice; data?: SkinData; error?: string }>()
   const blocked = Boolean(choice && (choice.compatibility || !canActivate(choice)))
   const result = loaded?.choice === choice ? loaded : undefined
@@ -71,12 +68,10 @@ export function useSkinEditor(choice: SkinChoice | undefined, controller: Contro
     if (controller.getSnapshot().preview === id) void controller.cancelPreview()
   }
 
-  return { persistentDrafts, previewAvailable, chatPreview, chatHidden, blocked, result, draft, values, busy, disabled, packageChanged, stale, previewBlock, applyBlock, applied, edit, apply, reviewDraft,
+  return { chatPreview, result, draft, values, busy, disabled, blocked, packageChanged, stale, previewBlock, applyBlock, applied, edit, apply, reviewDraft,
     discard, preview: () => {
       if (id && choice && chatPreview && revision !== undefined && !stale) {
         void chatPreview({ id, draft, packageRevision: choice.revision, profileRevision: revision })
-      } else if (id && previewAvailable && !document.querySelector('[data-slot="main"] [data-dsh-skin-appearance]')) {
-        void controller.preview(id, draft)
       }
     } }
 }
@@ -97,8 +92,6 @@ export function SkinEditorActions({ t, editor, appearance, canDiscard = false }:
     {result?.error ? <p role="alert">{settingsError(t, result.error, 'readSkinFailed')}</p> : null}
     {!blocked && !result ? <p role="status">{t('loadingDetails')}</p> : null}
     <div className="dsh-skin-actions">
-      {editor.previewAvailable ? <SettingsButton disabled={disabled || packageChanged || editor.chatHidden || Boolean(previewBlock)} aria-describedby={statusId}
-        onClick={editor.preview}>{t('preview')}</SettingsButton> : null}
       {editor.chatPreview ? <SettingsButton disabled={disabled || stale || Boolean(previewBlock)} aria-describedby={statusId}
         onClick={editor.preview}>{t('chatPreview')}</SettingsButton> : null}
       <SettingsButton primary disabled={disabled || stale || Boolean(applyBlock)} aria-describedby={statusId}
@@ -106,9 +99,8 @@ export function SkinEditorActions({ t, editor, appearance, canDiscard = false }:
       {canDiscard && draft ? <button type="button" disabled={busy} onClick={editor.discard}>{t('discard')}</button> : null}
     </div>
     <p id={statusId} role="status">{activationStatus}</p>
-    {editor.previewAvailable && editor.chatHidden ? <p>{t('appearancePreviewPending')}</p> : null}
-    {draft ? <p role="status">{t(editor.persistentDrafts ? 'appearanceUnsaved' : 'unsaved')}</p> : null}
-    {draft ? <p className="dsh-skin-muted">{t(editor.persistentDrafts ? 'appearanceDraftLifetime' : 'draftLifetime')}</p> : null}
+    {draft ? <p role="status">{t('appearanceUnsaved')}</p> : null}
+    {draft ? <p className="dsh-skin-muted">{t('appearanceDraftLifetime')}</p> : null}
     {stale ? <div role="status">
       <p>{t(packageChanged ? 'draftPackageChanged' : 'draftProfileChanged')}</p>
       {result?.data ? (

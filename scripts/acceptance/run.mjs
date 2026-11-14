@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import { settings, switchSkins } from './browser.mjs'
 import { checkAppearanceNavigation } from './appearance-navigation.mjs'
+import { checkSystemSettings } from './system-settings.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
 import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
@@ -65,6 +66,7 @@ const ambientPreferences = options.suite === 'ambient-preferences'
 const settingsIntegration = options.suite === 'settings-integration'
 const settingsLocale = settingsIntegration || options.suite === 'settings-locale'
 const navigation = options.suite === 'settings-navigation'
+const systemSettings = options.suite === 'system-settings'
 const settingsState = navigation || settingsIntegration || options.suite === 'settings-state'
 const settingsTabs = settingsIntegration || options.suite === 'settings-tabs'
 const settingsGallery = settingsIntegration || options.suite === 'settings-gallery'
@@ -78,7 +80,7 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls || sceneMotion || options.suite === 'surfaces'
+assert(systemSettings || upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
@@ -103,7 +105,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const settingsChecks = settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls
+const settingsChecks = systemSettings || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls
 const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
@@ -123,14 +125,14 @@ if (interruption) {
 async function enter(open, lifecycle, appearance, loading) {
   session = await open(lifecycle, loading && holdInitialCatalogue)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
-  if (navigation) {
+  if (navigation || systemSettings) {
     run.consoleErrors = []
     session.page.on('console', message => {
       if (message.type() === 'error') run.consoleErrors.push(redact(message.text()))
     })
   }
   if ((tokens || dual || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache || characters) && desktop) await session.show()
-  return settings(session.page, desktop, appearance, loading)
+  return settings(session.page, desktop, appearance, loading, systemSettings)
 }
 
 console.log(`Acceptance output: ${directory}`)
@@ -158,7 +160,7 @@ try {
     if (await ui.panel.isVisible()) await ui.close()
     return ui
   }
-  if (navigation || includes('surfaces') || sample || artwork || scenes || characters || tokens || dual || sceneMotion) {
+  if (navigation || systemSettings || includes('surfaces') || sample || artwork || scenes || characters || tokens || dual || sceneMotion) {
     await seedSurfaceHistory(directory, profileDir, { bilingual: scenes || characters || sceneMotion, secondTurn: tokens })
   }
   if (tokens) {
@@ -238,6 +240,14 @@ try {
     run.hostLog = session.logs()
     interruption.signal.throwIfAborted()
     console.log('Verified native appearance entry, locale and active panel disposal')
+  }
+  if (systemSettings) {
+    ui = await enter(open, false)
+    run.systemSettings = {}
+    await checkSystemSettings(ui, session, directory, run.systemSettings)
+    run.hostLog = session.logs()
+    interruption.signal.throwIfAborted()
+    console.log('Verified system settings, Appearance Center and emergency recovery')
   }
   if (settingsTabs) {
     const tabsUi = await enterSettings()

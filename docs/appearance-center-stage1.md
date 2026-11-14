@@ -103,3 +103,12 @@
 - 官方 Web 与 Windows Desktop 同包复跑通过，含外观冲突后提示及重新启动。证据在 `.cache/nav-05/verified/web-N33ZeX/` 和 `.cache/nav-05/verified/desktop-evSRRA/`。两端无未捕获页面异常，Desktop 记录了一条既有的通用资源加载错误。
 - 预览归属修订候选 `c5bedbfa560775f7214ef6cbf1844299a84a9449`。当旧设置发起预览时，聊天操作条释放请求。实测旧设置可接管同一皮肤的预览，关闭设置后恢复已保存外观。Web 和 Windows Desktop 到期分别为 30.269 秒和 30.372 秒。
 - 完整 `verify:local` 通过，含 88 项测试及 27 份可复现归档。报告在 `.cache/nav-05/verify/verify-0u8DXq/result.json`。双端使用候选工作树的同一 tarball，SHA-256 `c657c3b5dcefa0cb68403479db6e01aaca63417baa799ec3e5cb336d525c519e`。截图和宿主报告在 `.cache/nav-05/handoff-host/web-5wzbnB/` 和 `.cache/nav-05/handoff-host/desktop-YLyhqD/`。两端无未捕获页面异常。隔离宿主均已退出。
+
+## SYS-01 设置瘦身
+
+- DSH 设置页恢复原生宽度，仅显示窗口特效、紧急恢复和诊断。窗口级关闭只改变当前窗口的特效，当前配置保存的皮肤及偏好不变。
+- 设置页可主动取消聊天预览。关闭设置不影响正在进行的聊天预览。恢复默认外观需要确认，清除已保存的皮肤选择并保留皮肤包与各皮肤的偏好。
+- 外观中心保留皮肤库、皮肤专属特效和皮肤包管理。其草稿与筛选继续跨导航保留。目录刷新及具体皮肤包问题仍在「外观中心 → 皮肤管理」，Host 版本检查留在设置页。
+- 实现提交 `0b90482dba88a99333de2a7744b2e042c0fdf5c6`。本地 `npm run typecheck`、`npm run lint`、`npm pack` 及 21 项导航、会话、皮肤切换和诊断定向测试通过。
+- 官方 DSH `0.2.2-rc.1` Web 与 Windows Desktop 使用同一归档（SHA-256 `b5bf8cd7a7bff55eb56bd00e66ff1ce2e168e5201cb4f5dba973251c671dc493`）。通过中英文设置、窗口模式及质量、Host 检查、关闭设置后预览保留、显式取消、二次确认恢复且偏好保留、外观中心草稿与 ZIP 导入。常规视口两个设置弹窗均为 800 CSS 像素宽，窄窗无横向溢出。
+- Web 截图和结果在 `.cache/sys-01/verified/web-Cuznhp/`，Windows Desktop 在 `.cache/sys-01/verified/desktop-ZfQL09/`。两端无未捕获页面异常。Desktop 记录了一条通用资源加载错误，隔离宿主均已退出。

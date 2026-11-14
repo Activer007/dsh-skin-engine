@@ -24,7 +24,7 @@ function register(t = key => key) {
       register(options, component) { registrations.push({ options, component }); return () => {} },
     },
   }
-  registerAppearanceNavigation(ctx, t, { controller: 'one-controller', effects: 'one-runtime', settingsSession: 'main-session', packageOperations: 'app-operations' })
+  registerAppearanceNavigation(ctx, t, { controller: 'one-controller', settingsSession: 'main-session', packageOperations: 'app-operations' })
   return { registrations, injected, selected }
 }
 
@@ -58,7 +58,6 @@ test('return to chat uses official layout null, never changes a session or skin'
   const { registrations, selected } = register()
   const props = registrations[0].options.inject()
   assert.equal(props.controller, 'one-controller')
-  assert.equal(props.effects, 'one-runtime')
   assert.equal(props.settingsSession, 'main-session')
   assert.equal(props.packageOperations, 'app-operations')
   props.backToChat()
@@ -72,7 +71,6 @@ test('main wraps shared workspace without mounting a settings modal lifecycle', 
   assert.equal(tree.props['data-dsh-skin-engine'], undefined)
   const workspace = tree.props.children
   assert.equal(workspace.type.name, 'SkinWorkspace')
-  assert.equal(workspace.props.surface, 'appearance')
   assert.equal(workspace.props.settingsSession, 'main-session')
   assert.equal(workspace.props.backToChat, backToChat)
 })

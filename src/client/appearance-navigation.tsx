@@ -23,7 +23,7 @@ interface AppearanceProps extends WorkspaceProps { backToChat(): void }
 /** Main owns UI drafts independently of the settings dialog. */
 export function AppearancePanel(props: AppearanceProps) {
   return <section data-dsh-skin-appearance="" style={{ minWidth: 0, overflow: 'auto', height: '100%' }}>
-    <SkinWorkspace {...props} surface="appearance" />
+    <SkinWorkspace {...props} />
   </section>
 }
 
@@ -40,7 +40,7 @@ export function AppearanceIcon({ size, active }: { size: number; active: boolean
 export function registerAppearanceNavigation(ctx: {
   slots: AppearanceSlots
   layout: { selectPanel(panel: null): void }
-}, translate: TranslateSettings | undefined, workspace: Omit<WorkspaceProps, 'surface' | 'backToChat' | 't'>): void {
+}, translate: TranslateSettings | undefined, workspace: Omit<WorkspaceProps, 'backToChat' | 't'>): void {
   const t = translate ?? ((...args: Parameters<TranslateSettings>) => fallbackSettingsCopy(document.documentElement.lang)(...args))
   // Return registration handles so the official scope owns disposal on unload.
   ctx.slots.inject('main', () => ctx.slots.register({

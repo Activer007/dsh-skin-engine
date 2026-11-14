@@ -1,10 +1,7 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
-import { auditedSurfaceStyles } from '../adapter/surface-map.js'
-import { AUDIT_PATH, type AuditStatus } from '../shared/audit.js'
-import type { createEffectsRuntime } from './effects/p0.js'
 import { ImportSkin, PackageActions, PackageOperationStatus } from './package-controls.js'
 import { usePackageOperations, type PackageOperationsStore } from './package-operations.js'
-import { SkinEffects, WindowEffects } from './skin-effects.js'
+import { SkinEffects } from './skin-effects.js'
 import { useSkinEditor } from './skin-editor.js'
 import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
 import { SettingsButton, SettingsTabs } from './settings-controls.js'
@@ -19,26 +16,22 @@ declare const SKIN_ENGINE_VERSION: string
 
 const pages = ['gallery', 'effectsPage', 'managePage'] as const
 type Page = (typeof pages)[number]
-type HostCheck = { version?: string; persisted: boolean } | { error: string }
 
 export interface WorkspaceProps {
   controller: ReturnType<typeof createSkinSwitch>
-  effects: ReturnType<typeof createEffectsRuntime>
   getColorScheme(): 'light' | 'dark'
-  settingsSession: ReturnType<typeof createAppearanceSession> & { attach?(panel: HTMLElement): () => void }
+  settingsSession: ReturnType<typeof createAppearanceSession>
   packageOperations: PackageOperationsStore
-  surface?: 'settings' | 'appearance'
   backToChat?(): void
   chatPreview?: ChatPreview['start']
   t?: TranslateSettings
 }
 
-export function SkinWorkspace({ controller, effects, getColorScheme, settingsSession, packageOperations, surface = 'settings', backToChat, chatPreview, t: translate }: WorkspaceProps) {
+export function SkinWorkspace({ controller, getColorScheme, settingsSession, packageOperations, backToChat, chatPreview, t: translate }: WorkspaceProps) {
   const [language, setLanguage] = useState(() => document.documentElement.lang)
   const t = translate ?? fallbackSettingsCopy(language)
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
   useSyncExternalStore(settingsSession.subscribe, settingsSession.getSnapshot)
-  const panel = useRef<HTMLElement>(null)
   const { activePage, showDetails, query, tag, source, compatibleOnly, managedId } = settingsSession.view
   const setActivePage = (activePage: Page) => settingsSession.setView({ activePage })
   const setShowDetails = (showDetails: boolean) => settingsSession.setView({ showDetails })
@@ -52,8 +45,6 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
   const searchInput = useRef<HTMLInputElement>(null)
   const focusTarget = useRef<'detail' | 'gallery' | undefined>(undefined)
   const tabId = useId()
-  const [hostStatus, setHostStatus] = useState<HostCheck | null>()
-  const hostRequest = useRef<AbortController>(undefined)
   const operations = usePackageOperations(packageOperations)
   const operationActive = Boolean(operations.action)
   const busy = state.saving || operationActive
@@ -77,10 +68,9 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
     ?? choices[0]
   const managedChoice = choices.find(item => item.manifest.id === managedId) ?? choice
   const editorState = operationActive ? { ...state, saving: true } : state
-  const editorOptions = { persistentDrafts: surface === 'appearance', previewAvailable: surface === 'settings', chatPreview }
-  const galleryEditor = useSkinEditor(choice, controller, settingsSession, editorState, editorOptions)
+  const galleryEditor = useSkinEditor(choice, controller, settingsSession, editorState, chatPreview)
   const alternateEditor = useSkinEditor(activePage === 'effectsPage' && effectsChoice !== choice ? effectsChoice : undefined,
-    controller, settingsSession, editorState, editorOptions)
+    controller, settingsSession, editorState, chatPreview)
   const effectsEditor = effectsChoice === choice ? galleryEditor : alternateEditor
 
   const displayName = (manifest: { name: string; nameEn?: string }) =>
@@ -119,12 +109,9 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
   }
 
   useEffect(() => {
-    if (!panel.current) return
-    const release = surface === 'settings' ? settingsSession.attach?.(panel.current) : undefined
     const current = controller.getSnapshot()
     if (current.preview === null && current.pending === null) void controller.refresh(true)
-    return release
-  }, [controller, settingsSession, surface])
+  }, [controller])
 
   useEffect(() => {
     const root = document.documentElement
@@ -133,50 +120,20 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
     return () => observer.disconnect()
   }, [])
 
-  useEffect(() => () => hostRequest.current?.abort(), [])
-
-  async function checkHost() {
-    if (hostRequest.current) return
-    const request = new AbortController()
-    hostRequest.current = request
-    setHostStatus(null)
-    try {
-      const response = await fetch(new URL(AUDIT_PATH, document.baseURI), {
-        signal: AbortSignal.any([request.signal, AbortSignal.timeout(10_000)]),
-      })
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      const result: AuditStatus = await response.json()
-      setHostStatus({ version: result.engineVersion, persisted: result.persisted })
-    } catch (error) {
-      if (!request.signal.aborted) setHostStatus({ error: error instanceof Error && /^HTTP \d{3}$/.test(error.message) ? error.message : '' })
-    } finally {
-      hostRequest.current = undefined
-    }
-  }
-
   function openManagement(id?: string) {
     if (id) setManagedId(id)
     setActivePage('managePage')
     document.getElementById(`${tabId}-tab-managePage`)?.focus()
   }
 
-  const hostMessage = hostStatus === null ? t('checkingHost') : hostStatus === undefined ? ''
-    : 'error' in hostStatus ? [t('hostUnavailable'), hostStatus.error].filter(Boolean).join(' ')
-      : [
-          hostStatus.version ? t('hostVersion', { version: hostStatus.version }) : t('hostNoVersion'),
-          t('probeSaved', { saved: t(hostStatus.persisted ? 'yes' : 'no') }),
-          hostStatus.version && hostStatus.version !== SKIN_ENGINE_VERSION ? t('versionMismatch') : '',
-          hostStatus.version === SKIN_ENGINE_VERSION ? '' : t('restart'),
-        ].filter(Boolean).join(' ')
-
   return (
-    <section ref={panel} data-dsh-skin-workspace="" data-dsh-skin-engine={surface === 'settings' ? '' : undefined}
-      style={surface === 'appearance' ? { maxWidth: 1120, margin: '0 auto', padding: 'clamp(16px, 3vw, 32px)' } : undefined}>
-      <style>{(surface === 'settings' ? auditedSurfaceStyles.settings : '') + MANAGER_STYLES}</style>
+    <section data-dsh-skin-workspace=""
+      style={{ maxWidth: 1120, margin: '0 auto', padding: 'clamp(16px, 3vw, 32px)' }}>
+      <style>{MANAGER_STYLES}</style>
       <header className="dsh-skin-header">
         <div>
           <div className="dsh-skin-title">
-            <h2>{t(surface === 'appearance' ? 'appearanceCenter' : 'title')}</h2>
+            <h2>{t('appearanceCenter')}</h2>
             <span className="dsh-skin-muted">{t('clientVersion', { version: SKIN_ENGINE_VERSION })}</span>
           </div>
           <p className="dsh-skin-muted" data-saved-skin={state.saved ? state.saved.skinId ?? '' : undefined}>
@@ -193,7 +150,7 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
             onClick={() => void controller.apply(null)}>{t('restoreDefault')}</SettingsButton>
         </div>
       </header>
-      {surface === 'appearance' ? <p role="note">{t('chatPreviewHelp')}</p> : null}
+      <p role="note">{t('chatPreviewHelp')}</p>
       {state.preview ? <p role="status"><strong>{t('previewing')} · {name(state.preview)}</strong> · {t('previewExpiry')}</p> : null}
       <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving') : state.pending ? t('loading') : ''}</p>
       <PackageOperationStatus t={t} operations={operations} name={displayName} />
@@ -276,7 +233,6 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
       </div>
       <div className="dsh-skin-utilities" role="tabpanel" id={`${tabId}-page-effectsPage`} aria-labelledby={`${tabId}-tab-effectsPage`}
         hidden={activePage !== 'effectsPage'}>
-        <WindowEffects t={t} runtime={effects} showing={state.rendered ? name(state.rendered) : undefined} />
         {effectsChoice ? <>
           <label className="dsh-skin-effects-choice">{t('selectEditingSkin')}
             <select value={effectsChoice.manifest.id} onChange={event => settingsSession.editEffects(event.currentTarget.value)}>
@@ -316,14 +272,12 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
         {managedChoice ? <PackageActions key={managedChoice.manifest.id} t={t} choice={managedChoice}
           displayName={displayName(managedChoice.manifest)} operations={operations} disabled={busy} /> : null}
         <details className="dsh-skin-disclosure">
-          <summary>{t('maintenance')}
+          <summary>{t('catalogueMaintenance')}
             {state.catalogue?.issues.length ? <> ({state.catalogue.issues.length})</> : null}
           </summary>
           <div className="dsh-skin-actions">
             <button type="button" disabled={busy} onClick={() => void controller.refresh('force')}>{t('reload')}</button>
-            <button type="button" disabled={hostStatus === null} onClick={() => void checkHost()}>{t('checkHost')}</button>
           </div>
-          <p role="status">{hostMessage}</p>
           {state.catalogueNotice ? <p>{settingsError(t, state.catalogueNotice, 'error.selection')}</p> : null}
           {state.catalogue?.issues.length ? (
             <ul>{state.catalogue.issues.map(issue => (

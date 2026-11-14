@@ -9,7 +9,6 @@ async function load(path) {
   return module.exports
 }
 const { createAppearanceSession } = await load('src/client/appearance-session.ts')
-const { createSettingsSession } = await load('src/client/settings-session.ts')
 
 test('navigation unsubscribe preserves selection, filters, active tab and unapplied draft', () => {
   const session = createAppearanceSession()
@@ -43,37 +42,6 @@ test('discarding one draft does not discard other package drafts or change saved
   assert.equal(session.getDraft('b'), b)
   assert.equal(b.revision, 4)
   assert.equal(b.packageRevision, 'old-b')
-})
-
-test('settings close discards only its own UI state, main session survives', () => {
-  const observers = []
-  const previous = globalThis.MutationObserver
-  globalThis.MutationObserver = class {
-    constructor(callback) { this.callback = callback; observers.push(this) }
-    observe() {}
-    disconnect() { this.disconnected = true }
-  }
-  try {
-    let closed = 0
-    const document = { body: {} }
-    const settings = createSettingsSession(document, () => closed++)
-    const main = createAppearanceSession()
-    const dialog = { isConnected: true, parentElement: {} }
-    settings.attach({ closest: () => dialog })
-    settings.select('legacy')
-    settings.setView({ query: 'legacy' })
-    main.select('main')
-    main.setView({ query: 'retained' })
-    main.setDraft('main', { revision: 1, packageRevision: 'a', value: null })
-    dialog.isConnected = false
-    observers[0].callback()
-    assert.equal(closed, 1)
-    assert.equal(settings.selected, '')
-    assert.equal(settings.view.query, '')
-    assert.equal(main.selected, 'main')
-    assert.equal(main.view.query, 'retained')
-    assert.equal(main.getDraft('main').packageRevision, 'a')
-  } finally { globalThis.MutationObserver = previous }
 })
 
 test('plugin dispose clear drops drafts and view once, without persisting preferences', () => {

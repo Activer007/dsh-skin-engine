@@ -7,7 +7,7 @@ const canvas = 'canvas[data-dsh-skin-effect-layer="canvas"]'
 export const resources = '[data-dsh-skin-id],[data-dsh-skin-effect-scene],[data-dsh-skin-effect-layer],[data-dsh-skin-effect-surface],style[data-dsh-skin-effects-style]'
 const appearanceNames = { light: /^(浅色|Light)$/, dark: /^(深色|Dark)$/, system: /^(跟随系统|System)$/ }
 
-export async function settings(page, desktop, initialAppearance = 'dark', beforeOpen) {
+export async function settings(page, desktop, initialAppearance = 'dark', beforeOpen, systemOnly = false) {
   page.setDefaultTimeout(24_000)
   const cdp = await page.context().newCDPSession(page)
   await page.bringToFront()
@@ -150,8 +150,12 @@ export async function settings(page, desktop, initialAppearance = 'dark', before
   assert.equal(new URL(page.url()).protocol, desktop ? 'dsh-app:' : 'http:')
   assert.equal(await panel.count(), 1)
   if (initialAppearance) await appearance(initialAppearance)
-  await choose(deepOcean)
-  await button(detail(deepOcean), 'Apply').waitFor()
+  if (!systemOnly) {
+    assert.equal(await panel.and(page.locator('[data-dsh-skin-controls]')).count(), 0,
+      'This suite expects the legacy Settings gallery. Run --suite system-settings for SYS-01.')
+    await choose(deepOcean)
+    await button(detail(deepOcean), 'Apply').waitFor()
+  }
   await close()
   return { cdp, page, panel, detail, card, button, activate, expand, open, openSkinSection, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding, switchLanguage, pageTab, showEffects, showGallery, editSkinEffects }
 }

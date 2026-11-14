@@ -61,6 +61,8 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite settings-integration --sample-zip <晨昏观测 ZIP>` 在每端的一个隔离配置中运行设置专项和集成补测。 [UI-09 集成验收](#ui-09-设置面板集成验收)
 
+`--suite system-settings` 验收 SYS-01 后的界面。它核对原生设置宽度、窗口特效、诊断、预览取消和确认恢复，并在外观中心核对三页、草稿及 ZIP 导入。下方使用旧设置图库的专项仍可用对应的历史归档复跑。 [SYS-01 验收台账](appearance-center-stage1.md#sys-01-设置瘦身)
+
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 
 `--suite catalogue-cache` 在两端记录 10/100 包的冷扫描、热读和缩略图请求，并核对更新、回滚与卸载后的预览失效。 [缓存行为与专项记录](catalogue-cache.md)

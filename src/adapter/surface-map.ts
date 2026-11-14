@@ -1,7 +1,5 @@
 import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
 
-export const settingsDialogSelector = 'body > [role="presentation"] > [role="dialog"][aria-modal="true"][data-shortcut-modal="settings"]'
-
 /** Token and layout carriers verified in official DSH 0.2.2-rc.1. */
 export const auditedSurfaceMap = {
   host: MINIMUM_DSH_VERSION,
@@ -21,13 +19,6 @@ export const auditedSurfaceMap = {
 } as const
 
 export const auditedSurfaceStyles = {
-  // The settings panel is portalled beside the root. The width follows the mounted section.
-  settings: `
-@media (min-width: 900px) {
-  ${settingsDialogSelector}:has([data-dsh-skin-engine]) {
-    width: 1120px;
-  }
-}`,
   // The native composer card owns the fill. The editor, attachments, and menus retain their styles.
   composer: `
 @media (prefers-reduced-transparency: no-preference) and (forced-colors: none) {
