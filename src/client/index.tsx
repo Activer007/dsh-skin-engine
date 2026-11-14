@@ -1,3 +1,5 @@
+import { createAppearanceSession } from './appearance-session.js'
+import { createPackageOperations } from './package-operations.js'
 import { registerAppearanceNavigation, type AppearanceSlots } from './appearance-navigation.js'
 import { observeAppearance } from '../adapter/coexistence.js'
 import { createSkinTheme, SKIN_ATTRIBUTE, type ThemeService } from '../adapter/skin-theme.js'
@@ -56,12 +58,16 @@ export function apply(ctx: ClientContext): void {
     },
   })
   const settingsSession = createSettingsSession(document, () => { void controller.cancelPreview() })
+  const appearanceSession = createAppearanceSession()
+  const packageOperations = createPackageOperations(controller)
   const observer = new MutationObserver(controller.appearanceChanged)
   const refreshOnFocus = () => {
     const state = controller.getSnapshot()
     if (!state.preview && !state.pending) void controller.refresh(true)
   }
   ctx.effect(() => () => {
+    packageOperations.dispose()
+    appearanceSession.clear()
     settingsSession.clear()
     observer.disconnect()
     window.removeEventListener('focus', refreshOnFocus)
@@ -83,14 +89,16 @@ export function apply(ctx: ClientContext): void {
   // Locale belongs to the plugin, not to the lifetime of the settings slot.
   const locale = ctx.get?.('locale')
   if (locale) ctx.effect(() => locale.register(SETTINGS_LOCALE, settingsCopy), 'skin-engine: settings locale')
-  registerAppearanceNavigation(ctx, locale?.bind(SETTINGS_LOCALE))
+  registerAppearanceNavigation(ctx, locale?.bind(SETTINGS_LOCALE), {
+    controller, effects, getColorScheme, settingsSession: appearanceSession, packageOperations,
+  })
 
   ctx.slots.inject(SECTION, () => {
     ctx.slots.register({
       name: SECTION, id: 'dsh-skin-engine', order: 125,
       label: locale ? () => locale.bind(SETTINGS_LOCALE)('title') : 'Skin Engine',
       ...(locale && { locale: SETTINGS_LOCALE }),
-      inject: () => ({ controller, effects, getColorScheme, settingsSession }),
+      inject: () => ({ controller, effects, getColorScheme, settingsSession, packageOperations }),
     }, SkinPanel)
   })
   void controller.refresh()

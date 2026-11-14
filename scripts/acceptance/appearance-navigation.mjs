@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { appendFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { deepOcean } from './browser.mjs'
+import { packageVersionPair, versionedSkin } from '../../test/fixtures/package-versions.mjs'
 
 export async function checkAppearanceNavigation(ui, session, profileDir, directory, evidence) {
   const { page, panel, activate, selection } = ui
@@ -20,8 +21,18 @@ export async function checkAppearanceNavigation(ui, session, profileDir, directo
   assert.equal(await english.count(), 1)
   await activate(english)
   await main.getByRole('heading', { name: 'Appearance Center' }).waitFor()
-  assert.equal(await main.getByRole('button').count(), 1)
-  assert(await main.getByText(/Settings → Skin Engine/).isVisible())
+  for (const name of ['Skin gallery', 'Effects & performance', 'Skin management']) {
+    await main.getByRole('tab', { name, exact: true }).waitFor()
+  }
+  assert.equal(await main.getByRole('button', { name: 'Preview', exact: true }).count(), 0)
+  await activate(main.locator(`[data-skin-card="${deepOcean.id}"]`))
+  await activate(main.getByRole('button', { name: 'Adjust effects', exact: true }))
+  const quality = () => main.getByRole('combobox', { name: /^(Skin effect quality|皮肤效果质量)$/ })
+  await quality().selectOption('high')
+  assert.deepEqual(await selection(), before)
+  await main.getByRole('tab', { name: 'Skin gallery', exact: true }).press('Enter')
+  await main.getByRole('searchbox', { name: 'Search skins' }).fill('Deep')
+  assert(await main.getByText(/first return to chat, then open Settings/).isVisible())
   await page.screenshot({ path: join(directory, 'appearance-en-1280.png'), scale: 'css' })
   await main.getByRole('button', { name: 'Back to chat' }).press('Enter')
   await main.waitFor({ state: 'hidden' })
@@ -35,10 +46,15 @@ export async function checkAppearanceNavigation(ui, session, profileDir, directo
   await main.waitFor({ state: 'hidden' })
   await activate(english)
   await main.waitFor()
+  assert.equal(await main.getByRole('searchbox', { name: 'Search skins' }).inputValue(), 'Deep')
+  await activate(main.getByRole('button', { name: 'Adjust effects', exact: true }))
+  assert.equal(await quality().inputValue(), 'high')
   await ui.open()
   for (const name of ['Skin gallery', 'Effects & performance', 'Skin management']) await ui.pageTab(name).waitFor()
   await ui.choose(deepOcean)
-  await ui.button(ui.detail(deepOcean), 'Preview').waitFor()
+  assert(await ui.button(ui.detail(deepOcean), 'Preview').isDisabled())
+  await activate(ui.button(ui.detail(deepOcean), 'Adjust effects'))
+  await panel.getByRole('combobox', { name: 'Skin effect quality' }).selectOption('low')
   await ui.switchLanguage('zh')
   await ui.openSkinSection()
   await panel.getByRole('tab', { name: '皮肤库' }).waitFor()
@@ -47,6 +63,9 @@ export async function checkAppearanceNavigation(ui, session, profileDir, directo
   assert.equal(await chinese.count(), 1)
   assert.equal(await english.count(), 0)
   await main.getByRole('heading', { name: '外观中心' }).waitFor()
+  assert.equal(await quality().inputValue(), 'high')
+  assert.deepEqual(await selection(), before)
+  assert.equal(await main.getByRole('button', { name: '预览', exact: true }).count(), 0)
   await session.resize(760, 820)
   await page.waitForFunction(() => innerWidth === 760 && innerHeight === 820)
   evidence.narrow = await main.evaluate(node => ({ viewport: [innerWidth, innerHeight], width: node.clientWidth, scroll: node.scrollWidth }))
@@ -57,12 +76,96 @@ export async function checkAppearanceNavigation(ui, session, profileDir, directo
 
   await session.resize(1280, 820)
   await activate(chinese)
+  await ui.open()
+  await ui.switchLanguage('en')
+  await ui.openSkinSection()
+  await ui.close()
+  await english.waitFor()
+  await activate(main.getByRole('button', { name: 'Apply', exact: true }))
+  await main.locator(`[data-saved-skin="${deepOcean.id}"]`).waitFor()
+  assert.equal((await selection()).preferences[deepOcean.id].quality, 'high')
+  await activate(main.getByRole('button', { name: 'Back to chat', exact: true }))
+  await ui.waitForSkin(deepOcean.id)
+  await activate(english)
+  await activate(main.getByRole('button', { name: 'Restore Default', exact: true }))
+  await main.locator('[data-saved-skin=""]').waitFor()
+  await checkMainPackageNavigation(ui, main, english, evidence)
+  evidence.drafts = { mainAcrossNavigation: true, settingsCloseIsolated: true, languageRetained: true, unappliedSavedUnchanged: true, explicitApplySaved: true }
   await main.waitFor()
   await appendFile(join(profileDir, 'cordis.patch.yml'), '\n- id: dsh-skin-engine\n  disabled: true\n')
   await main.waitFor({ state: 'detached' })
-  await chinese.waitFor({ state: 'detached' })
+  await english.waitFor({ state: 'detached' })
   await reply.waitFor()
   await composer.waitFor()
   await page.screenshot({ path: join(directory, 'chat-after-disable.png'), scale: 'css' })
   evidence.navigation = { english: true, chinese: true, otherPanel: true, backToSameSession: true, disabledWhileSelected: true }
+}
+
+/** The same application-level operation continues while its initiating panel is absent. */
+async function checkMainPackageNavigation(ui, main, launcher, evidence) {
+  const { page, activate } = ui
+  const [first, update] = await packageVersionPair()
+  await activate(main.getByRole('tab', { name: 'Skin management', exact: true }))
+  const file = { name: 'appearance-nav.dshskin.zip', mimeType: 'application/zip', buffer: first }
+  const importer = main.getByLabel('Import .dshskin.zip', { exact: true })
+  async function beginHeldUpload() {
+    await page.evaluate(() => {
+      const original = window.fetch
+      let release
+      const gate = new Promise(resolve => { release = resolve })
+      const state = { appends: 0, release, clean() { release(); window.fetch = original; delete window.__appearanceUpload } }
+      window.__appearanceUpload = state
+      window.fetch = async (input, init) => {
+        const url = new URL(input instanceof Request ? input.url : input, document.baseURI)
+        if (url.pathname.endsWith('/packages/import') && url.searchParams.get('op') === 'append') {
+          state.appends++
+          await gate
+        }
+        return original(input, init)
+      }
+    })
+    await importer.setInputFiles(file)
+    await page.waitForFunction(() => window.__appearanceUpload.appends === 1)
+  }
+
+  async function navigateDuringUpload() {
+    await activate(main.getByRole('button', { name: 'Back to chat', exact: true }))
+    await main.waitFor({ state: 'hidden' })
+    await activate(launcher)
+    await main.waitFor()
+    assert(await importer.isDisabled())
+    await main.getByRole('progressbar').waitFor()
+  }
+
+  const release = () => page.evaluate(() => window.__appearanceUpload.release())
+  const clean = () => page.evaluate(() => window.__appearanceUpload?.clean())
+  try {
+    await beginHeldUpload()
+    await navigateDuringUpload()
+    await activate(main.getByRole('button', { name: 'Cancel upload', exact: true }))
+    await release()
+    await main.getByRole('status').filter({ hasText: 'Upload cancelled. Host staging cleared.' }).waitFor()
+    assert.equal(await main.locator('[data-package-id="' + versionedSkin.id + '"]').count(), 0)
+  } finally { await clean() }
+  try {
+    await beginHeldUpload()
+    await navigateDuringUpload()
+    await release()
+    await main.getByRole('status').filter({ hasText: 'Skin installed.' }).waitFor()
+  } finally { await clean() }
+  const actions = main.locator(`[data-managed-package="${versionedSkin.id}"]`)
+  await actions.waitFor()
+  await actions.getByLabel('Update from .dshskin.zip').setInputFiles({
+    name: 'appearance-nav-update.dshskin.zip', mimeType: 'application/zip', buffer: update,
+  })
+  await main.getByRole('status').filter({ hasText: 'Skin updated to v1.1.0.' }).waitFor()
+  // Keep the existing confirmations; do not bypass the package lifecycle UI.
+  await activate(actions.getByRole('button', { name: /Roll back/, exact: false }))
+  await activate(actions.getByRole('button', { name: 'Confirm rollback', exact: true }))
+  await main.getByRole('status').filter({ hasText: /rolled back/ }).waitFor()
+  await activate(actions.getByRole('button', { name: 'Uninstall…', exact: true }))
+  await activate(actions.getByRole('button', { name: 'Confirm uninstall', exact: true }))
+  await main.getByRole('status').filter({ hasText: 'Skin uninstalled.' }).waitFor()
+  assert.equal(await main.locator(`[data-package-id="${versionedSkin.id}"]`).count(), 0)
+  evidence.packages = { importSurvivesNavigation: true, cancelReadback: true, duplicateWriteDisabled: true, update: true, rollback: true, uninstall: true }
 }

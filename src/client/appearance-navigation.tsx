@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { SkinWorkspace, type WorkspaceProps } from './skin-workspace.js'
 import { fallbackSettingsCopy, SETTINGS_LOCALE, type TranslateSettings } from './settings-copy.js'
 
 export const APPEARANCE_PANEL = 'dsh-skin-appearance'
@@ -17,20 +18,12 @@ export interface AppearanceSlots {
   }, component: ComponentType<Props>): unknown
 }
 
-interface AppearanceProps {
-  backToChat(): void
-  t?: TranslateSettings
-}
+interface AppearanceProps extends WorkspaceProps { backToChat(): void }
 
-/** NAV-01 deliberately leaves all skin operations in the existing settings page. */
-export function AppearancePanel({ backToChat, t = fallbackSettingsCopy(document.documentElement.lang) }: AppearanceProps) {
-  return <section data-dsh-skin-appearance="" aria-label={t('appearanceCenter')}
-    style={{ padding: 'clamp(16px, 4vw, 40px)', minWidth: 0, overflow: 'auto', height: '100%', boxSizing: 'border-box' }}>
-    <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-      <h1>{t('appearanceCenter')}</h1>
-      <p style={{ maxWidth: '65ch', lineHeight: 1.6 }}>{t('appearancePending')}</p>
-      <button type="button" onClick={backToChat}>{t('backToChat')}</button>
-    </div>
+/** Main owns UI drafts independently of the settings dialog. */
+export function AppearancePanel(props: AppearanceProps) {
+  return <section data-dsh-skin-appearance="" style={{ minWidth: 0, overflow: 'auto', height: '100%' }}>
+    <SkinWorkspace {...props} surface="appearance" />
   </section>
 }
 
@@ -47,12 +40,12 @@ export function AppearanceIcon({ size, active }: { size: number; active: boolean
 export function registerAppearanceNavigation(ctx: {
   slots: AppearanceSlots
   layout: { selectPanel(panel: null): void }
-}, translate?: TranslateSettings): void {
+}, translate: TranslateSettings | undefined, workspace: Omit<WorkspaceProps, 'surface' | 'backToChat' | 't'>): void {
   const t = translate ?? ((...args: Parameters<TranslateSettings>) => fallbackSettingsCopy(document.documentElement.lang)(...args))
   // Return registration handles so the official scope owns disposal on unload.
   ctx.slots.inject('main', () => ctx.slots.register({
     name: 'main', key: APPEARANCE_PANEL, locale: SETTINGS_LOCALE,
-    inject: () => ({ backToChat: () => ctx.layout.selectPanel(null) }),
+    inject: () => ({ ...workspace, backToChat: () => ctx.layout.selectPanel(null) }),
   }, AppearancePanel))
   ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
     name: 'sidebar.panellist', id: APPEARANCE_PANEL, order: 125,

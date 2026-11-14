@@ -54,3 +54,36 @@
 - 证据包括 `appearance-en-1280.png`、`appearance-zh-760.png`、`chat-after-disable.png`、`settings-conflict.png` 和 `result.json`。覆盖进入外观中心、返回同一聊天、切换插件面板、双语、窄窗、选中面板时禁用，以及原设置的草稿、预览和包修订冲突恢复。
 - 首次 Desktop 在隔离 profile 初始化时抛出 `BrowserWindow is not a constructor`，当时尚未安装候选包。原版 UI-09 1.8.2 对照通过，NAV-01 后续复跑通过。根因未确认，原始日志保留在 `.cache/nav-01/host/desktop-0TDs2v/electron-user-data/logs/`。
 - 官方默认 More 菜单仅提供浏览和创建插件。本轮依照宿主原生入口契约，固定状态由宿主管理，跨重启持久化不在验证范围内。
+
+## NAV-02–04 合并批次：共享工作区与导航安全
+
+### 基线与本批目标
+
+开发基线为 PR #45 合并后的 `3c611217569f109f081df6523b387471748ac3fa`。上面的 NAV-01 同候选 Web/Windows 证据仍然有效，但不能覆盖本次新增工作区和事务生命周期。初次 Desktop `BrowserWindow is not a constructor` 发生在候选安装前，对照与复跑通过，保留原环境问题记录，不据此修改业务代码。
+
+用户允许中大型 PR，本批按依赖合并 NAV-02、NAV-03、NAV-04 的实现。云端独立开发后交 **LHA 的本地 Codex** 应用补丁、完整验证、创建 PR、审查和必要修复、合并。不得把“客户端定向测试通过”写成“全阶段完成”。
+
+### 子任务与实现
+
+1. **共享工作区**：原皮肤库、详情、九种特效控制、包管理迁入 `SkinWorkspace`。设置页和外观中心是两个薄入口，共用组件、唯一 SkinSwitch、唯一 EffectsRuntime 和唯一 PackageOperationsStore，不复制整段页面。
+2. **独立草稿会话**：`AppearanceSession` 只保存本窗口 UI 状态，包括选中、效果编辑对象、各包草稿、页签、搜索、标签、来源、兼容筛选和窄屏详情状态。导航卸载视图不清除；显式放弃清单包草稿；插件卸载清全部。不会自动写 Host。
+3. **保留设置兼容语义**：旧设置继续用自己的会话，关闭 modal 仍清除设置草稿并取消旧设置预览；不会清外观中心草稿。`attach()` 只在设置入口执行，外观中心不探测 modal DOM。
+4. **应用级包事务**：上传/导入/更新/导出/回滚/卸载由插件级 store 持有。所有入口共用同步并发锁；UI 离开/订阅取消不 abort；显式取消保持 Host 回读，结果不确定不伪称成功；插件卸载先标记 disposed，再 abort，不再回读或发布晚到结果。
+5. **安装后选择一致**：成功安装回读验证后，发起导入的入口选中新包并清筛选。此为显式安装产生的 UI 更新，不保存皮肤或改动其他包草稿。两入口可能同时挂载，但仍只有一个包事务。
+6. **语言与样式隔离**：操作通知存翻译函数，语言切换后显示新语言。共享内容样式改用 `data-dsh-skin-workspace`；原设置 modal 的宽度规则仍仅用于设置；外观中心保持独立根和自己的滚动容器。
+
+### 预览与设置瘦身边界
+
+- **NAV-05 未完成**：外观中心展示静态大图、可编辑并显式“应用”，但不出现“预览”按钮，也不会在聊天隐藏时启动 30 秒倒计时。页面直接说明真实聊天预览需先返回聊天，再打开设置操作，避免 main 的 `data-global-panel` 让聊天效果隐藏。应用保存后可“返回聊天”查看实际效果。
+- `persistentDrafts` 与 `previewAvailable` 为独立参数。下一批接入聊天真实预览无需改变草稿生命周期。
+- **SYS-01 未完成**：暂时保留完整旧设置作为兼容入口，不能提前删除旧预览、包操作和诊断。完成 NAV-05 后再收窄为运行模式、诊断与紧急恢复。
+- **NAV-06 未完成**：最终候选集成矩阵、清理和文档出口在后续完成。
+
+### LHA 验收
+
+- 补丁 SHA-256：`77eb5d63223a2f3ac227f0b4bed8edcb206d0abcef0384be13a7647c2586f31f`。使用独立工作树。
+- 候选 `b6643aff508e60fdeb1cbfc78e41857c4af467d3`。执行 `npm run verify:local -- trusted-commit <候选 SHA> <输出目录>`，类型检查、lint、构建、88 项测试和归档复现通过。报告在 `.cache/nav-02-04/verify/verify-n9pRoT/result.json`。
+- 同一候选 tarball SHA-256：`2860e3c013ea73de5fb60961201880a1cfb6aad6befc774a5544882907883faf`。按 [运行说明](acceptance.md#运行) 指定 `--suite settings-navigation`，在官方 DSH `0.2.2-rc.1` Web 与 Windows Desktop 使用隔离配置实测。
+- 双端通过三页、中英文、草稿与筛选跨面板保留、设置与外观中心草稿隔离、显式应用、暂停上传后导航及继续、取消后 Host 清理、更新、回滚、卸载、禁用插件后恢复聊天。外观中心只显示静态图，聊天隐藏时原设置预览禁用并提示返回聊天。原设置回归还覆盖 409 与包修订冲突。
+- 证据目录为 `.cache/nav-02-04/host/web-fkU4vL/` 和 `.cache/nav-02-04/host/desktop-r8LSrc/`，各含 `appearance-en-1280.png`、`appearance-zh-760.png`、`chat-after-disable.png`、`settings-conflict.png` 和 `result.json`。无未捕获页面异常。两端记录了预期冲突 409，Desktop 另有一条通用资源加载错误，与 NAV-01 隔离测试记录一致，未阻断验收。隔离进程均已退出。
+- 本轮定向验收未重跑全量性能、后台采样、原生保存和强制颜色矩阵。包事务在插件卸载后对迟到响应的抑制由本地测试覆盖。

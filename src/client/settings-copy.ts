@@ -3,6 +3,9 @@ export const SETTINGS_LOCALE = 'dsh-skin-engine.settings'
 const en = {
   title: "Skin Engine",
   appearanceCenter: "Appearance Center",
+  appearancePreviewPending: "Preview images are static. For real chat preview, first return to chat, then open Settings → Skin Engine. Applying saves your choice; return to chat to see the effect.",
+  appearanceUnsaved: "Unsaved preferences. Apply to save them to this skin.",
+  appearanceDraftLifetime: "Unsaved edits stay in this window across navigation. Applying saves them; discarding or unloading the plugin clears them.",
   appearancePending: "The gallery, effects and package tools are still available in Settings → Skin Engine while this workspace is being built.",
   backToChat: "Back to chat",
   clientVersion: "Client engine v{version}",
@@ -206,6 +209,9 @@ export type TranslateSettings = (key: Key, values?: Values) => string
 
 const zh: Record<Key, string> = {
   appearanceCenter: "外观中心",
+  appearancePreviewPending: "预览图片是静态效果。如需聊天真实预览，请先返回聊天，再打开「设置 → 皮肤引擎」。应用会保存选择，返回聊天后可查看实际效果。",
+  appearanceUnsaved: "偏好尚未保存。应用后会保存到此皮肤。",
+  appearanceDraftLifetime: "未应用的编辑会在当前窗口跨页面保留。应用后保存；放弃或卸载插件时清除。",
   appearancePending: "皮肤库、特效和皮肤包工具目前仍在「设置 → 皮肤引擎」。",
   backToChat: "返回聊天",
   title: "皮肤引擎",

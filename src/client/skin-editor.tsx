@@ -2,15 +2,17 @@ import { useEffect, useId, useState } from 'react'
 import { preferencesFor, type SkinPreferences } from '../shared/preferences.js'
 import { settingsError, type TranslateSettings } from './settings-copy.js'
 import { SettingsButton } from './settings-controls.js'
-import type { createSettingsSession } from './settings-session.js'
+import type { createAppearanceSession } from './appearance-session.js'
 import { canActivate, type SkinChoice, type SkinData } from './skin-api.js'
 import type { createSkinSwitch } from './skin-switch.js'
 
 type Controller = ReturnType<typeof createSkinSwitch>
-type Session = ReturnType<typeof createSettingsSession>
+type Session = ReturnType<typeof createAppearanceSession>
 type Snapshot = ReturnType<Controller['getSnapshot']>
 
-export function useSkinEditor(choice: SkinChoice | undefined, controller: Controller, session: Session, state: Snapshot) {
+export function useSkinEditor(choice: SkinChoice | undefined, controller: Controller, session: Session, state: Snapshot, options: { persistentDrafts?: boolean; previewAvailable?: boolean } = {}) {
+  const { persistentDrafts = false, previewAvailable = true } = options
+  const chatHidden = Boolean(document.querySelector('[data-slot="main"] [data-dsh-skin-appearance]'))
   const [loaded, setLoaded] = useState<{ choice: SkinChoice; data?: SkinData; error?: string }>()
   const blocked = Boolean(choice && (choice.compatibility || !canActivate(choice)))
   const result = loaded?.choice === choice ? loaded : undefined
@@ -66,8 +68,12 @@ export function useSkinEditor(choice: SkinChoice | undefined, controller: Contro
     if (controller.getSnapshot().preview === id) void controller.cancelPreview()
   }
 
-  return { blocked, result, draft, values, busy, disabled, packageChanged, stale, previewBlock, applyBlock, applied, edit, apply, reviewDraft,
-    discard, preview: () => { if (id) void controller.preview(id, draft) } }
+  return { persistentDrafts, previewAvailable, chatHidden, blocked, result, draft, values, busy, disabled, packageChanged, stale, previewBlock, applyBlock, applied, edit, apply, reviewDraft,
+    discard, preview: () => {
+      if (id && previewAvailable && !document.querySelector('[data-slot="main"] [data-dsh-skin-appearance]')) {
+        void controller.preview(id, draft)
+      }
+    } }
 }
 
 export type SkinEditor = ReturnType<typeof useSkinEditor>
@@ -86,15 +92,16 @@ export function SkinEditorActions({ t, editor, appearance, canDiscard = false }:
     {result?.error ? <p role="alert">{settingsError(t, result.error, 'readSkinFailed')}</p> : null}
     {!blocked && !result ? <p role="status">{t('loadingDetails')}</p> : null}
     <div className="dsh-skin-actions">
-      <SettingsButton disabled={disabled || packageChanged || Boolean(previewBlock)} aria-describedby={statusId}
-        onClick={editor.preview}>{t('preview')}</SettingsButton>
+      {editor.previewAvailable ? <SettingsButton disabled={disabled || packageChanged || editor.chatHidden || Boolean(previewBlock)} aria-describedby={statusId}
+        onClick={editor.preview}>{t('preview')}</SettingsButton> : null}
       <SettingsButton primary disabled={disabled || stale || Boolean(applyBlock)} aria-describedby={statusId}
         onClick={() => void editor.apply()}>{t('apply')}</SettingsButton>
       {canDiscard && draft ? <button type="button" disabled={busy} onClick={editor.discard}>{t('discard')}</button> : null}
     </div>
     <p id={statusId} role="status">{activationStatus}</p>
-    {draft ? <p role="status">{t('unsaved')}</p> : null}
-    {draft ? <p className="dsh-skin-muted">{t('draftLifetime')}</p> : null}
+    {editor.previewAvailable && editor.chatHidden ? <p>{t('appearancePreviewPending')}</p> : null}
+    {draft ? <p role="status">{t(editor.persistentDrafts ? 'appearanceUnsaved' : 'unsaved')}</p> : null}
+    {draft ? <p className="dsh-skin-muted">{t(editor.persistentDrafts ? 'appearanceDraftLifetime' : 'draftLifetime')}</p> : null}
     {stale ? <div role="status">
       <p>{t(packageChanged ? 'draftPackageChanged' : 'draftProfileChanged')}</p>
       {result?.data ? (

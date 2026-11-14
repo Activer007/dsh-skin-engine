@@ -6,13 +6,13 @@ import { build } from 'esbuild'
 
 const bundle = await build({
   entryPoints: ['src/client/appearance-navigation.tsx'], bundle: true, write: false,
-  platform: 'node', format: 'cjs', jsx: 'automatic', external: ['react', 'react/jsx-runtime'],
+  platform: 'node', format: 'cjs', jsx: 'automatic', external: ['react', 'react/jsx-runtime', '@deepseek-ai/dsh-client-ui-primitives'],
 })
 const result = { exports: {} }
 const jsx = (type, props) => ({ type, props })
 const require = createRequire(import.meta.url)
 new Function('module', 'exports', 'require', bundle.outputFiles[0].text)(result, result.exports,
-  id => id === 'react/jsx-runtime' ? { jsx, jsxs: jsx } : require(id))
+  id => id === 'react/jsx-runtime' ? { jsx, jsxs: jsx } : id === 'react' ? {} : require(id))
 const { registerAppearanceNavigation, AppearancePanel, AppearanceIcon, APPEARANCE_PANEL } = result.exports
 
 function register(t = key => key) {
@@ -24,7 +24,7 @@ function register(t = key => key) {
       register(options, component) { registrations.push({ options, component }); return () => {} },
     },
   }
-  registerAppearanceNavigation(ctx, t)
+  registerAppearanceNavigation(ctx, t, { controller: 'one-controller', effects: 'one-runtime', settingsSession: 'main-session', packageOperations: 'app-operations' })
   return { registrations, injected, selected }
 }
 
@@ -57,22 +57,24 @@ test('label resolves current locale rather than freezing text during registratio
 test('return to chat uses official layout null, never changes a session or skin', () => {
   const { registrations, selected } = register()
   const props = registrations[0].options.inject()
-  assert.deepEqual(Object.keys(props), ['backToChat'])
+  assert.equal(props.controller, 'one-controller')
+  assert.equal(props.effects, 'one-runtime')
+  assert.equal(props.settingsSession, 'main-session')
+  assert.equal(props.packageOperations, 'app-operations')
   props.backToChat()
   assert.deepEqual(selected, [null])
 })
 
-test('empty workspace uses independent root and honest pending-copy, no settings lifecycle', () => {
+test('main wraps shared workspace without mounting a settings modal lifecycle', () => {
   const backToChat = () => {}
-  const tree = AppearancePanel({ backToChat, t: key => key })
+  const tree = AppearancePanel({ backToChat, t: key => key, settingsSession: 'main-session' })
   assert.equal(tree.props['data-dsh-skin-appearance'], '')
   assert.equal(tree.props['data-dsh-skin-engine'], undefined)
-  const flat = nodes(tree)
-  const buttons = flat.filter(node => node.type === 'button')
-  assert.equal(buttons.length, 1)
-  assert.equal(buttons[0].props.onClick, backToChat)
-  assert.equal(buttons[0].props.type, 'button')
-  assert.ok(flat.some(node => node.props.children === 'appearancePending'))
+  const workspace = tree.props.children
+  assert.equal(workspace.type.name, 'SkinWorkspace')
+  assert.equal(workspace.props.surface, 'appearance')
+  assert.equal(workspace.props.settingsSession, 'main-session')
+  assert.equal(workspace.props.backToChat, backToChat)
 })
 
 test('sidebar owns interactive surface; icon uses native size and is decorative', () => {

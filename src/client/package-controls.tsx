@@ -4,10 +4,11 @@ import type { PackageOperations } from './package-operations.js'
 import type { TranslateSettings } from './settings-copy.js'
 import { canActivate, type SkinChoice } from './skin-api.js'
 
-export function ImportSkin({ t, operations, disabled }: {
+export function ImportSkin({ t, operations, disabled, onInstalled }: {
   t: TranslateSettings
   operations: PackageOperations
   disabled: boolean
+  onInstalled(id: string): void
 }) {
   return <section className="dsh-skin-import" aria-label={t('package.importRegion')}>
     <label className="dsh-skin-file-button">{t('package.import')}
@@ -15,7 +16,7 @@ export function ImportSkin({ t, operations, disabled }: {
         onChange={event => {
           const file = event.currentTarget.files?.[0]
           event.currentTarget.value = ''
-          if (file) void operations.run({ kind: 'import', file })
+          if (file) void operations.run({ kind: 'import', file, onInstalled })
         }} />
     </label>
   </section>
