@@ -1,4 +1,5 @@
 import { createAppearanceSession } from './appearance-session.js'
+import { ChatPreviewBar, createChatPreview, type PreviewLayout } from './chat-preview.js'
 import { createPackageOperations } from './package-operations.js'
 import { registerAppearanceNavigation, type AppearanceSlots } from './appearance-navigation.js'
 import { observeAppearance } from '../adapter/coexistence.js'
@@ -23,7 +24,7 @@ interface ClientContext {
     register(namespace: string, copy: typeof settingsCopy): () => void
   } | undefined
   slots: AppearanceSlots
-  layout: { selectPanel(panel: null): void }
+  layout: PreviewLayout
   theme: ThemeService
 }
 
@@ -57,15 +58,19 @@ export function apply(ctx: ClientContext): void {
       }
     },
   })
-  const settingsSession = createSettingsSession(document, () => { void controller.cancelPreview() })
   const appearanceSession = createAppearanceSession()
   const packageOperations = createPackageOperations(controller)
+  const preview = ctx.layout?.panelInfo ? createChatPreview(ctx.layout, controller, appearanceSession, packageOperations) : undefined
+  const settingsSession = createSettingsSession(document, () => {
+    if (!preview?.getSnapshot().request) void controller.cancelPreview()
+  })
   const observer = new MutationObserver(controller.appearanceChanged)
   const refreshOnFocus = () => {
     const state = controller.getSnapshot()
     if (!state.preview && !state.pending) void controller.refresh(true)
   }
   ctx.effect(() => () => {
+    preview?.dispose()
     packageOperations.dispose()
     appearanceSession.clear()
     settingsSession.clear()
@@ -90,8 +95,12 @@ export function apply(ctx: ClientContext): void {
   const locale = ctx.get?.('locale')
   if (locale) ctx.effect(() => locale.register(SETTINGS_LOCALE, settingsCopy), 'skin-engine: settings locale')
   registerAppearanceNavigation(ctx, locale?.bind(SETTINGS_LOCALE), {
-    controller, effects, getColorScheme, settingsSession: appearanceSession, packageOperations,
+    controller, effects, getColorScheme, settingsSession: appearanceSession, packageOperations, chatPreview: preview?.start,
   })
+  if (preview) ctx.slots.inject('shell.overlay', () => ctx.slots.register({
+    name: 'shell.overlay', id: 'dsh-skin-engine.chat-preview', locale: SETTINGS_LOCALE,
+    inject: () => ({ preview, controller }),
+  }, ChatPreviewBar))
 
   ctx.slots.inject(SECTION, () => {
     ctx.slots.register({

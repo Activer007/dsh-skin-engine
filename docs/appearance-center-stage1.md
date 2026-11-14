@@ -87,3 +87,19 @@
 - 双端通过三页、中英文、草稿与筛选跨面板保留、设置与外观中心草稿隔离、显式应用、暂停上传后导航及继续、取消后 Host 清理、更新、回滚、卸载、禁用插件后恢复聊天。外观中心只显示静态图，聊天隐藏时原设置预览禁用并提示返回聊天。原设置回归还覆盖 409 与包修订冲突。
 - 证据目录为 `.cache/nav-02-04/host/web-fkU4vL/` 和 `.cache/nav-02-04/host/desktop-r8LSrc/`，各含 `appearance-en-1280.png`、`appearance-zh-760.png`、`chat-after-disable.png`、`settings-conflict.png` 和 `result.json`。无未捕获页面异常。两端记录了预期冲突 409，Desktop 另有一条通用资源加载错误，与 NAV-01 隔离测试记录一致，未阻断验收。隔离进程均已退出。
 - 本轮定向验收未重跑全量性能、后台采样、原生保存和强制颜色矩阵。包事务在插件卸载后对迟到响应的抑制由本地测试覆盖。
+
+## NAV-05 聊天真实预览
+
+- 外观中心的预览请求通过官方 layout 返回聊天，等待输入承载面可见，再交给原 SkinSwitch 事务。应用核对 Profile 与皮肤包修订。预览操作条使用追加式 shell.overlay，保留 shell.bottom 给宿主及其他插件。
+- 候选提交 `097d5b3bbbe23d277fb72bf835056c01342fcbab`。tarball SHA-256 `208110255fa779edc2dad1c211770a3399bf732762a9884ef9b5684c42d57afe`。类型检查、lint、构建打包及 28 项定向测试通过。
+- 官方 DSH `0.2.2-rc.1` 双端通过 `--suite settings-navigation`。Web 在 `.cache/nav-05/host/web-D8yTeV/`，Windows Desktop 在 `.cache/nav-05/host/desktop-NfbHgY/`。两端验证从外观中心回到原聊天、取消、切面板取消、到期恢复、应用写回和旧设置回归。Web 与 Desktop 分别在 30.308 和 30.254 秒到期。无未捕获页面异常。目录含 `chat-preview-1280.png` 及 `result.json`。
+- 使用独立宿主配置。未安装 Worktable 做专项视觉对照，完整发布级性能与长后台采样仍留到发布关口。
+
+### 审查修订与复验
+
+外观所有权冲突此前会清掉预览状态，但不一定把冲突原因传给操作条。修订后保留 Host 回读和冲突提示，释放请求，使用户能再次启动预览。
+
+- 冲突修订候选 `4d7ac36a0a3e79d5c704dc1f87a056c7384de460`，tarball SHA-256 `117db94ff7704c257082d4accf3879e6b94d2f8e51136f26096702316e943161`。完整 `verify:local` 通过，包括 88 项测试，目录 `.cache/nav-05/verify/verify-campKY/`。
+- 官方 Web 与 Windows Desktop 同包复跑通过，含外观冲突后提示及重新启动。证据在 `.cache/nav-05/verified/web-N33ZeX/` 和 `.cache/nav-05/verified/desktop-evSRRA/`。两端无未捕获页面异常，Desktop 记录了一条既有的通用资源加载错误。
+- 预览归属修订候选 `c5bedbfa560775f7214ef6cbf1844299a84a9449`。当旧设置发起预览时，聊天操作条释放请求。实测旧设置可接管同一皮肤的预览，关闭设置后恢复已保存外观。Web 和 Windows Desktop 到期分别为 30.269 秒和 30.372 秒。
+- 完整 `verify:local` 通过，含 88 项测试及 27 份可复现归档。报告在 `.cache/nav-05/verify/verify-0u8DXq/result.json`。双端使用候选工作树的同一 tarball，SHA-256 `c657c3b5dcefa0cb68403479db6e01aaca63417baa799ec3e5cb336d525c519e`。截图和宿主报告在 `.cache/nav-05/handoff-host/web-5wzbnB/` 和 `.cache/nav-05/handoff-host/desktop-YLyhqD/`。两端无未捕获页面异常。隔离宿主均已退出。

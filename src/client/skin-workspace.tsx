@@ -9,6 +9,7 @@ import { useSkinEditor } from './skin-editor.js'
 import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
 import { SettingsButton, SettingsTabs } from './settings-controls.js'
 import type { createAppearanceSession } from './appearance-session.js'
+import type { ChatPreview } from './chat-preview.js'
 import { SkinDetail } from './skin-detail.js'
 import { SkinPreviewImage } from './skin-preview-image.js'
 import type { createSkinSwitch } from './skin-switch.js'
@@ -28,10 +29,11 @@ export interface WorkspaceProps {
   packageOperations: PackageOperationsStore
   surface?: 'settings' | 'appearance'
   backToChat?(): void
+  chatPreview?: ChatPreview['start']
   t?: TranslateSettings
 }
 
-export function SkinWorkspace({ controller, effects, getColorScheme, settingsSession, packageOperations, surface = 'settings', backToChat, t: translate }: WorkspaceProps) {
+export function SkinWorkspace({ controller, effects, getColorScheme, settingsSession, packageOperations, surface = 'settings', backToChat, chatPreview, t: translate }: WorkspaceProps) {
   const [language, setLanguage] = useState(() => document.documentElement.lang)
   const t = translate ?? fallbackSettingsCopy(language)
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
@@ -75,9 +77,10 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
     ?? choices[0]
   const managedChoice = choices.find(item => item.manifest.id === managedId) ?? choice
   const editorState = operationActive ? { ...state, saving: true } : state
-  const galleryEditor = useSkinEditor(choice, controller, settingsSession, editorState, { persistentDrafts: surface === 'appearance', previewAvailable: surface === 'settings' })
+  const editorOptions = { persistentDrafts: surface === 'appearance', previewAvailable: surface === 'settings', chatPreview }
+  const galleryEditor = useSkinEditor(choice, controller, settingsSession, editorState, editorOptions)
   const alternateEditor = useSkinEditor(activePage === 'effectsPage' && effectsChoice !== choice ? effectsChoice : undefined,
-    controller, settingsSession, editorState, { persistentDrafts: surface === 'appearance', previewAvailable: surface === 'settings' })
+    controller, settingsSession, editorState, editorOptions)
   const effectsEditor = effectsChoice === choice ? galleryEditor : alternateEditor
 
   const displayName = (manifest: { name: string; nameEn?: string }) =>
@@ -190,7 +193,7 @@ export function SkinWorkspace({ controller, effects, getColorScheme, settingsSes
             onClick={() => void controller.apply(null)}>{t('restoreDefault')}</SettingsButton>
         </div>
       </header>
-      {surface === 'appearance' ? <p role="note">{t('appearancePreviewPending')}</p> : null}
+      {surface === 'appearance' ? <p role="note">{t('chatPreviewHelp')}</p> : null}
       {state.preview ? <p role="status"><strong>{t('previewing')} · {name(state.preview)}</strong> · {t('previewExpiry')}</p> : null}
       <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving') : state.pending ? t('loading') : ''}</p>
       <PackageOperationStatus t={t} operations={operations} name={displayName} />

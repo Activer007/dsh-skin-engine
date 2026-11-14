@@ -5,13 +5,16 @@ import { SettingsButton } from './settings-controls.js'
 import type { createAppearanceSession } from './appearance-session.js'
 import { canActivate, type SkinChoice, type SkinData } from './skin-api.js'
 import type { createSkinSwitch } from './skin-switch.js'
+import type { ChatPreview } from './chat-preview.js'
 
 type Controller = ReturnType<typeof createSkinSwitch>
 type Session = ReturnType<typeof createAppearanceSession>
 type Snapshot = ReturnType<Controller['getSnapshot']>
 
-export function useSkinEditor(choice: SkinChoice | undefined, controller: Controller, session: Session, state: Snapshot, options: { persistentDrafts?: boolean; previewAvailable?: boolean } = {}) {
-  const { persistentDrafts = false, previewAvailable = true } = options
+export function useSkinEditor(choice: SkinChoice | undefined, controller: Controller, session: Session, state: Snapshot, options: {
+  persistentDrafts?: boolean; previewAvailable?: boolean; chatPreview?: ChatPreview['start']
+} = {}) {
+  const { persistentDrafts = false, previewAvailable = true, chatPreview } = options
   const chatHidden = Boolean(document.querySelector('[data-slot="main"] [data-dsh-skin-appearance]'))
   const [loaded, setLoaded] = useState<{ choice: SkinChoice; data?: SkinData; error?: string }>()
   const blocked = Boolean(choice && (choice.compatibility || !canActivate(choice)))
@@ -68,9 +71,11 @@ export function useSkinEditor(choice: SkinChoice | undefined, controller: Contro
     if (controller.getSnapshot().preview === id) void controller.cancelPreview()
   }
 
-  return { persistentDrafts, previewAvailable, chatHidden, blocked, result, draft, values, busy, disabled, packageChanged, stale, previewBlock, applyBlock, applied, edit, apply, reviewDraft,
+  return { persistentDrafts, previewAvailable, chatPreview, chatHidden, blocked, result, draft, values, busy, disabled, packageChanged, stale, previewBlock, applyBlock, applied, edit, apply, reviewDraft,
     discard, preview: () => {
-      if (id && previewAvailable && !document.querySelector('[data-slot="main"] [data-dsh-skin-appearance]')) {
+      if (id && choice && chatPreview && revision !== undefined && !stale) {
+        void chatPreview({ id, draft, packageRevision: choice.revision, profileRevision: revision })
+      } else if (id && previewAvailable && !document.querySelector('[data-slot="main"] [data-dsh-skin-appearance]')) {
         void controller.preview(id, draft)
       }
     } }
@@ -94,6 +99,8 @@ export function SkinEditorActions({ t, editor, appearance, canDiscard = false }:
     <div className="dsh-skin-actions">
       {editor.previewAvailable ? <SettingsButton disabled={disabled || packageChanged || editor.chatHidden || Boolean(previewBlock)} aria-describedby={statusId}
         onClick={editor.preview}>{t('preview')}</SettingsButton> : null}
+      {editor.chatPreview ? <SettingsButton disabled={disabled || stale || Boolean(previewBlock)} aria-describedby={statusId}
+        onClick={editor.preview}>{t('chatPreview')}</SettingsButton> : null}
       <SettingsButton primary disabled={disabled || stale || Boolean(applyBlock)} aria-describedby={statusId}
         onClick={() => void editor.apply()}>{t('apply')}</SettingsButton>
       {canDiscard && draft ? <button type="button" disabled={busy} onClick={editor.discard}>{t('discard')}</button> : null}

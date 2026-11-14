@@ -26,6 +26,7 @@ interface SwitchState {
   rendered: string | null
   preview: string | null
   pending: OperationKind | null
+  pendingPreviewOwner?: symbol
   saving: boolean
   notice: string
 }
@@ -156,19 +157,19 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     if (state.preview !== null) publish({ preview: null })
   }
 
-  function begin(kind: OperationKind) {
+  function begin(kind: OperationKind, pendingPreviewOwner?: symbol) {
     operation?.abort()
     failedRender = undefined
     clearTimeout(timer)
     operation = new AbortController()
-    publish({ pending: kind, notice: '' })
+    publish({ pending: kind, pendingPreviewOwner, notice: '' })
     return operation.signal
   }
 
   function finish(signal: AbortSignal) {
     if (operation?.signal !== signal) return
     operation = undefined
-    publish({ pending: null, saving: false })
+    publish({ pending: null, pendingPreviewOwner: undefined, saving: false })
     if (catalogueRefreshQueued) {
       const queued = catalogueRefreshQueued
       catalogueRefreshQueued = false
@@ -232,7 +233,7 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     }
   }
 
-  async function refresh(reloadChoices: boolean | 'force' = false) {
+  async function refresh(reloadChoices: boolean | 'force' = false, previewNotice?: string) {
     if (disposed) return
     if (state.saving) {
       if (reloadChoices && catalogueRefreshQueued !== 'force') catalogueRefreshQueued = reloadChoices
@@ -250,6 +251,7 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
       else publish({ catalogueNotice: describe(catalogue.reason) })
       if (saved.status === 'rejected') throw saved.reason
       await adopt(saved.value, signal)
+      if (!signal.aborted && previewNotice && !state.notice) publish({ notice: previewNotice })
     } catch (error) {
       if (signal.aborted) return
       committed = null
@@ -264,9 +266,10 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     if (preview || state.pending === 'preview') return refresh()
   }
 
-  async function select(id: string | null, kind: 'preview' | 'apply', draft?: PreferenceDraft) {
+  async function select(id: string | null, kind: 'preview' | 'apply', draft?: PreferenceDraft,
+    canPreview?: () => boolean, owner?: symbol) {
     if (disposed || state.saving || !state.saved) return
-    const signal = begin(kind)
+    const signal = begin(kind, owner)
     const expected = draft?.revision ?? state.saved.revision
     const preferences = draft ? draft.value ?? undefined : id ? preferencesFor(state.saved.preferences, id) : undefined
     let undoAppearance: (() => void) | undefined
@@ -278,6 +281,7 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     try {
       const candidate = await prepare(id, preferences, signal)
       signal.throwIfAborted()
+      if (canPreview && !canPreview()) throw new Error('Chat preview is no longer available.')
       if (kind === 'apply' && candidate) {
         const reason = blockReason(candidate.choice, 'apply')
         if (reason) throw new Error(reason)
@@ -336,7 +340,8 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     getAppearanceBlock: blockReason,
     refresh,
     loadDetails,
-    preview: (id: string, draft?: PreferenceDraft) => select(id, 'preview', draft),
+    preview: (id: string, draft?: PreferenceDraft, canPreview?: () => boolean, owner?: symbol) =>
+      select(id, 'preview', draft, canPreview, owner),
     apply: (id: string | null, draft?: PreferenceDraft) => select(id, 'apply', draft),
     cancelPreview,
     appearanceChanged() {
@@ -344,7 +349,7 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
       const affected = active?.skin ?? preview ?? committed
       const reason = affected ? blockReason(affected.choice) : undefined
       if (reason) {
-        if (preview || state.pending === 'preview') { void cancelPreview(); return }
+        if (preview || state.pending === 'preview') { void refresh(false, reason); return }
         render(null)
         publish({ notice: reason })
       } else if (!active && !state.pending) {
