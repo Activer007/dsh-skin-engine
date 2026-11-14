@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "candidate": "",
+  "archive": "",
+  "archiveSha256": "",
+  "dependencies": {
+    "NAV05": {
+      "status": "merged",
+      "commit": "67cf4c8cebbbdd2517247300ab356fae0ea0dbc9"
+    },
+    "SYS01": {
+      "status": "merged",
+      "commit": "30830bf5fb156a45896850802aebb7f2a71f5baa"
+    }
+  },
+  "review": {
+    "status": "pending",
+    "candidate": "",
+    "evidence": []
+  },
+  "exceptions": [
+    "最终候选双端集成未执行"
+  ],
+  "runs": {
+    "web": {
+      "candidate": "",
+      "archiveSha256": "",
+      "hostVersion": "0.2.2-rc.1",
+      "checks": {
+        "navigation": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "state": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "preview": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "packages": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "usability": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "coexistence": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "performance": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "cleanup": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        }
+      }
+    },
+    "windows": {
+      "candidate": "",
+      "archiveSha256": "",
+      "hostVersion": "0.2.2-rc.1",
+      "checks": {
+        "navigation": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "state": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "preview": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "packages": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "usability": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "coexistence": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "performance": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        },
+        "cleanup": {
+          "status": "pending",
+          "notes": "",
+          "evidence": []
+        }
+      }
+    }
+  }
+}

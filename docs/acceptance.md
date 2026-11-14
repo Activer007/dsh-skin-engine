@@ -63,6 +63,10 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite system-settings` 验收 SYS-01 后的界面。它核对原生设置宽度、窗口特效、诊断、预览取消和确认恢复，并在外观中心核对三页、草稿及 ZIP 导入。下方使用旧设置图库的专项仍可用对应的历史归档复跑。 [SYS-01 验收台账](appearance-center-stage1.md#sys-01-设置瘦身)
 
+`--suite navigation-release --candidate <完整 Git SHA>` 在同一隔离 Profile 中串接精简设置、外观中心导航、真实聊天预览、Host 修订冲突、ZIP 事务、重启、目录抽样和停用清理。传入对应提交的预构建包。Windows 导出写入本轮隔离的 Downloads，Web 保存浏览器下载。最终结果仍需对照 [NAV-06 矩阵](navigation-release-guide.md#最终同候选矩阵) 逐项人工核对，特别是外部插件共存。
+
+Web 前后台绘制另用 `--suite navigation-visibility --candidate <完整 Git SHA>`，以本机 Chrome 的标签切换或窗口最小化验证文档进入后台。沿用集成实测的候选归档和宿主版本。
+
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 
 `--suite catalogue-cache` 在两端记录 10/100 包的冷扫描、热读和缩略图请求，并核对更新、回滚与卸载后的预览失效。 [缓存行为与专项记录](catalogue-cache.md)

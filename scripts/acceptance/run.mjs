@@ -7,6 +7,7 @@ import { parseArgs } from 'node:util'
 import { settings, switchSkins } from './browser.mjs'
 import { checkAppearanceNavigation } from './appearance-navigation.mjs'
 import { checkSystemSettings } from './system-settings.mjs'
+import { checkNavigationReleaseHost, checkNavigationRestart, checkNavigationCatalogue, checkNavigationVisibility } from './navigation-release.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
 import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
@@ -43,6 +44,7 @@ const { values: options } = parseArgs({ options: {
   chrome: { type: 'string' },
   'desktop-exe': { type: 'string' },
   'desktop-disable-occlusion': { type: 'boolean', default: false },
+  candidate: { type: 'string' },
   output: { type: 'string', default: '.cache/acceptance' },
   suite: { type: 'string', default: 'all' },
   switches: { type: 'string', default: '20' },
@@ -66,7 +68,9 @@ const ambientPreferences = options.suite === 'ambient-preferences'
 const settingsIntegration = options.suite === 'settings-integration'
 const settingsLocale = settingsIntegration || options.suite === 'settings-locale'
 const navigation = options.suite === 'settings-navigation'
-const systemSettings = options.suite === 'system-settings'
+const navigationRelease = options.suite === 'navigation-release'
+const navigationVisibility = options.suite === 'navigation-visibility'
+const systemSettings = navigationRelease || navigationVisibility || options.suite === 'system-settings'
 const settingsState = navigation || settingsIntegration || options.suite === 'settings-state'
 const settingsTabs = settingsIntegration || options.suite === 'settings-tabs'
 const settingsGallery = settingsIntegration || options.suite === 'settings-gallery'
@@ -126,9 +130,18 @@ async function enter(open, lifecycle, appearance, loading) {
   session = await open(lifecycle, loading && holdInitialCatalogue)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
   if (navigation || systemSettings) {
-    run.consoleErrors = []
+    run.consoleErrors ??= []
     session.page.on('console', message => {
       if (message.type() === 'error') run.consoleErrors.push(redact(message.text()))
+    })
+  }
+  if (navigationRelease || navigationVisibility) {
+    run.skinRequestFailures ??= []
+    session.page.on('requestfailed', request => {
+      const path = new URL(request.url()).pathname
+      if (path.startsWith('/api/dsh-skin-engine/')) {
+        run.skinRequestFailures.push({ path, error: redact(request.failure()?.errorText ?? '') })
+      }
     })
   }
   if ((tokens || dual || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache || characters) && desktop) await session.show()
@@ -141,6 +154,14 @@ try {
   const firstArchive = upgrade ? resolve(options['from-archive']) : options.archive
   const firstArtifact = upgrade ? await identify(firstArchive, run.hostVersion) : run.artifact
   if (interruption) run.gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+  if (navigationRelease || navigationVisibility) {
+    assert(/^[a-f0-9]{40}$/.test(options.candidate ?? ''), 'Pass the full candidate SHA with --candidate')
+    assert.equal(execFileSync('git', ['rev-parse', '--verify', `${options.candidate}^{commit}`], { encoding: 'utf8' }).trim(), options.candidate)
+    for (const dependency of ['67cf4c8cebbbdd2517247300ab356fae0ea0dbc9', '30830bf5fb156a45896850802aebb7f2a71f5baa']) {
+      execFileSync('git', ['merge-base', '--is-ancestor', dependency, options.candidate])
+    }
+    run.candidate = options.candidate
+  }
   const { open, install, installLocalBundle, profileDir } = await prepareHost(
     { ...options, archive: firstArchive, signal: interruption?.signal }, directory, firstArtifact, run.web,
   )
@@ -242,9 +263,25 @@ try {
     console.log('Verified native appearance entry, locale and active panel disposal')
   }
   if (systemSettings) {
-    ui = await enter(open, false)
-    run.systemSettings = {}
-    await checkSystemSettings(ui, session, directory, run.systemSettings)
+    ui = await enter(open, navigationVisibility && !desktop)
+    if (navigationVisibility) {
+      run.navigationRelease = {}
+      await checkNavigationVisibility(ui, session, run.navigationRelease)
+    } else {
+      run.systemSettings = {}
+      await checkSystemSettings(ui, session, directory, run.systemSettings, { importFixture: !navigationRelease })
+    }
+    if (navigationRelease) {
+      run.navigationRelease = {}
+      const result = await checkNavigationReleaseHost(ui, session, directory, run.navigationRelease)
+      run.preRestartHostLog = session.logs()
+      await session.close()
+      assert(!session.browser.isConnected())
+      ui = await enter(open, false, null)
+      await checkNavigationRestart(ui, result, directory, run.navigationRelease)
+      await checkNavigationCatalogue(ui, profileDir, run.navigationRelease)
+      if (desktop) assert(!run.navigationRelease.windowDraws?.error, run.navigationRelease.windowDraws?.error)
+    }
     run.hostLog = session.logs()
     interruption.signal.throwIfAborted()
     console.log('Verified system settings, Appearance Center and emergency recovery')
@@ -397,6 +434,11 @@ try {
       rootInert: document.getElementById('root')?.inert,
       dialogs: [...document.querySelectorAll('[role="dialog"]')].map(dialog => dialog.querySelector('h1,h2,h3')?.textContent),
     })).catch(() => null)
+    if (navigationRelease) {
+      await session.page.screenshot({ path: join(directory, 'failure.png'), timeout: 5000 }).catch(() => {})
+      run.sidebarControls = await session.page.getByRole('button').evaluateAll(buttons =>
+        buttons.map(button => button.getAttribute('aria-label')).filter(label => /sidebar|侧边栏/i.test(label ?? ''))).catch(() => [])
+    }
   }
   console.error(run.error)
   process.exitCode = 1

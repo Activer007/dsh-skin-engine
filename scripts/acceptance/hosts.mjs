@@ -136,7 +136,8 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   const profileDir = join(home, 'profiles', profile)
   const userData = join(directory, 'electron-user-data')
   const isolatedRenderer = ['catalogue-cache', 'character-samples'].includes(options.suite)
-  const settingsSuite = options.suite.startsWith('settings-')
+  const navigationSuite = ['navigation-release', 'navigation-visibility'].includes(options.suite)
+  const settingsSuite = options.suite.startsWith('settings-') || navigationSuite
 
   async function startDesktop(lifecycle, userDirectory = userData) {
     const cdp = await port()
@@ -224,7 +225,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       const app = await startDesktop(lifecycle)
       try {
         await app.ready()
-        if (['settings-packages', 'settings-integration'].includes(options.suite)) {
+        if (['settings-packages', 'settings-integration', 'navigation-release'].includes(options.suite)) {
           await mkdir(join(directory, 'downloads'), { recursive: true })
           await app.invoke('downloads')
         }
@@ -262,7 +263,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       attempt.origin = new URL(launchUrl).origin
       attempt.stage = 'browser'
       let page
-      if (lifecycle || isolatedRenderer) {
+      if ((lifecycle && options.suite !== 'navigation-release') || isolatedRenderer) {
         const cdp = await port()
         nativeChrome = launch(resolve(options.chrome), [
           `--user-data-dir=${join(directory, 'chrome-user-data')}`, `--remote-debugging-port=${cdp}`,
@@ -281,7 +282,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       } else {
         browser = await chromium.launch({
           executablePath: resolve(options.chrome),
-          headless: settingsSuite || ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance', 'artwork', 'scenes', 'scene-previews',
+          headless: (settingsSuite && !navigationSuite) || ['packages', 'package-update', 'static-sample', 'css-sample', 'appearance', 'artwork', 'scenes', 'scene-previews',
             'tokens', 'dual-appearance', 'scene-motion', 'ambient-preferences'].includes(options.suite),
           ...(signal ? { handleSIGINT: false, handleSIGTERM: false } : {}),
           ignoreDefaultArgs: ['--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling'],
@@ -299,7 +300,37 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       assert(response?.ok(), `Isolated Web navigation returned HTTP ${attempt.httpStatus ?? 'unknown'}`)
       signal?.throwIfAborted()
       attempt.stage = 'ready'
-      return { browser, page, logs: app.logs, close, resize: (width, height) => page.setViewportSize({ width, height }) }
+      let backgroundTab
+      let restoreWindow
+      return { browser, page, logs: app.logs, close, resize: (width, height) => page.setViewportSize({ width, height }),
+        ...(lifecycle && {
+          async hide() {
+            backgroundTab = await page.context().newPage()
+            await backgroundTab.bringToFront()
+            if (await page.evaluate(() => document.visibilityState) === 'visible') {
+              const target = await page.context().newCDPSession(page)
+              const { targetInfo } = await target.send('Target.getTargetInfo')
+              const { windowId } = await target.send('Browser.getWindowForTarget', { targetId: targetInfo.targetId })
+              restoreWindow = async () => {
+                try { await target.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'normal' } }) }
+                finally { await target.detach() }
+              }
+              await target.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'minimized' } })
+            }
+          },
+          async show() {
+            await restoreWindow?.()
+            restoreWindow = undefined
+            await backgroundTab?.close()
+            backgroundTab = undefined
+            await page.bringToFront()
+          },
+        }),
+        async openPeer() {
+          const peer = await page.context().newPage()
+          try { await peer.goto(attempt.origin); return peer }
+          catch (error) { await peer.close(); throw error }
+        } }
     } catch (error) {
       attempt.failed = true
       attempt.exitBeforeCleanup = { code: app.child.exitCode, signal: app.child.signalCode }

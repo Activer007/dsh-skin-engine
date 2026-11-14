@@ -112,3 +112,7 @@
 - 实现提交 `0b90482dba88a99333de2a7744b2e042c0fdf5c6`。本地 `npm run typecheck`、`npm run lint`、`npm pack` 及 21 项导航、会话、皮肤切换和诊断定向测试通过。
 - 官方 DSH `0.2.2-rc.1` Web 与 Windows Desktop 使用同一归档（SHA-256 `b5bf8cd7a7bff55eb56bd00e66ff1ce2e168e5201cb4f5dba973251c671dc493`）。通过中英文设置、窗口模式及质量、Host 检查、关闭设置后预览保留、显式取消、二次确认恢复且偏好保留、外观中心草稿与 ZIP 导入。常规视口两个设置弹窗均为 800 CSS 像素宽，窄窗无横向溢出。
 - Web 截图和结果在 `.cache/sys-01/verified/web-Cuznhp/`，Windows Desktop 在 `.cache/sys-01/verified/desktop-ZfQL09/`。两端无未捕获页面异常。Desktop 记录了一条通用资源加载错误，隔离宿主均已退出。
+
+## NAV-06 集成准备
+
+NAV-05（PR #47）与 SYS-01（PR #48）已合入主线。正式出口仍需固定一个包含两项合并的候选，对同一份包执行官方 Web 和 Windows Desktop 集成矩阵，并核对实际证据。 [迁移手册与验收矩阵](navigation-release-guide.md) · [证据索引模板](navigation-release-evidence.json)

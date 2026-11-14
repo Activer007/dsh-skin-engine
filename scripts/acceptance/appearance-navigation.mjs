@@ -151,7 +151,7 @@ export async function checkAppearanceNavigation(ui, session, profileDir, directo
 }
 
 /** The same application-level operation continues while its initiating panel is absent. */
-async function checkMainPackageNavigation(ui, main, launcher, evidence) {
+export async function checkMainPackageNavigation(ui, main, launcher, evidence, exportPackage) {
   const { page, activate } = ui
   const [first, update] = await packageVersionPair()
   await activate(main.getByRole('tab', { name: 'Skin management', exact: true }))
@@ -212,6 +212,7 @@ async function checkMainPackageNavigation(ui, main, launcher, evidence) {
   await activate(actions.getByRole('button', { name: /Roll back/, exact: false }))
   await activate(actions.getByRole('button', { name: 'Confirm rollback', exact: true }))
   await main.getByRole('status').filter({ hasText: /rolled back/ }).waitFor()
+  if (exportPackage) evidence.export = await exportPackage(actions)
   await activate(actions.getByRole('button', { name: 'Uninstall…', exact: true }))
   await activate(actions.getByRole('button', { name: 'Confirm uninstall', exact: true }))
   await main.getByRole('status').filter({ hasText: 'Skin uninstalled.' }).waitFor()

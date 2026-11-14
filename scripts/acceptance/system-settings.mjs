@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { deepOcean } from './browser.mjs'
 import { packageVersionPair, versionedSkin } from '../../test/fixtures/package-versions.mjs'
 
-export async function checkSystemSettings(ui, session, directory, evidence) {
+export async function checkSystemSettings(ui, session, directory, evidence, { importFixture = true } = {}) {
   const { page, panel, activate, button, selection, waitForSkin } = ui
   const composition = page.locator('[data-composer-input]:visible')
   const main = page.locator('[data-dsh-skin-appearance]')
@@ -48,15 +48,17 @@ export async function checkSystemSettings(ui, session, directory, evidence) {
   const quality = main.getByRole('combobox', { name: 'Skin effect quality' })
   assert.equal(await main.getByRole('combobox', { name: 'Effects in this window' }).count(), 0)
   await quality.selectOption('high')
-  await activate(main.getByRole('tab', { name: 'Skin management' }))
-  const [archive] = await packageVersionPair()
-  await main.getByLabel('Import .dshskin.zip', { exact: true }).setInputFiles({
-    name: 'sys-01.dshskin.zip', mimeType: 'application/zip', buffer: archive,
-  })
-  await main.locator(`[data-package-id="${versionedSkin.id}"]`).waitFor()
-  await main.getByRole('status').filter({ hasText: 'Skin installed.' }).waitFor()
-  await activate(main.getByRole('tab', { name: 'Effects & performance' }))
-  await main.getByRole('combobox', { name: 'Skin to edit' }).selectOption(deepOcean.id)
+  if (importFixture) {
+    await activate(main.getByRole('tab', { name: 'Skin management' }))
+    const [archive] = await packageVersionPair()
+    await main.getByLabel('Import .dshskin.zip', { exact: true }).setInputFiles({
+      name: 'sys-01.dshskin.zip', mimeType: 'application/zip', buffer: archive,
+    })
+    await main.locator(`[data-package-id="${versionedSkin.id}"]`).waitFor()
+    await main.getByRole('status').filter({ hasText: 'Skin installed.' }).waitFor()
+    await activate(main.getByRole('tab', { name: 'Effects & performance' }))
+    await main.getByRole('combobox', { name: 'Skin to edit' }).selectOption(deepOcean.id)
+  }
   assert.equal(await quality.inputValue(), 'high')
   await activate(button(main, 'Preview in chat'))
   await preview.getByRole('button', { name: 'Apply', exact: true }).waitFor()
@@ -107,6 +109,6 @@ export async function checkSystemSettings(ui, session, directory, evidence) {
   evidence.checks = {
     englishAndChinese: true, nativeWidth: true, hostDiagnostics: true, windowModeAndQuality: true,
     settingsClosePreservesPreview: true, emergencyCancel: true, confirmedRestore: true,
-    skinPreferencesKept: true, appearancePages: true, appearanceZipImport: true, draftSurvivesNavigation: true,
+    skinPreferencesKept: true, appearancePages: true, ...(importFixture && { appearanceZipImport: true }), draftSurvivesNavigation: true,
   }
 }
