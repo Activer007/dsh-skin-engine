@@ -12,6 +12,11 @@ const skin = { id: 'example.effects-runtime', name: 'Effects Runtime Acceptance'
 const demo = { id: 'example.ambient-provider', name: 'Ambient Light Provider' }
 const attribute = 'data-dsh-skin-effect-layer'
 const layers = value => `[${attribute}="${value}"]`
+const effectSwitch = (parent, name) => {
+  const options = name ? { name, exact: true } : {}
+  return parent.getByRole('switch', options).or(parent.getByRole('checkbox', options))
+}
+const isEffectEnabled = control => control.evaluate(node => node instanceof HTMLInputElement ? node.checked : node.getAttribute('aria-checked') === 'true')
 const canvas = layers('canvas')
 const refraction = layers('refraction')
 const fallback = layers('refraction-fallback')
@@ -117,9 +122,9 @@ export async function checkEffectsRuntime(session, ui, seconds, evidence, sample
     await open()
     await mode('dynamic')
     await choose(skin)
-    const toggle = (await ui.editSkinEffects(skin)).getByRole('checkbox', { name: 'Liquid Refraction', exact: true })
+    const toggle = effectSwitch(await ui.editSkinEffects(skin), 'Liquid Refraction')
     await toggle.press('Space')
-    assert(await toggle.isChecked())
+    assert(await isEffectEnabled(toggle))
     await apply(skin)
     await close()
     await page.locator(fallback).waitFor()
@@ -205,13 +210,13 @@ export async function checkSettingsEffects(ui, session, directory, evidence) {
   const effectiveQuality = windowEffects.locator('[data-dsh-skin-effective-quality]')
   const quality = controls.getByRole('combobox', { name: 'Skin effect quality' })
   const ambient = controls.getByRole('slider', { name: 'Ambient Light strength' })
-  const refractionToggle = controls.getByRole('checkbox', { name: 'Liquid Refraction' })
+  const refractionToggle = effectSwitch(controls, 'Liquid Refraction')
   await ambient.waitFor()
   assert.equal(await editor.inputValue(), skin.id)
   assert.deepEqual(await Promise.all(['Environment', 'Materials', 'Interaction'].map(group =>
-    controls.getByRole('group', { name: group, exact: true }).getByRole('checkbox').count())), [5, 3, 1])
+    effectSwitch(controls.getByRole('group', { name: group, exact: true })).count())), [5, 3, 1])
   assert.equal(await ambient.inputValue(), '64')
-  assert.equal(await refractionToggle.isChecked(), false)
+  assert.equal(await isEffectEnabled(refractionToggle), false)
   await quality.selectOption('low')
   await ambient.fill('50')
   await windowQuality.selectOption('high')
@@ -235,7 +240,7 @@ export async function checkSettingsEffects(ui, session, directory, evidence) {
     await windowEffects.getByText('Effects are off in this window.').waitFor()
     assert.equal(await effectiveQuality.count(), 0)
     assert(await windowQuality.isDisabled())
-    assert(await refractionToggle.isChecked())
+    assert(await isEffectEnabled(refractionToggle))
     await windowMode.selectOption('dynamic')
     await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
     await windowEffects.getByText('The system’s reduced motion setting limits animations.').waitFor()
@@ -339,7 +344,7 @@ export async function checkAmbientPreferences(ui, directory, profileDir, evidenc
   const oldControls = await ui.editSkinEffects(skin)
   const quality = oldControls.getByRole('combobox', { name: /^Skin effect quality/ })
   await quality.selectOption('low')
-  assert.equal(await oldControls.getByRole('checkbox', { name, exact: true }).count(), 0)
+  assert.equal(await effectSwitch(oldControls, name).count(), 0)
   await apply(skin)
   const before = await selection()
   assert.equal(before.preferences[skin.id].quality, 'low')
@@ -356,11 +361,11 @@ export async function checkAmbientPreferences(ui, directory, profileDir, evidenc
   await packages.install(`${demo.id}.dshskin.zip`, ambientZip)
   await choose(demo)
   const controls = await ui.editSkinEffects(demo)
-  const effect = controls.getByRole('checkbox', { name, exact: true })
+  const effect = effectSwitch(controls, name)
   const strength = controls.getByRole('slider', { name: `${name} strength` })
   await strength.waitFor()
   assert.equal(await strength.inputValue(), '64')
-  assert(await effect.isChecked())
+  assert(await isEffectEnabled(effect))
   await controls.getByRole('combobox', { name: /^Skin effect quality/ }).selectOption('high')
   evidence.intensities = []
   for (const [percent, expected] of [[0, 0], [50, 0.11], [100, 0.22]]) {
@@ -378,7 +383,7 @@ export async function checkAmbientPreferences(ui, directory, profileDir, evidenc
     await waitForSkin(skin.id)
   }
   await effect.press('Space')
-  assert.equal(await effect.isChecked(), false)
+  assert.equal(await isEffectEnabled(effect), false)
   assert(await strength.isDisabled())
   await apply(demo)
   assert.equal(await light.count(), 0)

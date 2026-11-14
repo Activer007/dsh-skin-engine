@@ -49,7 +49,7 @@ const [host, client] = await Promise.all([
     outfile: 'lib/client.js',
     bundle: true,
     metafile: true,
-    external: ['react', 'react/jsx-runtime'],
+    external: ['react', 'react/jsx-runtime', '@deepseek-ai/dsh-client-ui-primitives'],
     format: 'cjs',
     jsx: 'automatic',
     target: 'es2022',

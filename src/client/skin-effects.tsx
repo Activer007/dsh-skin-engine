@@ -4,6 +4,7 @@ import { effectStrength, qualityLevels, type EditableEffect, type QualityChoice,
 import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
 import type { ScenePreset } from './scene/presets.js'
 import type { TranslateSettings } from './settings-copy.js'
+import { SettingsSwitch } from './settings-controls.js'
 import type { SkinChoice } from './skin-api.js'
 import { SkinEditorActions, type SkinEditor } from './skin-editor.js'
 
@@ -126,7 +127,7 @@ export function SkinEffects({ t, choice, editor, displayName }: {
                   edit({ ...values, effects: { ...values.effects, [id]: { ...override, ...change } } })
                 }
                 return <li key={id}>
-                  <label><input type="checkbox" checked={enabled} onChange={event => update({ enabled: event.currentTarget.checked })} />{name}</label>
+                  <SettingsSwitch checked={enabled} label={name} onChange={enabled => update({ enabled })} />
                   <label>
                     {magnitude}
                     <input type="range" aria-label={t('strength', { name })} aria-valuetext={magnitude} min={0} max={100} step={1} value={value}

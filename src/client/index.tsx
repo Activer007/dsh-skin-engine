@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react'
+import { registerAppearanceNavigation, type AppearanceSlots } from './appearance-navigation.js'
 import { observeAppearance } from '../adapter/coexistence.js'
 import { createSkinTheme, SKIN_ATTRIBUTE, type ThemeService } from '../adapter/skin-theme.js'
 import type { PreparedArtwork } from '../shared/skins.js'
@@ -6,7 +6,7 @@ import { createEffectsRuntime } from './effects/p0.js'
 import { SETTINGS_LOCALE, settingsCopy, type TranslateSettings } from './settings-copy.js'
 import { createSettingsSession } from './settings-session.js'
 import { skinApi, type SkinData } from './skin-api.js'
-import { SkinPanel, type PanelProps } from './skin-panel.js'
+import { SkinPanel } from './skin-panel.js'
 import { createSkinSwitch } from './skin-switch.js'
 
 export { createSkinSwitch, createSkinTheme }
@@ -20,21 +20,12 @@ interface ClientContext {
     bind(namespace: string): TranslateSettings
     register(namespace: string, copy: typeof settingsCopy): () => void
   } | undefined
-  slots: {
-    inject(slot: string, register: () => void): unknown
-    register(options: {
-      name: string
-      id: string
-      order: number
-      label: string | (() => string)
-      locale?: string
-      inject: () => PanelProps
-    }, component: ComponentType<PanelProps>): unknown
-  }
+  slots: AppearanceSlots
+  layout: { selectPanel(panel: null): void }
   theme: ThemeService
 }
 
-export const inject = ['slots', 'theme']
+export const inject = ['slots', 'theme', 'layout', 'locale']
 
 export function apply(ctx: ClientContext): void {
   const theme = createSkinTheme(ctx.theme, document)
@@ -89,9 +80,12 @@ export function apply(ctx: ClientContext): void {
     queueMicrotask(controller.appearanceChanged)
   })
 
+  // Locale belongs to the plugin, not to the lifetime of the settings slot.
+  const locale = ctx.get?.('locale')
+  if (locale) ctx.effect(() => locale.register(SETTINGS_LOCALE, settingsCopy), 'skin-engine: settings locale')
+  registerAppearanceNavigation(ctx, locale?.bind(SETTINGS_LOCALE))
+
   ctx.slots.inject(SECTION, () => {
-    const locale = ctx.get?.('locale')
-    if (locale) ctx.effect(() => locale.register(SETTINGS_LOCALE, settingsCopy), 'skin-engine: settings locale')
     ctx.slots.register({
       name: SECTION, id: 'dsh-skin-engine', order: 125,
       label: locale ? () => locale.bind(SETTINGS_LOCALE)('title') : 'Skin Engine',

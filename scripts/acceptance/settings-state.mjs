@@ -104,5 +104,6 @@ export async function checkSettingsState(ui, directory, evidence, foreground) {
   assert.equal(await (await quality(deepOcean)).inputValue(), 'low')
   assert.equal(await button(panel, 'Cancel preview').count(), 0)
   await ui.apply(null)
+  await packages.remove(versionedSkin)
   evidence.settingsClosed = { discardedDraft: true, previewCancelled: true, defaultRestored: true }
 }

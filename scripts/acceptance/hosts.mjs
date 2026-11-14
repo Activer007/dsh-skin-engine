@@ -219,18 +219,22 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   await install(options.archive, artifact)
   if (diagnostics) diagnostics.installedArtifactVerified = true
 
-  async function open(lifecycle = false) {
+  async function open(lifecycle = false, beforeNavigation) {
     if (desktop) {
       const app = await startDesktop(lifecycle)
       try {
         await app.ready()
-        if (options.suite === 'settings-packages') {
+        if (['settings-packages', 'settings-integration'].includes(options.suite)) {
           await mkdir(join(directory, 'downloads'), { recursive: true })
           await app.invoke('downloads')
         }
         const browser = await chromium.connectOverCDP(app.url, { timeout: 20_000, noDefaults: true })
         const page = browser.contexts().flatMap(context => context.pages()).find(tab => tab.url().startsWith('dsh-app://app/'))
         assert(page, 'Missing Desktop renderer')
+        if (beforeNavigation) {
+          await beforeNavigation(page)
+          await page.reload()
+        }
         return { browser, page, logs: app.logs, hide: () => app.invoke('hide'), show: () => app.invoke('show'),
           resize: (width, height) => app.invoke('show', { width, height }),
           async close() {
@@ -288,6 +292,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       signal?.throwIfAborted()
       attempt.browserVersion = browser.version()
       attempt.stage = 'navigation'
+      await beforeNavigation?.(page)
       let response
       try { response = await page.goto(launchUrl) } catch { throw Error('Isolated Web navigation failed') }
       attempt.httpStatus = response?.status()

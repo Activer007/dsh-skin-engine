@@ -57,6 +57,10 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite settings-packages` 验证管理页、ZIP 导出、跨页上传、取消、更新、回滚和卸载。 [UI-07 专项记录](#ui-07-皮肤管理验收)
 
+`--suite settings-controls` 验证共享控件、明暗对比度、键盘焦点与高对比窄窗。 [UI-08 专项记录](#ui-08-宿主控件验收)
+
+`--suite settings-integration --sample-zip <晨昏观测 ZIP>` 在每端的一个隔离配置中运行设置专项和集成补测。 [UI-09 集成验收](#ui-09-设置面板集成验收)
+
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 
 `--suite catalogue-cache` 在两端记录 10/100 包的冷扫描、热读和缩略图请求，并核对更新、回滚与卸载后的预览失效。 [缓存行为与专项记录](catalogue-cache.md)
@@ -177,6 +181,43 @@ Auto Review 后，验收脚本按皮肤 ID 核对保存状态，兼容英文环�
 | Windows Desktop | 879 | 471 | `.cache/ui-07/recheck/desktop-K0qiCb/` |
 
 首个候选在 Desktop 未收到浏览器下载事件。改用 Desktop 原生文件保存接口后，在隔离下载目录核对实际 ZIP 字节。Web 继续由浏览器下载。另用同一最终包在官方 Web 复跑草稿与包修订冲突，结果为 `.cache/ui-07/recheck/web-MzkWOs/`。类型检查、lint 和 19 项包管理及目录定向测试通过。以上专项无未捕获页面异常，隔离进程已退出。
+
+## UI-08 宿主控件验收
+
+官方 DSH Web 和 Windows Desktop 0.2.2-rc.1 安装同一 1.8.2 tarball。构建提交 `9faefa791c09efdc29a7bdb54898577526c218cb`，SHA-256 `db41ce4f6cab07005da498b3a1df8b612e8da425200edbf0047cd0a67e5ec982`。复跑传入 `--suite settings-controls`。验收脚本提交 `fd370f43f08d84fe6ddf91f8b89739120d276da9` 修正 Shift+Tab 的起点，使用同一 tarball。
+
+| 平台 | 常规视口 | 窄视口及内容宽 | 证据目录 |
+| --- | --- | --- | --- |
+| Web | 1280 × 820 | 760 × 820，728 | `.cache/ui-08/recheck/web-GOaP4a/` |
+| Windows Desktop | 1280 × 820 | 760 × 820，471 | `.cache/ui-08/recheck/desktop-vC8b2O/` |
+
+双端确认使用 DSH 原生 36 像素按钮、页签和效果开关。方向键切页保留焦点，Space 切换开关后强度随之禁用或启用，高对比下开关边框及键盘焦点可见，窄窗无横向溢出，Escape 仍关闭宿主设置。主按钮深色和浅色文本对比度分别为 18.08:1 和 18.90:1。类型检查、lint 和 27 项定向本地测试通过，测试包含共享模块不可用时的 Client 装载。两端页面异常为空，隔离进程已退出。
+
+原语由宿主提供，模块许可证为 MIT。Client 文件比 UI-07 候选增加 2,462 字节，压缩包增加 436 字节。控件外观调整限定在插件设置区。 [共享模块研究](settings-ui-research.md#ui-r02--locale原生控件与键盘)
+
+## UI-09 设置面板集成验收
+
+Skin Engine 1.8.2 使用官方 DSH Web 与 Windows Desktop `0.2.2-rc.1` 完成集成验收。声明兼容范围为 `>=0.2.2-rc.1`。构建提交 `095b0d974e60082e6b0676dc612f4db6087e3ee0`，候选 tarball SHA-256 `2073d38119ddd217c384d3d1c0802b7a09113871fa0a2475165954b1470924db`。两端安装后核对实际 Host 与 Client 字节。晨昏观测样例 SHA-256 为 `476263b8cc6e7a4553e8b5372a0f35fa3b2a585d749f63558c0aea93ed628c9e`。
+
+| 平台 | 1280 × 820 内容宽 | 760 × 820 内容宽 | 预览到期 | 证据目录 |
+| --- | --- | --- | --- | --- |
+| Web | 884 | 728 | 30.260 秒 | `.cache/ui-09/final-host/web-Q54awd/` |
+| Windows Desktop | 879 | 471 | 30.033 秒 | `.cache/ui-09/final-host/desktop-FEPRSJ/` |
+
+Web 使用构建提交中的脚本。Windows Desktop 使用脚本提交 `9dbbb14f455db1061e995626be9f81ee978e7eb5`，增加释放加载夹具后的原生刷新。
+
+| 验收范围 | 双端结果 |
+| --- | --- |
+| UI-A01、A02、A07 · 效果 | 九项按声明分组，环境光默认 64%，50% 存为归一化 0.5。窗口覆盖即时生效且不写入 Profile，省电限制到 Low，关闭隐藏有效档位。折射须显式开启，WebGL 不可用时显示 CSS 回退。0/50/100 的原始参数映射由定向本地测试补充。 |
+| UI-A03–A06、UI-E02、E06 · 状态 | 筛选、切页及中英文切换保留编辑对象和草稿。预览可跨页取消并在真实 30 秒到期后恢复，保存修订保持不变。实际 409 和包修订变动保留草稿，经用户确认后恢复保存。 |
+| UI-A08、UI-E07 · 管理 | 旧格式 ZIP 导入及应用通过。切页时可继续查看更新和取消状态，取消回执丢失时回读原版本，成功更新和回滚均核对目录修订。Web 下载与 Desktop 原生保存的 ZIP 均可解读，卸载活动包恢复原生外观。 |
+| UI-E01 · 初次读取目录 | 暂缓 Host 目录响应，观察到三张静态占位及不可操作的筛选、导入。恢复后显示目录，正常切页不重新请求目录。 |
+| UI-E03–E05、E08 · 异常与让路 | 兼容筛选移除不兼容卡片并保留选中详情，未验证的本地包没有危险操作。真实 10 秒超时后可重试 Host 检查，两种受损图片均回退至 320 像素占位图。人物包实际解码浅深插画，切换 DSH 外观保留选择及偏好。外观冲突使用隔离主题所有者夹具，验证对方令牌保留、Skin Engine 让路和恢复。 |
+| UI-K01–K05 · 键盘和可访问性 | 键盘选择、预览、取消、应用及恢复默认、方向键和 Home/End、窄窗返回、Escape、回滚确认焦点及高对比开关均通过。深浅主按钮文字对比度分别为 18.08:1 和 18.90:1。窗口与草稿状态单独提示，滑块使用数值语义。 |
+
+每个目录包含 `result.json`、两种视口截图和主要错误态实拍。首轮两端的外观冲突断言读错宿主节点，后续从 DSH 实际写入令牌的 `document.body` 读回。Desktop 的加载夹具在截图后显式刷新目录，以恢复被延迟的启动请求。状态提示语义及无常驻 UI RAF 经源码复核。27 项定向本地测试、类型检查和 lint 通过。两端页面异常为空，报告记录浏览器已断开，验收后确认隔离 DSH、Web Host 和浏览器进程均已退出。发布级配对性能和长时间后台测试留到发布关口。
+
+复跑使用本页的平台参数，将 `--suite` 改为 `settings-integration` 并传入 `--sample-zip <example.twilight-shift.dshskin.zip>`。样例可按 [人物模板文档](character-author-templates.md#打包独立样例) 从仓库源码打包。
 
 ## v1.5.0 Web 外观专项 NEXT-01
 

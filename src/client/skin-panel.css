@@ -69,7 +69,7 @@
 [data-dsh-skin-engine] p[role="status"]:empty { display: none; }
 [data-dsh-skin-engine] .dsh-skin-muted { color: var(--dsw-alias-label-secondary, GrayText); }
 
-[data-dsh-skin-engine] :where(button, select, input[type="search"], input[type="color"], .dsh-skin-file-button) {
+[data-dsh-skin-engine] :where(button:not([data-dsh-skin-native-control], [data-dsh-skin-native-control] button), select, input[type="search"], input[type="color"], .dsh-skin-file-button) {
   font: inherit;
   color: inherit;
   background: var(--dsw-alias-settings-card-fill, Canvas);
@@ -83,7 +83,7 @@
 }
 
 [data-dsh-skin-engine] button:not(:disabled) { cursor: pointer; }
-[data-dsh-skin-engine] :is(button:disabled, select:disabled, .dsh-skin-file-button:has(input:disabled)) { opacity: 0.55; }
+[data-dsh-skin-engine] :is(button:disabled:not([data-dsh-skin-native-control], [data-dsh-skin-native-control] button), select:disabled, .dsh-skin-file-button:has(input:disabled)) { opacity: 0.55; }
 [data-dsh-skin-engine] :is(button, input, select, summary):focus-visible,
 [data-dsh-skin-engine] .dsh-skin-file-button:focus-within {
   outline: 2px solid var(--dsw-alias-label-primary, CanvasText);
@@ -109,6 +109,7 @@
 [data-dsh-skin-engine] .dsh-skin-fields label { display: grid; min-width: 0; gap: 4px; }
 [data-dsh-skin-engine] .dsh-skin-fields :is(input, select) { width: 100%; }
 [data-dsh-skin-engine] .dsh-skin-library .dsh-skin-fields { grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr)); }
+[data-dsh-skin-engine] .dsh-skin-filters { min-width: 0; margin: 0; padding: 0; border: 0; }
 
 [data-dsh-skin-engine] .dsh-skin-gallery-summary {
   display: flex;
@@ -149,6 +150,13 @@
   height: 100%;
   align-items: start;
   padding: 7px;
+}
+
+[data-dsh-skin-engine] .dsh-skin-gallery-skeleton {
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  border: 1px solid var(--dsw-alias-settings-card-stroke, GrayText);
+  background: var(--dsw-alias-bg-layer-3, Canvas);
 }
 
 [data-dsh-skin-engine] .dsh-skin-gallery button[aria-pressed="true"] {
@@ -204,7 +212,14 @@
   border-top: 1px solid var(--dsw-alias-settings-card-stroke, GrayText);
 }
 [data-dsh-skin-engine] .dsh-skin-effects label { display: flex; align-items: center; gap: 6px; max-width: 100%; }
+[data-dsh-skin-engine] .dsh-skin-setting-toggle { display: inline-flex; align-items: center; gap: 6px; }
 [data-dsh-skin-engine] .dsh-skin-effects input[type="range"] { width: min(95px, 30vw); }
+
+@media (forced-colors: active) {
+  [data-dsh-skin-engine] .dsh-skin-native-tabs [aria-selected="true"] { border: 1px solid Highlight; color: HighlightText; background: Highlight; }
+  [data-dsh-skin-engine] .dsh-skin-setting-toggle [role="switch"] { border: 1px solid ButtonText; }
+  [data-dsh-skin-engine] .dsh-skin-setting-toggle [aria-checked="true"] { border: 2px solid Highlight; }
+}
 
 [data-dsh-skin-engine] .dsh-skin-disclosure {
   min-width: 0;

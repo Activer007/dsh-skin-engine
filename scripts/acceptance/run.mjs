@@ -5,6 +5,7 @@ import { cpus, platform, release } from 'node:os'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import { settings, switchSkins } from './browser.mjs'
+import { checkAppearanceNavigation } from './appearance-navigation.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
 import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
@@ -18,9 +19,10 @@ import { checkSceneMotion } from './scene-motion.mjs'
 import { checkSceneSamples } from './scenes.mjs'
 import { checkSettingsLocale, installLocaleFixture } from './settings-locale.mjs'
 import { checkSettingsGallery } from './settings-gallery.mjs'
+import { checkSettingsIntegration, checkSettingsLoading, holdInitialCatalogue, seedSettingsIntegration } from './settings-integration.mjs'
 import { checkSettingsPackages } from './settings-packages.mjs'
 import { checkSettingsState } from './settings-state.mjs'
-import { checkSettingsTabs } from './settings-tabs.mjs'
+import { checkSettingsControls, checkSettingsTabs } from './settings-tabs.mjs'
 import { checkSurfaces, seedSurfaceHistory } from './surfaces.mjs'
 import { installTokenProbe } from './token-probe.mjs'
 import { checkTokens } from './tokens.mjs'
@@ -60,12 +62,15 @@ const appearance = options.suite === 'appearance'
 const dual = options.suite === 'dual-appearance'
 const effects = options.suite === 'effects-runtime'
 const ambientPreferences = options.suite === 'ambient-preferences'
-const settingsLocale = options.suite === 'settings-locale'
-const settingsState = options.suite === 'settings-state'
-const settingsTabs = options.suite === 'settings-tabs'
-const settingsGallery = options.suite === 'settings-gallery'
-const settingsEffects = options.suite === 'settings-effects'
-const settingsPackages = options.suite === 'settings-packages'
+const settingsIntegration = options.suite === 'settings-integration'
+const settingsLocale = settingsIntegration || options.suite === 'settings-locale'
+const navigation = options.suite === 'settings-navigation'
+const settingsState = navigation || settingsIntegration || options.suite === 'settings-state'
+const settingsTabs = settingsIntegration || options.suite === 'settings-tabs'
+const settingsGallery = settingsIntegration || options.suite === 'settings-gallery'
+const settingsEffects = settingsIntegration || options.suite === 'settings-effects'
+const settingsPackages = settingsIntegration || options.suite === 'settings-packages'
+const settingsControls = settingsIntegration || options.suite === 'settings-controls'
 const sceneMotion = options.suite === 'scene-motion'
 const artwork = options.suite === 'artwork'
 const tokens = options.suite === 'tokens'
@@ -73,7 +78,7 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || sceneMotion || options.suite === 'surfaces'
+assert(upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
 assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
@@ -98,7 +103,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const settingsChecks = settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages
+const settingsChecks = settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls
 const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
@@ -115,11 +120,17 @@ if (interruption) {
   process.on('SIGTERM', interrupt)
 }
 
-async function enter(open, lifecycle, appearance) {
-  session = await open(lifecycle)
+async function enter(open, lifecycle, appearance, loading) {
+  session = await open(lifecycle, loading && holdInitialCatalogue)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
+  if (navigation) {
+    run.consoleErrors = []
+    session.page.on('console', message => {
+      if (message.type() === 'error') run.consoleErrors.push(redact(message.text()))
+    })
+  }
   if ((tokens || dual || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache || characters) && desktop) await session.show()
-  return settings(session.page, desktop, appearance)
+  return settings(session.page, desktop, appearance, loading)
 }
 
 console.log(`Acceptance output: ${directory}`)
@@ -136,7 +147,18 @@ try {
     const ui = await enter(open, cssSample && appearance !== null, appearance)
     return { ui, foreground: session.show, hide: session.hide, browser: session.browser, resize: session.resize }
   }
-  if (includes('surfaces') || sample || artwork || scenes || characters || tokens || dual || sceneMotion) {
+  async function enterSettings() {
+    if (!settingsIntegration || !ui) {
+      const loading = settingsIntegration ? async context => {
+        run.settingsLoading = await checkSettingsLoading(context, directory)
+      } : undefined
+      ui = await enter(open, false, undefined, loading)
+      return ui
+    }
+    if (await ui.panel.isVisible()) await ui.close()
+    return ui
+  }
+  if (navigation || includes('surfaces') || sample || artwork || scenes || characters || tokens || dual || sceneMotion) {
     await seedSurfaceHistory(directory, profileDir, { bilingual: scenes || characters || sceneMotion, secondTurn: tokens })
   }
   if (tokens) {
@@ -145,6 +167,10 @@ try {
     run.tokens = {}
     await checkTokens(session, tokensUi, resolve(options['sample-dir']), profileDir, run.tokens)
     interruption.signal.throwIfAborted()
+  }
+  if (settingsIntegration) {
+    await seedSettingsIntegration(profileDir)
+    await installTokenProbe(directory, installLocalBundle)
   }
   if (dual) {
     run.dualAppearance = {}
@@ -193,46 +219,64 @@ try {
   }
   if (settingsLocale) {
     await installLocaleFixture(directory, installLocalBundle)
-    const localeUi = await enter(open, false)
+    const localeUi = await enterSettings()
     run.settingsLocale = {}
     await checkSettingsLocale(localeUi, session, directory, run.settingsLocale)
     interruption.signal.throwIfAborted()
     console.log('Verified host language switching without losing a draft or preview')
   }
   if (settingsState) {
-    const stateUi = await enter(open, false)
+    const stateUi = await enterSettings()
     run.settingsState = {}
     await checkSettingsState(stateUi, directory, run.settingsState, session.show)
     interruption.signal.throwIfAborted()
     console.log('Verified draft lifetime, native language change, and revision conflict recovery')
   }
+  if (navigation) {
+    run.navigation = {}
+    await checkAppearanceNavigation(ui, session, profileDir, directory, run.navigation)
+    run.hostLog = session.logs()
+    interruption.signal.throwIfAborted()
+    console.log('Verified native appearance entry, locale and active panel disposal')
+  }
   if (settingsTabs) {
-    const tabsUi = await enter(open, false)
+    const tabsUi = await enterSettings()
     run.settingsTabs = {}
     await checkSettingsTabs(tabsUi, session, directory, run.settingsTabs)
     interruption.signal.throwIfAborted()
     console.log('Verified keyboard tabs, responsive details, and cross-page preview')
   }
   if (settingsGallery) {
-    const galleryUi = await enter(open, false)
+    const galleryUi = await enterSettings()
     run.settingsGallery = {}
     await checkSettingsGallery(galleryUi, session, resolve(options['sample-zip']), directory, run.settingsGallery)
+    if (settingsIntegration) {
+      run.settingsIntegration = {}
+      await checkSettingsIntegration(galleryUi, session, resolve(options['sample-zip']), directory, run.settingsIntegration)
+    }
     interruption.signal.throwIfAborted()
     console.log('Verified the skin gallery, dual previews, and responsive details')
   }
   if (settingsEffects) {
-    const effectsUi = await enter(open, false)
+    const effectsUi = await enterSettings()
     run.settingsEffects = {}
     await checkSettingsEffects(effectsUi, session, directory, run.settingsEffects)
     interruption.signal.throwIfAborted()
     console.log('Verified all nine controls, preference scope, renderer fallback, and window modes')
   }
   if (settingsPackages) {
-    const packagesUi = await enter(open, false)
+    const packagesUi = await enterSettings()
     run.settingsPackages = {}
     await checkSettingsPackages(packagesUi, session, directory, run.settingsPackages)
     interruption.signal.throwIfAborted()
     console.log('Verified package actions, cross-page upload, cancellation, and Host readback')
+  }
+  if (settingsControls) {
+    const controlsUi = await enterSettings()
+    run.settingsControls = {}
+    await checkSettingsControls(controlsUi, session, directory, run.settingsControls)
+    interruption.signal.throwIfAborted()
+    console.log('Verified DSH primitives, keyboard focus, and light, dark and forced colors')
   }
   if (sceneMotion) {
     const motionUi = await enter(open, false)

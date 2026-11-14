@@ -22,6 +22,7 @@ async function clientArtifact(globals = {}) {
   })
   assert.equal(registered.id, 'dsh-plugin-skin-engine')
   const require = id => {
+    if (id === '@deepseek-ai/dsh-client-ui-primitives') throw new Error('The fixture does not load DSH primitives')
     assert(['react', 'react/jsx-runtime'].includes(id), id)
     return {}
   }
@@ -366,7 +367,7 @@ test('client installs the real settings slot and yields without removing foreign
     effect(setup) { cleanup = setup() },
     on(event, callback) { assert.equal(event, 'theme/change'); paletteChange = callback },
     slots: {
-      inject(slot, register) { assert.equal(slot, 'settings.section'); register() },
+      inject(slot, register) { if (slot === 'settings.section') register() },
       register(options) { controller = options.inject().controller },
     },
     theme: {

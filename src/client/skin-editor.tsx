@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react'
 import { preferencesFor, type SkinPreferences } from '../shared/preferences.js'
 import { settingsError, type TranslateSettings } from './settings-copy.js'
+import { SettingsButton } from './settings-controls.js'
 import type { createSettingsSession } from './settings-session.js'
 import { canActivate, type SkinChoice, type SkinData } from './skin-api.js'
 import type { createSkinSwitch } from './skin-switch.js'
@@ -85,10 +86,10 @@ export function SkinEditorActions({ t, editor, appearance, canDiscard = false }:
     {result?.error ? <p role="alert">{settingsError(t, result.error, 'readSkinFailed')}</p> : null}
     {!blocked && !result ? <p role="status">{t('loadingDetails')}</p> : null}
     <div className="dsh-skin-actions">
-      <button type="button" disabled={disabled || packageChanged || Boolean(previewBlock)} aria-describedby={statusId}
-        onClick={editor.preview}>{t('preview')}</button>
-      <button type="button" className="dsh-skin-primary" disabled={disabled || stale || Boolean(applyBlock)} aria-describedby={statusId}
-        onClick={() => void editor.apply()}>{t('apply')}</button>
+      <SettingsButton disabled={disabled || packageChanged || Boolean(previewBlock)} aria-describedby={statusId}
+        onClick={editor.preview}>{t('preview')}</SettingsButton>
+      <SettingsButton primary disabled={disabled || stale || Boolean(applyBlock)} aria-describedby={statusId}
+        onClick={() => void editor.apply()}>{t('apply')}</SettingsButton>
       {canDiscard && draft ? <button type="button" disabled={busy} onClick={editor.discard}>{t('discard')}</button> : null}
     </div>
     <p id={statusId} role="status">{activationStatus}</p>

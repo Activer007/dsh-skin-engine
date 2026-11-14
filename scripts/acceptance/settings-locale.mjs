@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { packageVersionPair } from '../../test/fixtures/package-versions.mjs'
+import { packageVersionPair, versionedSkin } from '../../test/fixtures/package-versions.mjs'
 import { deepOcean } from './browser.mjs'
 import { packagePanel } from './packages.mjs'
 
@@ -116,4 +116,5 @@ export async function checkSettingsLocale(ui, session, directory, evidence) {
   evidence.english = await measure()
   evidence.defaultRestored = true
   await page.screenshot({ path: join(directory, 'settings-en-1280.png'), scale: 'css' })
+  await packagePanel(ui).remove(versionedSkin)
 }

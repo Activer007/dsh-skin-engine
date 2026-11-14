@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { auditedSurfaceStyles } from '../adapter/surface-map.js'
 import { AUDIT_PATH, type AuditStatus } from '../shared/audit.js'
 import type { createEffectsRuntime } from './effects/p0.js'
@@ -7,6 +7,7 @@ import { usePackageOperations } from './package-operations.js'
 import { SkinEffects, WindowEffects } from './skin-effects.js'
 import { useSkinEditor } from './skin-editor.js'
 import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
+import { SettingsButton, SettingsTabs } from './settings-controls.js'
 import type { createSettingsSession } from './settings-session.js'
 import { SkinDetail } from './skin-detail.js'
 import { SkinPreviewImage } from './skin-preview-image.js'
@@ -55,6 +56,7 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
   const operationActive = Boolean(operations.action)
   const busy = state.saving || operationActive
   const detailId = useId()
+  const loadingGallery = state.catalogue === null && !state.catalogueNotice
   const choices = state.catalogue?.skins ?? []
   const tags = [...new Set(choices.flatMap(item => item.manifest.tags ?? []))].sort()
   const term = query.trim().toLowerCase()
@@ -95,19 +97,8 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
     }
   }, [activePage, effectsChoice, settingsSession])
 
-  function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    let next: number
-    switch (event.key) {
-      case 'ArrowLeft': next = (index + pages.length - 1) % pages.length; break
-      case 'ArrowRight': next = (index + 1) % pages.length; break
-      case 'Home': next = 0; break
-      case 'End': next = pages.length - 1; break
-      default: return
-    }
-    event.preventDefault()
-    const page = pages[next]!
-    setActivePage(page)
-    document.getElementById(`${tabId}-tab-${page}`)?.focus()
+  function makeTab(page: Page) {
+    return { value: page, label: t(page), id: `${tabId}-tab-${page}`, panelId: `${tabId}-page-${page}` }
   }
 
   useEffect(() => {
@@ -191,29 +182,26 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
         </div>
         <div className="dsh-skin-actions">
           {previewing ? (
-            <button type="button" disabled={busy} onClick={() => void controller.cancelPreview()}>{t('cancelPreview')}</button>
+            <SettingsButton disabled={busy} onClick={() => void controller.cancelPreview()}>{t('cancelPreview')}</SettingsButton>
           ) : null}
-          <button type="button" disabled={busy || state.saved === null || (!state.saved.skinId && !previewing)}
-            onClick={() => void controller.apply(null)}>{t('restoreDefault')}</button>
+          <SettingsButton disabled={busy || state.saved === null || (!state.saved.skinId && !previewing)}
+            onClick={() => void controller.apply(null)}>{t('restoreDefault')}</SettingsButton>
         </div>
       </header>
       {state.preview ? <p role="status"><strong>{t('previewing')} · {name(state.preview)}</strong> · {t('previewExpiry')}</p> : null}
       <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving') : state.pending ? t('loading') : ''}</p>
       <PackageOperationStatus t={t} operations={operations} name={displayName} />
       {state.catalogueNotice ? <p role="alert">{settingsError(t, state.catalogueNotice, 'error.selection')}</p> : null}
-      <div className="dsh-skin-tabs" role="tablist" aria-label={t('settingsPages')}>
-        {pages.map((page, index) => <button key={page} type="button" role="tab" id={`${tabId}-tab-${page}`}
-          aria-controls={`${tabId}-page-${page}`} aria-selected={activePage === page} tabIndex={activePage === page ? 0 : -1}
-          onClick={() => setActivePage(page)} onKeyDown={event => moveTab(event, index)}>{t(page)}</button>)}
-      </div>
+      <SettingsTabs<Page> items={[makeTab(pages[0]), makeTab(pages[1]), makeTab(pages[2])]} value={activePage}
+        label={t('settingsPages')} onChange={setActivePage} />
       <div className="dsh-skin-layout" role="tabpanel" id={`${tabId}-page-gallery`} aria-labelledby={`${tabId}-tab-gallery`}
         hidden={activePage !== 'gallery'} data-detail={showDetails && Boolean(choice)}>
         <section className="dsh-skin-library" aria-label={t('gallery')}>
           <header className="dsh-skin-library-header">
             <h3>{t('gallery')}</h3>
-            <button type="button" onClick={() => openManagement()}>{t('package.import')}</button>
+            <button type="button" disabled={loadingGallery} onClick={() => openManagement()}>{t('package.import')}</button>
           </header>
-          <div className="dsh-skin-fields">
+          <fieldset className="dsh-skin-fields dsh-skin-filters" disabled={loadingGallery}>
             <label>{t('search')}<input ref={searchInput} type="search" value={query} onChange={event => search(event.currentTarget.value)} /></label>
             <label>{t('tag')}
               <select value={tag} onChange={event => filterTag(event.currentTarget.value)}>
@@ -228,14 +216,16 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
                 <option value="local">{t('local')}</option>
               </select>
             </label>
-          </div>
+          </fieldset>
           <div className="dsh-skin-gallery-summary">
             {state.catalogue ? <span role="status">{visible.length ? t('galleryCount', { count: visible.length }) : t('noMatches')}</span> : null}
-            <label><input type="checkbox" checked={compatibleOnly} onChange={event => filterCompatibility(event.currentTarget.checked)} />{t('compatibleOnly')}</label>
+            <label><input type="checkbox" disabled={loadingGallery} checked={compatibleOnly} onChange={event => filterCompatibility(event.currentTarget.checked)} />{t('compatibleOnly')}</label>
             {filtersActive ? <button type="button" onClick={clearFilters}>{t('clearFilters')}</button> : null}
           </div>
           {choice && !visible.includes(choice) ? <p>{t('editingOutsideFilter', { name: displayName(choice.manifest) })}</p> : null}
-          <ul className="dsh-skin-gallery">
+          {loadingGallery ? <p role="status">{t('loadingGallery')}</p> : null}
+          <ul className="dsh-skin-gallery" aria-busy={loadingGallery}>
+            {loadingGallery ? [0, 1, 2].map(index => <li key={index} className="dsh-skin-gallery-skeleton" aria-hidden="true" />) : null}
             {visible.map(item => {
               const { manifest } = item
               const status = item.compatibility ? 'incompatible'
@@ -295,7 +285,7 @@ export function SkinPanel({ controller, effects, getColorScheme, settingsSession
         <section className="dsh-skin-detail" aria-label={t('package.list')}>
           <header className="dsh-skin-library-header">
             <h3>{t('package.list')}</h3>
-            <ImportSkin t={t} operations={operations} disabled={busy} />
+            <ImportSkin t={t} operations={operations} disabled={busy || loadingGallery} />
           </header>
           <ul className="dsh-skin-packages">
             {choices.map(item => {

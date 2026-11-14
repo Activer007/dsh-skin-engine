@@ -7,7 +7,7 @@ const canvas = 'canvas[data-dsh-skin-effect-layer="canvas"]'
 export const resources = '[data-dsh-skin-id],[data-dsh-skin-effect-scene],[data-dsh-skin-effect-layer],[data-dsh-skin-effect-surface],style[data-dsh-skin-effects-style]'
 const appearanceNames = { light: /^(浅色|Light)$/, dark: /^(深色|Dark)$/, system: /^(跟随系统|System)$/ }
 
-export async function settings(page, desktop, initialAppearance = 'dark') {
+export async function settings(page, desktop, initialAppearance = 'dark', beforeOpen) {
   page.setDefaultTimeout(24_000)
   const cdp = await page.context().newCDPSession(page)
   await page.bringToFront()
@@ -145,6 +145,7 @@ export async function settings(page, desktop, initialAppearance = 'dark') {
     return region
   }
 
+  await beforeOpen?.({ page, panel, open, close })
   await open()
   assert.equal(new URL(page.url()).protocol, desktop ? 'dsh-app:' : 'http:')
   assert.equal(await panel.count(), 1)

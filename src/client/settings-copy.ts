@@ -2,6 +2,9 @@ export const SETTINGS_LOCALE = 'dsh-skin-engine.settings'
 
 const en = {
   title: "Skin Engine",
+  appearanceCenter: "Appearance Center",
+  appearancePending: "The gallery, effects and package tools are still available in Settings → Skin Engine while this workspace is being built.",
+  backToChat: "Back to chat",
   clientVersion: "Client engine v{version}",
   saved: "Saved",
   showing: "Showing",
@@ -13,6 +16,7 @@ const en = {
   loading: "Loading…",
   previewExpiry: "Window preview · expires after 30 seconds.",
   gallery: "Skin gallery",
+  loadingGallery: "Loading the skin catalogue…",
   galleryCount: "Skins: {count}",
   compatibleOnly: "Compatible only",
   previewImageAppearance: "Preview image appearance",
@@ -201,6 +205,9 @@ type Values = Record<string, string | number>
 export type TranslateSettings = (key: Key, values?: Values) => string
 
 const zh: Record<Key, string> = {
+  appearanceCenter: "外观中心",
+  appearancePending: "皮肤库、特效和皮肤包工具目前仍在「设置 → 皮肤引擎」。",
+  backToChat: "返回聊天",
   title: "皮肤引擎",
   clientVersion: "客户端引擎 v{version}",
   saved: "已保存",
@@ -213,6 +220,7 @@ const zh: Record<Key, string> = {
   loading: "正在加载…",
   previewExpiry: "当前窗口预览，30 秒后自动结束。",
   gallery: "皮肤库",
+  loadingGallery: "正在读取皮肤目录…",
   galleryCount: "{count} 套皮肤",
   compatibleOnly: "仅显示兼容皮肤",
   previewImageAppearance: "预览图外观",
