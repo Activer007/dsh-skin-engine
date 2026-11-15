@@ -12,6 +12,8 @@ npm run verify:local -- trusted-commit <PR-head-SHA> .cache/local-verification
 
 脚本建立两份以 LF 检出的独立工作树，使用同一 Node 与 npm 版本，各自运行 `npm ci --ignore-scripts` 从锁文件安装依赖。第一份运行 `typecheck`、`lint` 和现有测试，打包时两份都执行构建。产物包括引擎 tarball、13 套内置样例、静墨、暖暮、三套场景、轻量视差、Starter、三套人物模板和三套独立人物 ZIP。脚本核对包内条目、素材字节和样例 ID，再比较两份产物的大小和 SHA-256，退出前移除临时工作树。需要核对历史字节时，使用对应提交的验证脚本、工具链和平台。
 
+若检出的提交含根目录 `README.md`，引擎归档清单也应包含该文件，npm 会在打包时自动收录。正式候选使用本流程生成的 LF 归档。在 Windows 工作树中直接运行 `npm pack` 时，CRLF 可能改变归档摘要，宿主测试记录应引用实际安装的摘要。
+
 每次运行创建唯一的 `verify-*` 目录。`result.json` 记录 Git 提交和树、平台、工具版本、插件及宿主版本、各检查结果和产物摘要。`first/` 和 `rebuilt/` 各保留候选包及 `SHA256SUMS.txt`。失败时按报告和对应日志定位。v1.5.0 的 Engine API 为 `1.0.0`，DSH 兼容版本为 `0.2.2-rc.1`。 [Engine API 定义](../src/core/manifest.ts)
 
 ## 登记真实 PR 的检查结果

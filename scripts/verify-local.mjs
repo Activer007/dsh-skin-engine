@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { execFileSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs'
 import { platform, release } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -99,6 +99,8 @@ async function packageFiles(label, source) {
     'package.json', 'cordis.patch.yml', 'lib/host.js', 'lib/client.js',
     'lib/THIRD-PARTY-NOTICES.txt', 'docs/release-asset-notes.md', 'docs/release-assets.json',
   ])
+  // npm includes the root README even when it is absent from package.json.files.
+  if (existsSync(join(source, 'README.md'))) files.add('README.md')
   const assets = readdirSync(join(source, 'lib/assets'))
   assert.equal(assets.length, 2)
   assert(assets.some(name => /^probe-[a-f0-9]{12}\.svg$/.test(name)))

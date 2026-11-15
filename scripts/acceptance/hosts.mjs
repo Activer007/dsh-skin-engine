@@ -136,7 +136,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   const profileDir = join(home, 'profiles', profile)
   const userData = join(directory, 'electron-user-data')
   const isolatedRenderer = ['catalogue-cache', 'character-samples'].includes(options.suite)
-  const navigationSuite = ['navigation-release', 'navigation-visibility'].includes(options.suite)
+  const navigationSuite = ['navigation-release', 'navigation-visibility', 'navigation-reliability', 'navigation-performance', 'navigation-uninstall', 'navigation-restore'].includes(options.suite)
   const settingsSuite = options.suite.startsWith('settings-') || navigationSuite || options.suite === 'gallery-preferences'
 
   async function startDesktop(lifecycle, userDirectory = userData) {
@@ -216,6 +216,13 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     for (const side of ['host', 'client']) {
       assert.equal(hash(await readFile(join(installed, 'lib', `${side}.js`))), expected[`${side}Sha256`], `Installed ${side} differs from the archive`)
     }
+  }
+  async function uninstall() {
+    command(executable, [...cli, 'plugin', '--profile', profile, 'remove', ...(desktop ? [] : ['-w']), packageName], cliEnv)
+    const manifest = JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'))
+    assert(!manifest.dsh?.profile?.bundles?.includes(packageName), 'The bundle is still enabled')
+    assert(!Object.hasOwn(manifest.dependencies ?? {}, packageName), 'The plugin dependency was not removed')
+    await assert.rejects(access(join(profileDir, 'node_modules', packageName)), { code: 'ENOENT' })
   }
   await install(options.archive, artifact)
   if (diagnostics) diagnostics.installedArtifactVerified = true
@@ -316,7 +323,9 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
                 finally { await target.detach() }
               }
               await target.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'minimized' } })
+              return 'Chrome native window minimize'
             }
+            return 'Chrome native tab switch'
           },
           async show() {
             await restoreWindow?.()
@@ -360,5 +369,5 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       })()
     }
   }
-  return { open, install, installLocalBundle, profileDir }
+  return { open, install, uninstall, installLocalBundle, profileDir }
 }

@@ -157,7 +157,7 @@ export async function settings(page, desktop, initialAppearance = 'dark', before
     await button(detail(deepOcean), 'Apply').waitFor()
   }
   await close()
-  return { cdp, page, panel, detail, card, button, activate, expand, open, openSkinSection, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding, switchLanguage, pageTab, showEffects, showGallery, editSkinEffects }
+  return { cdp, page, panel, detail, card, button, activate, expand, open, openSkinSection, close, choose, selection, waitForSkin, apply, mode, appearance, dismissOnboarding, switchLanguage, pageTab, showEffects, showGallery, editSkinEffects, systemOnly }
 }
 
 export async function switchSkins(ui, count) {
@@ -197,10 +197,26 @@ export async function switchSkins(ui, count) {
 }
 
 export async function showMode(ui, state, foreground) {
-  const { page, selection, open, close, apply, mode } = ui
-  await open()
+  const { page, selection, open, close, apply, mode, systemOnly } = ui
   const target = state === 'default' ? null : deepOcean
-  if ((await selection()).skinId !== (target?.id ?? null)) await apply(target)
+  const changeSkin = (await selection()).skinId !== (target?.id ?? null)
+  if (systemOnly && changeSkin && target) {
+    const main = page.locator('[data-dsh-skin-appearance]')
+    await ui.activate(page.getByRole('navigation', { name: 'Global panels' })
+      .getByRole('button', { name: 'Appearance Center', exact: true }))
+    await ui.activate(main.locator(`[data-skin-card="${target.id}"]`))
+    await ui.activate(ui.button(main, 'Apply'))
+    await main.locator(`[data-saved-skin="${target.id}"]`).waitFor()
+    await ui.activate(ui.button(main, 'Back to chat'))
+  }
+  await open()
+  if (changeSkin && !systemOnly) await apply(target)
+  if (changeSkin && systemOnly && !target) {
+    await ui.activate(ui.button(ui.panel, 'Restore Default'))
+    await ui.activate(ui.button(ui.panel, 'Confirm restore'))
+    await ui.panel.locator('[data-saved-skin=""]').waitFor()
+  }
+  await ui.waitForSkin(target?.id ?? null)
   await mode(state === 'static' ? 'off' : 'dynamic')
   await close()
   await foreground?.()

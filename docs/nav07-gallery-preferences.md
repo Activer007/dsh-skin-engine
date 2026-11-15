@@ -25,9 +25,15 @@
 - reload 后收藏/最近/排序保留；清最近保留收藏。
 - 中英文、窄屏与截图 `gallery-preferences-en.png`、`gallery-preferences-zh-760.png`。
 
-本地还需执行 `npm run verify:local`，核对新套件真实运行结果和 10/100 包真实渲染/懒加载；测试中的纯数据排序不等于 100 包 UI 性能验收。未跑的项目必须保留“未验”，不得沿用 NAV06 的旧候选证据作为 NAV07 通过证明。
+### 双端实测
 
-### 本次云端结果
+PR #52 最终候选 `5093e0f40c322bd5c4362ec4240b5a2e864657d9` 合入 `917034f0613dc61a480b60ec5e0a164138d0fdf3`。两端报告中的归档 SHA-256 均为 `7220ae7db2c4002b44b96b7275a1aef0e42d6d58a91ac64044ff3b785e843379`，宿主均为官方 DSH `0.2.2-rc.1`。完整本地检查通过 106 项测试和 27 份可复现归档。 PR #52 (archived PR #52)
+
+- Web 报告及截图位于 `.cache/nav07-gallery-preferences/confirmed/web-1sfYw6/`，Windows Desktop 位于 `.cache/nav07-gallery-preferences/confirmed/desktop-1AvB2n/`。
+- 两端通过键盘收藏、筛选焦点、预览历史隔离、明确应用后的最近记录和刷新持久化。10/100 包完成真实排序和滚动懒加载，100 包末项在滚动前均未加载。
+- 双端报告无未捕获页面异常，隔离宿主均已退出。Windows 日志中有通用资源加载提示。Web 首轮宿主引导遮挡的失败记录仍保存在 `.cache/nav07-gallery-preferences/host/web-1vPioL/result.json`。
+
+### 补丁交付时的云端结果
 
 - `npm run typecheck`、`npm run lint`、差异检查通过。
 - `gallery-preferences`、`appearance-session`、`appearance-navigation`、`skin-switch` 共 27 项定向测试通过，包含成功保存/失败/未知结果回读的历史记录语义。

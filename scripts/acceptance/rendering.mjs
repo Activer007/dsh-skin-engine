@@ -3,7 +3,7 @@ import { performance } from 'node:perf_hooks'
 import { setTimeout as delay } from 'node:timers/promises'
 import { showMode } from './browser.mjs'
 
-const sidebarName = /^(收起(?:左)?侧边栏|展开(?:左)?侧边栏|打开(?:左)?侧边栏|Collapse sidebar|Expand sidebar)$/
+const sidebarName = /^(收起(?:左)?侧边栏|展开(?:左)?侧边栏|打开(?:左)?侧边栏|Collapse sidebar|Expand sidebar|Open sidebar)$/
 const p95 = values => Math.round([...values].sort((a, b) => a - b)[Math.ceil(values.length * 0.95) - 1] * 10) / 10
 
 async function sample(ui, mode, foreground) {
@@ -215,7 +215,7 @@ export async function visibilityCycle(session, ui, seconds, evidence, {
     }
   }, sampleInRenderer)
   const read = () => page.evaluate(() => window.__skinAcceptanceCycle.read())
-  evidence.source = session.hide ? 'Electron native minimize and hide' : 'Chrome native tab switch'
+  evidence.source = page.url().startsWith('dsh-app:') ? 'Electron native minimize and hide' : 'Chrome native tab switch'
   evidence.hidden = []
   let foreground
   let restoreBrowserWindow
@@ -223,7 +223,10 @@ export async function visibilityCycle(session, ui, seconds, evidence, {
     await page.waitForFunction(() => Boolean(window.__skinAcceptanceCycle.read().position), undefined, { polling: 100 })
     evidence.before = await read()
     assert.equal(evidence.before.visibility, 'visible')
-    if (session.hide) await session.hide()
+    if (session.hide) {
+      const source = await session.hide()
+      if (typeof source === 'string') evidence.source = source
+    }
     else {
       await page.keyboard.press('Shift')
       const browserCdp = await session.browser.newBrowserCDPSession()

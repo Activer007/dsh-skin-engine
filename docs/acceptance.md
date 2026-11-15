@@ -65,7 +65,11 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite navigation-release --candidate <完整 Git SHA>` 在同一隔离 Profile 中串接精简设置、外观中心导航、真实聊天预览、Host 修订冲突、ZIP 事务、重启、目录抽样和停用清理。传入对应提交的预构建包。Windows 导出写入本轮隔离的 Downloads，Web 保存浏览器下载。最终结果仍需对照 [NAV-06 矩阵](navigation-release-guide.md#最终同候选矩阵) 逐项人工核对，特别是外部插件共存。
 
+`--suite navigation-restore --candidate <完整 Git SHA>` 定向检查外观中心和系统设置恢复默认时的键盘焦点、真实 Host 409 冲突和回读。脚本会丢弃一次真实保存的回执，核对重复确认只写入一次，并检查皮肤包和偏好保留、真实聊天预览退出，以及两个入口显示同步。输出含两张确认截图和 `result.json`。
+
 Web 前后台绘制另用 `--suite navigation-visibility --candidate <完整 Git SHA>`，以本机 Chrome 的标签切换或窗口最小化验证文档进入后台。沿用集成实测的候选归档和宿主版本。
+
+精简设置版的发布级性能可用 `--suite navigation-performance --candidate <完整 Git SHA> --hidden-seconds 300`。它通过外观中心保存 Deep Ocean，在系统设置切换窗口特效及确认恢复默认。前台依次采集 Default、静态、P0 两个配对轮次，再重启隔离宿主进行原生后台暂停。Web 和 Windows 分开运行，以免失焦或重新安装干扰采样。
 
 `--suite scene-motion --sample-zip <夜航员轻量视差 ZIP>` 在两端核对受控视差、环境光、静态回退、外观冲突和 Default，并保存宽窄窗实拍。Desktop 专项另检查原生隐藏与恢复。 [样例与复跑](scene-motion.md)
 

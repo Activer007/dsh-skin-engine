@@ -137,6 +137,8 @@ export async function checkAppearanceNavigation(ui, session, profileDir, directo
   evidence.chatPreview = { cancel: true, legacyPreviewTakesOver: true, navigationCancels: true, conflictReported: true, expiryMs, apply: true }
   await activate(english)
   await activate(main.getByRole('button', { name: 'Restore Default', exact: true }))
+  const confirm = main.getByRole('button', { name: 'Confirm restore', exact: true })
+  if (await confirm.isVisible()) await activate(confirm)
   await main.locator('[data-saved-skin=""]').waitFor()
   await checkMainPackageNavigation(ui, main, english, evidence)
   evidence.drafts = { mainAcrossNavigation: true, settingsCloseIsolated: true, languageRetained: true, unappliedSavedUnchanged: true, explicitApplySaved: true }

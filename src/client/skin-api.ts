@@ -45,8 +45,11 @@ async function requireSuccess(response: Response) {
 }
 
 async function request<T>(path: string, signal: AbortSignal, payload?: object): Promise<T> {
+  // The Web host can delay reads while its native plugin inventory is loading.
+  // Keep the original write deadline so uncertain mutations reconcile promptly.
+  const timeout = AbortSignal.timeout(payload ? 10_000 : 30_000)
   const response = await fetch(new URL(path, document.baseURI), {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
+    signal: AbortSignal.any([signal, timeout]),
     ...(payload && { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }),
   })
   return (await requireSuccess(response)).json()

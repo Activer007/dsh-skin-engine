@@ -38,7 +38,7 @@ PR #50 已于 2026-11-15（北京时间）合并，合并提交为 `07be9b65e4c9
 | 取消或到期 | 点击聊天操作条的取消，或在「设置 → 皮肤引擎 → 紧急恢复」取消；到期恢复已保存外观。打开、关闭设置期间预览继续 |
 | 应用 | 从外观中心或聊天操作条应用；收到修订冲突时复核当前保存值和草稿后重试 |
 | 修改窗口特效 | 「设置 → 皮肤引擎 → 窗口效果」调整当前窗口的模式与质量。关闭窗口特效会保留已保存的皮肤和配色 |
-| 故障恢复 | 在「设置 → 皮肤引擎」检查 Host 或二次确认恢复默认外观；恢复会清除已保存的皮肤选择，保留皮肤包和各皮肤偏好 |
+| 故障恢复 | 在「设置 → 皮肤引擎」检查 Host。外观中心和设置页均可二次确认恢复默认外观；恢复会清除已保存的皮肤选择，保留皮肤包和各皮肤偏好 |
 
 包导入/更新期间可以离开外观中心；不要重复提交。取消后以 Host 回读为准，结果不确定应刷新核对，不能将取消提示当作服务端已撤销。草稿与已保存、当前渲染、临时预览是不同状态。
 
@@ -76,7 +76,7 @@ CLI 检查两项依赖的已合并声明和提交格式、候选审查与双端�
 
 ## README / roadmap 合并收口
 
-最终集成 PR 在 README 的使用入口段落链接本手册，核对操作与实际界面一致，再更新路线图并附同候选证据索引。未满足的类别保留待验状态。
+当前安装与使用入口见 [README](../README.md)，各任务的实现和证据状态见 [R1 进展](appearance-center-stage1.md#当前进度与-r1-发布准备)。补验完成后补充对应候选的原始证据索引。
 
 ## NAV-06 最终候选实测记录
 
@@ -92,3 +92,84 @@ CLI 检查两项依赖的已合并声明和提交格式、候选审查与双端�
 | 外部插件共存 | 两端验证 Wallpaper 所有权标记触发让路和提示。Worktable v0.5.1 以及 Wallpaper Engine v1.4.2 的发布版兼容声明均不包含矩阵指定的 DSH 预发布版。实际第三方插件同屏仍待验。 |
 
 LHA 输出位于 `.cache/nav-06-final/`。Web 主流程为 `hosts-r9/web-gnyxYy/`，原生 Chrome 后台复测为 `visibility-native/web-MEWJGJ/`，Windows 为 `hosts-r10/desktop-OwrqXm/`。目录含 `result.json`（含宿主日志）、预览与冲突截图、设置宽窄截图、高对比画廊和实际导出 ZIP。两端未报告未捕获页面异常。原生取消固定、加载中的重复请求与停用时迟到响应未取得真实宿主证据。外部插件共存仍阻塞最终出口。
+
+R1 已重新读取同候选的最终脚本复测报告 `confirmed/web-VSz2F0/result.json`、`confirmed/desktop-3h8SpX/result.json` 和上述 Chrome 后台报告。三份报告的候选及归档哈希一致，双端主流程由脚本提交 `7747b56` 执行，原生 Chrome 后台专项由 `45ed59d` 执行。报告和历次失败的原始记录继续保留。补验报告引用的 ZIP 尚未取得，重复刷新和停用迟到响应的补验结论待独立核对。 [补验报告](nav06-supplement-20261115.md)
+
+### 复跑迟到响应与预览替换
+
+沿用[隔离宿主命令](acceptance.md#运行)，传入 `--suite navigation-reliability --candidate dec8573374e359a37494dd5e354d0c248d01bb96`，设置 `--host-version 0.2.2-rc.1`，使用上节的同一份归档。分别运行 Web 和 Windows Desktop，保留每端的 `result.json` 和截图。
+
+脚本暂缓交付实际 Host JSON 或真实图片解码结果。分别在读取、保存结果到达客户端前停用插件，验证主面板、入口、预览和皮肤资源已经移除，输入框仍可用。每次停用后恢复隔离 Profile 的配置并重启宿主，保存后通过 Host API 核对最后一次写入。刷新用例暂缓旧读取，用一次真实保存生成较新修订，再重复刷新并跨导航，验证旧修订不会替换新修订。预览用例在第一次图片加载时切走，发起第二次预览，释放第一次的解码结果，核对皮肤、操作条和键盘取消。
+
+时序由验收脚本控制，响应内容和写入由真实宿主提供。此专项不覆盖第三方真实共存、完整键盘矩阵或发布级性能基线。原始 ZIP 的核对状态仍按[补验报告](nav06-supplement-20261115.md)记录。
+
+#### R1 独立复跑记录
+
+两端均使用上节的原始候选和归档。Windows Desktop 使用验收脚本提交 `5c893fc5064cf4f83706234077f4e944968cc9a3`，Web 使用 `65936213c95a7aee00f2766c2041a82d29ff333d`。Web 的隔离重启使用新的浏览器 Origin，因此通过宿主设置重新选择相同的深色外观，再检查已保存的深色皮肤是否恢复。该步骤保持渲染输入一致；Host 修订回读单独核对。
+
+| 项目 | 官方 rc.1 Web | 官方 rc.1 Windows Desktop |
+|---|---|---|
+| 迟到读写与重启 | 通过。释放实际响应后，入口、主面板、预览条和皮肤资源仍已清理，输入框可见。重启回读并渲染 Aurora 修订 1，入口唯一，无残留预览。 | 通过。同样回读并渲染 Aurora 修订 1。 |
+| 重复刷新 | 通过。3 次重复刷新并跨导航，释放修订 1 后保持修订 2，刷新无额外 POST。 | 通过。隔离夹具仅写入一次较新修订，刷新自身无 POST。 |
+| 预览替换与键盘取消 | 未通过。首个图片解码已到达暂缓点；切走并重新打开外观中心后，第二个皮肤的预览按钮保持禁用。日志记录 selection、skins 和 skin 三个 GET 在约 10 秒后中止，页面显示读取失败。 | 通过。交付旧图片解码结果后仍显示 Aurora，只有一个操作条，键盘可取消，Host 修订不变。 |
+
+本机原始证据位于 `.cache/r1/nav06-rc1/`。Windows 为 `desktop-ogxWzd/result.json`（SHA-256 `c848958a1097077a78cf53ea6d74cf7d1e5322291d8bfa9cc95e5efa109baacc`），Web 为 `web-SNKFGq/result.json`（SHA-256 `d4816f71c9e20e9f99f809c49dd1e43240035a2b4ed2af3379d673a98d86f6f3`）。两端各保存停用读/写截图。Windows 有预览替换截图，Web 有预览控制禁用时的失败截图。两端均无未捕获页面异常，所属浏览器和宿主已退出。此前因夹具可见性、配置热重载、浏览器外观或读取失败结束的运行记录原样保留。
+
+#### Web 快速切换后的读取超时
+
+在原始 rc.1 候选和主线 1.9.0 的 rc.3 Web 隔离环境中，单独复跑重复刷新和真实预览替换，均复现第二次预览按钮禁用。浏览器网络记录显示，第一次切入原生「插件」面板时，清单与管理器读取持续多个秒级请求；这段时间内发出的 Skin Engine 读取遇到原有的 10 秒超时。故障后独立 HTTP 和浏览器内 GET 均恢复 HTTP 200。结果确认请求时限与失败的关系，尚未定位 DSH 内部耗时环节。
+
+候选 `b215dea8ebcfb7a2b6feeabfd9d352e2707befd8` 的 1.9.0 tarball SHA-256 为 `abc66aa53d0aa2e73dd7917544fc2bc21be4c73492efdc2711f2757c267d887e`。幂等 JSON 读取改用 30 秒期限，调用方取消仍立即生效，选择写入仍为 10 秒。复跑同一用例时，两个宿主的旧图片解码结果均未覆盖第二次 Aurora 预览，操作条唯一，键盘取消恢复已保存皮肤。Chrome 记录的选中状态和皮肤目录读取均返回 HTTP 200，rc.1 分别用时 16.17 和 16.29 秒，rc.3 分别用时 16.47 和 16.58 秒。
+
+网络记录和截图位于 `.cache/r1/transport/`。原归档失败为 rc.1 `web-9pMzs3`、rc.3 `web-Hdohn7`；补丁候选通过为 rc.1 `web-vafS6L`、rc.3 `web-zsJ11m`。这些是 `navigation-reliability` 中的刷新与预览子场景，完整门禁继续使用同一候选对应的原始证据。
+
+随后用上述补丁候选的同一归档在官方 rc.3 Web 和 Windows Desktop 上跑完 `--suite navigation-reliability`。两端通过停用后的迟到读取和保存、重启回读、重复刷新、预览替换和键盘取消，均无未捕获页面异常，宿主与浏览器已关闭。原始报告和截图位于 `.cache/r1/navigation-read-candidate/hosts/` 下的 `web-QHg6dg/` 和 `desktop-ZdfrRN/`。
+
+#### 键盘焦点与空闲帧
+
+使用同一补丁归档和验收脚本提交 `0c257d6ffec143bc87e71c502d8f64575a7122e0`，在官方 rc.1 Web 和 Windows Desktop 分别运行 `--suite navigation-visibility --candidate b215dea8ebcfb7a2b6feeabfd9d352e2707befd8`。两端均验证方向键、Home、End 和 Tab，约 760 CSS px 的强制颜色模式下验证卡片与详情返回按钮间的可见焦点往返。Escape 关闭系统设置后，焦点回到账号按钮。
+
+650 ms 的浏览器探针按调用栈统计来自 Skin Engine 的 RAF 请求。两端都是原生外观 0、已保存皮肤的动态模式 28、关闭窗口特效 0，关闭特效后保持已保存皮肤。另测实际画布绘制，前台、原生隐藏 800 ms、恢复及关闭特效的增量分别为 Web `14 / 0 / 14 / 0`、Windows `15 / 0 / 17 / 0`。结果来自实际已启动的宿主，局部计数用于验证暂停和空闲行为，未包含发布级后台时长或性能对照。
+
+报告及强制颜色截图位于 `.cache/r1/nav06-focus-idle/web-G8ww9V/` 和 `.cache/r1/nav06-focus-idle/desktop-tmdl5G/`，两端均无未捕获页面异常，宿主与浏览器已关闭。保留首轮 Web `web-shoi3m/` 的夹具失败记录，该轮改变窗口宽度时已停在详情页。
+
+#### 修复候选的同包主流程
+
+修复候选 `b215dea8ebcfb7a2b6feeabfd9d352e2707befd8` 与归档 `abc66aa53d0aa2e73dd7917544fc2bc21be4c73492efdc2711f2757c267d887e` 继续用于官方 rc.1。使用 `--suite navigation-release` 后，Web 和 Windows Desktop 均通过精简设置、导航、真实聊天预览、409 冲突回读、ZIP 导入/导出及更新回滚、重启和禁用清理。rc.1 原生取消固定在两端均记录为 `unavailable`。
+
+| 实测 | Web | Windows Desktop |
+|---|---:|---:|
+| 聊天预览到期 | 30.177 s | 29.760 s |
+| 100 包全量扫描 / 索引读取 | 1855.5 / 11.5 ms | 2517.0 / 15.5 ms |
+| 100 包首屏 / 滚动后累计图片请求 | 14 / 42 | 14 / 42 |
+
+双端日志、截图及实际导出的 ZIP 位于 `.cache/r1/nav06-same-candidate/`。Web 为 `web-T0p1cf/`，工具提交 `e0afb00`。Windows 为 `desktop-kmm4qN/`，工具提交 `e1fcb14`。两端无未捕获页面异常，测试进程已退出。
+
+本机的同候选证据索引位于 `.cache/r1/nav06-same-candidate/navigation-release-evidence.json`。其中逐端登记已通过、部分验证和外部阻塞，仍由原门禁校验。
+
+#### rc.1 同包迟到响应与快速预览
+
+在官方 rc.1 Web 和 Windows Desktop 上，使用同一修复归档和脚本提交 `fc4f4eeae85e98c91e52686d59aafd454cf4944a` 跑完 `--suite navigation-reliability`。两端释放停用前的实际读、写响应后，均保持入口、主面板、预览条和皮肤资源清理状态。重启回读并渲染 Aurora 修订 1。加载期间重复刷新三次，延迟的修订 1 未覆盖较新修订 2，刷新自身无额外写入。实际旧图片解码迟到后仍只显示第二次 Aurora 预览，键盘取消恢复已保存外观，Host 选择保持不变。
+
+原始报告和截图位于 `.cache/r1/nav06-same-candidate/web-ukIYdR/` 和 `.cache/r1/nav06-same-candidate/desktop-iO9t2F/`。两端宿主及浏览器均已关闭，未捕获页面异常为空。
+
+#### 修复候选的发布级性能采样
+
+同一修复归档在官方 rc.1 双端运行 `--suite navigation-performance --hidden-seconds 300`。六次后台采样均无新增绘制，Canvas 缓冲为 0 × 0，极光缓存归零且 CSS 动画暂停。恢复后沿用同一场景和 Canvas，首笔粒子位置不变并继续绘制。
+
+| 宿主 | 隐藏末样 | P0 减 Default，帧 / 输入 / 侧栏 P95 第 1 轮（ms） | 第 2 轮（ms） |
+|---|---:|---|---|
+| Web | 300.017 s | 0.0 / +2.1 / −0.2 | 0.0 / +4.6 / +4.3 |
+| Windows Desktop | 300.012 s | −0.1 / +1.6 / +2.0 | +0.1 / +2.0 / +1.9 |
+
+两端没有同一指标连续两轮超过 16.7 ms，也未观察到长任务。Web 前台为 1280 × 820 CSS px、DPR 2，参照 v1.1.0 两轮侧栏增量 +0.4 / +29.6 ms，本轮未见相同的尾延迟。Windows 为 1280 × 860、DPR 1，旧基线 DPR 为 2，因此只用本轮同窗配对数据判断阈值。 [旧配对基线](acceptance.md#配对性能)
+
+报告位于 `.cache/r1/nav06-perf/web-dyISRh/` 和 `.cache/r1/nav06-perf/desktop-6rNu33/`，工具提交分别为 `e1fcb14` 与 `495cf04`，测试宿主及浏览器均已关闭。原始 Web 报告的 `source` 显示 Electron，是早期共享测试工具的标签错误。实际由隔离 Chrome 执行原生标签切换或最小化，两类动作的具体分支未留在该轮日志。`e02eb9d` 修正后续记录的来源，该轮原始数据保留。
+
+#### 发行构建核对
+
+全量构建首次发现 npm 自动将根目录 README 收入 tarball，旧白名单因此拒绝归档。修复后的校验保持精确匹配归档文件清单。使用 `npm run verify:local -- trusted-commit 495cf04d1e2d8ab345b2a71098f3b0c7197a1e9a <输出目录>` 后，106 项测试通过，27 份归档两次构建字节相同。报告位于 `.cache/r1/navigation-read-reproducible/verify-XQaXJm/`。
+
+LF 检出的 1.9.0 引擎归档 SHA-256 为 `5e98784b57e47217486bb17d849f39c51aeef1e665a391702586bd8e5f0e0663`。它与本轮实际装入官方宿主的 Windows 工作树归档 `abc66aa5…` 字节不同，逐条对比定位为文本换行差异（含客户端内嵌样式）。宿主报告继续按各自实际安装归档登记，正式发行仍需验证最终 LF 归档。
+
+当前 NAV-06 完整门禁仍未通过。最终候选的自动审查和第三方真实共存仍待满足。Worktable v0.5.1、Wallpaper Engine v1.4.2 的发布包声明均不覆盖 rc.1 或 rc.3，真实共存继续记录为 `blocked`。 [Worktable 发行记录](https://github.com/Aisland-SJL/dsh-worktable/releases/tag/v0.5.1) · [Wallpaper Engine 发行记录](https://github.com/elysia395/dsh-wallpaper-engine/releases/tag/v1.4.2)

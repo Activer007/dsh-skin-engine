@@ -1,8 +1,9 @@
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { AUDIT_PATH, type AuditStatus } from '../shared/audit.js'
 import type { ChatPreview } from './chat-preview.js'
 import type { createEffectsRuntime } from './effects/p0.js'
 import type { PackageOperationsStore } from './package-operations.js'
+import { RestoreDefault } from './restore-default.js'
 import { SettingsButton } from './settings-controls.js'
 import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
 import { WindowEffects } from './skin-effects.js'
@@ -25,19 +26,12 @@ const noPreview = () => undefined
 
 export function SkinPanel({ controller, effects, packageOperations, preview, t = fallbackSettingsCopy(document.documentElement.lang) }: PanelProps) {
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
-  const { action: packageAction } = useSyncExternalStore(packageOperations.subscribe, packageOperations.getSnapshot)
   const chatPreview = useSyncExternalStore(preview?.subscribe ?? noopSubscribe, preview?.getSnapshot ?? noPreview)
   const name = (id: string) => {
     const manifest = state.catalogue?.skins.find(choice => choice.manifest.id === id)?.manifest
     return (/^en(?:-|$)/i.test(document.documentElement.lang) ? manifest?.nameEn : undefined) || manifest?.name || id
   }
   const previewing = Boolean(chatPreview?.request || state.preview || state.pending === 'preview')
-  const busy = Boolean(packageAction || state.pending || state.saving)
-  const canRestore = !busy && Boolean(state.saved?.skinId)
-  const [confirmation, setConfirmation] = useState<number>()
-  const confirmedRevision = confirmation !== undefined && state.saved?.revision === confirmation
-  const [restored, setRestored] = useState(false)
-  const confirmId = useId()
   const [hostStatus, setHostStatus] = useState<HostCheck | null>()
   const hostRequest = useRef<AbortController>(undefined)
   useEffect(() => () => hostRequest.current?.abort(), [])
@@ -70,13 +64,6 @@ export function SkinPanel({ controller, effects, packageOperations, preview, t =
           hostStatus.engineVersion === SKIN_ENGINE_VERSION ? '' : t('restart'),
         ].filter(Boolean).join(' ')
 
-  async function restore() {
-    if (!canRestore || !confirmedRevision) return
-    setConfirmation(undefined)
-    setRestored(false)
-    if (await controller.apply(null)) setRestored(true)
-  }
-
   return <section data-dsh-skin-engine="" data-dsh-skin-controls="">
     <style>{MANAGER_STYLES}</style>
     <header>
@@ -94,20 +81,9 @@ export function SkinPanel({ controller, effects, packageOperations, preview, t =
           if (chatPreview?.request) preview?.cancel()
           else void controller.cancelPreview()
         }}>{t('cancelPreview')}</SettingsButton>
-        <SettingsButton disabled={!canRestore} aria-expanded={confirmedRevision} aria-controls={confirmId}
-          onClick={() => setConfirmation(state.saved?.revision)}>{t('restoreDefault')}</SettingsButton>
+        <RestoreDefault controller={controller} packageOperations={packageOperations} t={t} />
       </div>
-      <div id={confirmId} className="dsh-skin-confirmation" hidden={!confirmedRevision}>
-        {confirmedRevision ? <>
-          <p>{t('restoreDefaultWarning')}</p>
-          <div className="dsh-skin-actions">
-            <SettingsButton primary disabled={!canRestore} onClick={() => void restore()}>{t('confirmRestoreDefault')}</SettingsButton>
-            <SettingsButton onClick={() => setConfirmation(undefined)}>{t('keepSelection')}</SettingsButton>
-          </div>
-        </> : null}
-      </div>
-      <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving')
-        : restored && state.saved?.skinId === null ? t('defaultRestored') : ''}</p>
+      <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving') : ''}</p>
     </section>
     <section className="dsh-skin-detail" aria-label={t('diagnostics')}>
       <h3>{t('diagnostics')}</h3>

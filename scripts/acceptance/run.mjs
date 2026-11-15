@@ -8,7 +8,9 @@ import { parseArgs } from 'node:util'
 import { settings, switchSkins } from './browser.mjs'
 import { checkAppearanceNavigation } from './appearance-navigation.mjs'
 import { checkSystemSettings } from './system-settings.mjs'
-import { checkNavigationReleaseHost, checkNavigationRestart, checkNavigationCatalogue, checkNavigationVisibility } from './navigation-release.mjs'
+import { checkNavigationReleaseHost, checkNavigationRestart, checkNavigationCatalogue, checkNavigationVisibility, checkNavigationUninstall } from './navigation-release.mjs'
+import { checkLateNavigationRead, checkLateNavigationSave, checkLateNavigationRestart, checkNavigationRaces } from './navigation-reliability.mjs'
+import { checkNavigationRestore } from './navigation-restore.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
 import { checkCatalogueCache, seedCatalogue } from './catalogue.mjs'
@@ -72,7 +74,12 @@ const navigation = options.suite === 'settings-navigation'
 const galleryPreferences = options.suite === 'gallery-preferences'
 const navigationRelease = options.suite === 'navigation-release'
 const navigationVisibility = options.suite === 'navigation-visibility'
-const systemSettings = galleryPreferences || navigationRelease || navigationVisibility || options.suite === 'system-settings'
+const navigationReliability = options.suite === 'navigation-reliability'
+const navigationPerformance = options.suite === 'navigation-performance'
+const navigationUninstall = options.suite === 'navigation-uninstall'
+const navigationRestore = options.suite === 'navigation-restore'
+const navigationEvidence = navigationRelease || navigationVisibility || navigationReliability || navigationPerformance || navigationUninstall || navigationRestore
+const systemSettings = galleryPreferences || navigationEvidence || options.suite === 'system-settings'
 const settingsState = navigation || settingsIntegration || options.suite === 'settings-state'
 const settingsTabs = settingsIntegration || options.suite === 'settings-tabs'
 const settingsGallery = settingsIntegration || options.suite === 'settings-gallery'
@@ -137,12 +144,18 @@ async function enter(open, lifecycle, appearance, loading) {
       if (message.type() === 'error') run.consoleErrors.push(redact(message.text()))
     })
   }
-  if (navigationRelease || navigationVisibility) {
+  if (navigationEvidence) {
     run.skinRequestFailures ??= []
+    const started = new WeakMap()
+    session.page.on('request', request => started.set(request, performance.now()))
     session.page.on('requestfailed', request => {
-      const path = new URL(request.url()).pathname
+      const { pathname: path } = new URL(request.url())
       if (path.startsWith('/api/dsh-skin-engine/')) {
-        run.skinRequestFailures.push({ path, error: redact(request.failure()?.errorText ?? '') })
+        const startTime = started.get(request)
+        run.skinRequestFailures.push({
+          path, method: request.method(), error: redact(request.failure()?.errorText ?? ''),
+          ...(startTime !== undefined && { elapsedMs: Math.round(performance.now() - startTime) }),
+        })
       }
     })
   }
@@ -156,7 +169,7 @@ try {
   const firstArchive = upgrade ? resolve(options['from-archive']) : options.archive
   const firstArtifact = upgrade ? await identify(firstArchive, run.hostVersion) : run.artifact
   if (interruption) run.gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
-  if (navigationRelease || navigationVisibility) {
+  if (navigationEvidence) {
     assert(/^[a-f0-9]{40}$/.test(options.candidate ?? ''), 'Pass the full candidate SHA with --candidate')
     assert.equal(execFileSync('git', ['rev-parse', '--verify', `${options.candidate}^{commit}`], { encoding: 'utf8' }).trim(), options.candidate)
     for (const dependency of ['67cf4c8cebbbdd2517247300ab356fae0ea0dbc9', '30830bf5fb156a45896850802aebb7f2a71f5baa']) {
@@ -164,7 +177,7 @@ try {
     }
     run.candidate = options.candidate
   }
-  const { open, install, installLocalBundle, profileDir } = await prepareHost(
+  const { open, install, uninstall, installLocalBundle, profileDir } = await prepareHost(
     { ...options, archive: firstArchive, signal: interruption?.signal }, directory, firstArtifact, run.web,
   )
   const openInProfile = async appearance => {
@@ -270,7 +283,39 @@ try {
       await checkGalleryPreferences(ui, session, directory, run, profileDir)
     } else if (navigationVisibility) {
       run.navigationRelease = {}
-      await checkNavigationVisibility(ui, session, run.navigationRelease)
+      await checkNavigationVisibility(ui, session, run.navigationRelease, directory)
+    } else if (navigationUninstall) {
+      run.navigationUninstall = {}
+      await checkNavigationUninstall(ui, session, uninstall, run.navigationUninstall, directory)
+    } else if (navigationRestore) {
+      run.navigationRestore = {}
+      await checkNavigationRestore(ui, directory, run.navigationRestore)
+    } else if (navigationPerformance) {
+      run.performance = {}
+      await performanceComparison(ui, run.performance, session.show)
+      run.preRestartHostLog = session.logs()
+      await session.close()
+      assert(!session.browser.isConnected())
+      ui = await enter(open, true)
+      run.lifecycle = {}
+      await visibilityCycle(session, ui, seconds, run.lifecycle)
+    } else if (navigationReliability) {
+      run.navigationReliability = {}
+      run.preRestartHostLogs = []
+      const restart = async () => {
+        run.preRestartHostLogs.push(session.logs())
+        await session.close()
+        assert(!session.browser.isConnected())
+        // An isolated Web launch has a new origin. Keep the native appearance
+        // fixed so the same saved dark skin can be compared after restart.
+        return enter(open, false, 'dark')
+      }
+      await checkLateNavigationRead(ui, profileDir, directory, run.navigationReliability)
+      ui = await restart()
+      const saved = await checkLateNavigationSave(ui, profileDir, directory, run.navigationReliability)
+      ui = await restart()
+      await checkLateNavigationRestart(ui, saved, run.navigationReliability)
+      await checkNavigationRaces(ui, directory, run.navigationReliability)
     } else {
       run.systemSettings = {}
       await checkSystemSettings(ui, session, directory, run.systemSettings, { importFixture: !navigationRelease })
@@ -288,7 +333,11 @@ try {
     }
     run.hostLog = session.logs()
     interruption.signal.throwIfAborted()
-    console.log('Verified system settings, Appearance Center and emergency recovery')
+    if (navigationReliability) console.log('Verified navigation response ordering, disable cleanup and restart')
+    else if (navigationPerformance) console.log('Verified foreground comparison and native background pause')
+    else if (navigationUninstall) console.log('Verified native surfaces and cleanup after plugin uninstall')
+    else if (navigationRestore) console.log('Verified restore confirmation, conflict, readback and focus')
+    else console.log('Verified system settings, Appearance Center and emergency recovery')
   }
   if (settingsTabs) {
     const tabsUi = await enterSettings()
@@ -438,7 +487,7 @@ try {
       rootInert: document.getElementById('root')?.inert,
       dialogs: [...document.querySelectorAll('[role="dialog"]')].map(dialog => dialog.querySelector('h1,h2,h3')?.textContent),
     })).catch(() => null)
-    if (navigationRelease) {
+    if (navigationEvidence) {
       await session.page.screenshot({ path: join(directory, 'failure.png'), timeout: 5000 }).catch(() => {})
       run.sidebarControls = await session.page.getByRole('button').evaluateAll(buttons =>
         buttons.map(button => button.getAttribute('aria-label')).filter(label => /sidebar|侧边栏/i.test(label ?? ''))).catch(() => [])

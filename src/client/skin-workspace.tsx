@@ -10,6 +10,7 @@ import type { createAppearanceSession } from './appearance-session.js'
 import type { ChatPreview } from './chat-preview.js'
 import { SkinDetail } from './skin-detail.js'
 import { SkinPreviewImage } from './skin-preview-image.js'
+import { RestoreDefault } from './restore-default.js'
 import type { createSkinSwitch } from './skin-switch.js'
 
 declare const MANAGER_STYLES: string
@@ -151,8 +152,7 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
           {previewing ? (
             <SettingsButton disabled={busy} onClick={() => void controller.cancelPreview()}>{t('cancelPreview')}</SettingsButton>
           ) : null}
-          <SettingsButton disabled={busy || state.saved === null || (!state.saved.skinId && !previewing)}
-            onClick={() => void controller.apply(null)}>{t('restoreDefault')}</SettingsButton>
+          <RestoreDefault controller={controller} packageOperations={packageOperations} t={t} />
         </div>
       </header>
       <p role="note">{t('chatPreviewHelp')}</p>

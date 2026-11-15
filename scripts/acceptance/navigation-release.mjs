@@ -4,7 +4,7 @@ import { appendFile, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { checkMainPackageNavigation } from './appearance-navigation.mjs'
-import { deepOcean, resources } from './browser.mjs'
+import { deepOcean, resources, showMode } from './browser.mjs'
 import { seedCatalogue } from './catalogue.mjs'
 import { zipJson } from './packages.mjs'
 import { versionedSkin } from '../../test/fixtures/package-versions.mjs'
@@ -39,7 +39,7 @@ async function exportSkin(ui, main, actions, directory) {
   return { filename, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex'), nativeSave: desktop, version: manifest.version }
 }
 
-async function savePeerSelection(page, skin, expectedRevision) {
+export async function savePeerSelection(page, skin, expectedRevision) {
   return page.evaluate(async ({ id, expectedRevision }) => {
     const catalogue = await fetch('api/dsh-skin-engine/skins').then(response => response.json())
     const target = catalogue.skins.find(item => item.manifest.id === id)
@@ -250,15 +250,154 @@ export async function checkNavigationReleaseHost(ui, session, directory, evidenc
   return selection()
 }
 
-export async function checkNavigationVisibility(ui, session, evidence) {
+export async function checkNavigationUninstall(ui, session, uninstall, evidence, directory) {
+  const { page } = ui
+  const capture = () => page.evaluate(() => {
+    const root = document.documentElement
+    const sidebar = document.querySelector('[data-slot="sidebar"]')
+    const composer = document.querySelector('[data-composer-card]:has([data-composer-input])')
+    if (!sidebar || !composer) throw Error('Native sidebar or composer is missing')
+    return {
+      id: root.getAttribute('data-dsh-skin-id'),
+      canvasToken: getComputedStyle(document.body).getPropertyValue('--dsw-alias-bg-base').trim(),
+      sidebarToken: getComputedStyle(sidebar).getPropertyValue('--dsw-specific-sidebar-fill').trim(),
+      composerFill: getComputedStyle(composer).backgroundColor,
+    }
+  })
+  await page.getByRole('treeitem', { name: /Skin Engine acceptance history|Untitled/ }).first().press('Enter')
+  const reply = page.getByText('Fixture response.', { exact: true })
+  await reply.waitFor()
+  await composer(page).waitFor()
+  evidence.native = await capture()
+  assert.equal(evidence.native.id, null)
+  await showMode(ui, 'p0', session.show)
+  evidence.active = await capture()
+  assert.equal(evidence.active.id, deepOcean.id)
+  for (const surface of ['canvasToken', 'sidebarToken', 'composerFill']) {
+    assert(evidence.active[surface], `Missing active ${surface}`)
+    assert.notEqual(evidence.active[surface], evidence.native[surface], `${surface} did not respond to the skin`)
+  }
+  await slide(page, directory, 'active-surfaces.png')
+  await ui.activate(launcher(page))
+  const main = workspace(page)
+  await main.locator('[data-saved-skin]').waitFor()
+  await uninstall()
+  evidence.removedFromProfile = true
+  await launcher(page).waitFor({ state: 'detached' })
+  await main.waitFor({ state: 'detached' })
+  await reply.waitFor()
+  await composer(page).waitFor()
+  await page.locator(resources).first().waitFor({ state: 'detached' })
+  assert.equal(await previewBar(page).count(), 0)
+  evidence.restored = await capture()
+  assert.deepEqual(evidence.restored, evidence.native)
+  evidence.selectionRoute = await page.evaluate(async () => {
+    const response = await fetch(new URL('api/dsh-skin-engine/selection', document.baseURI), { cache: 'no-store' })
+    return response.status
+  })
+  assert.equal(evidence.selectionRoute, 404)
+  await slide(page, directory, 'native-after-uninstall.png')
+}
+
+export async function checkNavigationVisibility(ui, session, evidence, directory) {
+  const { page } = ui
   const main = workspace(ui.page)
-  await ui.activate(launcher(ui.page))
-  await ui.activate(bySkin(main, deepOcean))
-  await ui.activate(ui.button(main, 'Apply'))
-  await main.locator(`[data-saved-skin="${deepOcean.id}"]`).waitFor()
-  await ui.activate(ui.button(main, 'Back to chat'))
-  await ui.waitForSkin(deepOcean.id)
-  await checkDrawPause(ui, session, evidence)
+  await page.evaluate(() => {
+    const schedule = window.requestAnimationFrame
+    const probe = { scheduled: 0, restore() { window.requestAnimationFrame = schedule } }
+    window.__navReleaseFrames = probe
+    window.requestAnimationFrame = function (callback) {
+      if (new Error().stack?.includes('dsh-plugin-skin-engine')) probe.scheduled++
+      return schedule.call(this, callback)
+    }
+  })
+  async function sample() {
+    const read = () => page.evaluate(() => window.__navReleaseFrames.scheduled)
+    const start = await read()
+    await delay(650)
+    return await read() - start
+  }
+  try {
+    await ui.waitForSkin(null)
+    const defaultFrames = await sample()
+    assert.equal(defaultFrames, 0, 'Native appearance must leave the plugin scheduler idle')
+    await ui.activate(launcher(page))
+    await ui.activate(bySkin(main, deepOcean))
+    await ui.activate(ui.button(main, 'Apply'))
+    await main.locator(`[data-saved-skin="${deepOcean.id}"]`).waitFor()
+    await ui.activate(ui.button(main, 'Back to chat'))
+    await ui.waitForSkin(deepOcean.id)
+    await checkDrawPause(ui, session, evidence)
+    const dynamicFrames = await sample()
+    assert(dynamicFrames > 0, 'The probe must identify callbacks from the active plugin bundle')
+    await ui.open()
+    const mode = ui.panel.getByRole('combobox', { name: 'Effects in this window' })
+    await mode.selectOption('off')
+    await ui.close()
+    const offFrames = await sample()
+    assert.equal(offFrames, 0, 'Effects Off must release the plugin scheduler')
+    assert.equal((await ui.selection()).skinId, deepOcean.id)
+    evidence.idleFrames = { sampleMs: 650, defaultFrames, dynamicFrames, offFrames, savedSkinPreserved: true }
+    await checkNavigationKeyboard(ui, session, directory, evidence)
+  } finally {
+    await page.evaluate(() => {
+      window.__navReleaseFrames?.restore()
+      delete window.__navReleaseFrames
+    })
+  }
+}
+
+async function checkNavigationKeyboard(ui, session, directory, evidence) {
+  const { page } = ui
+  const main = workspace(page)
+  const tab = name => main.getByRole('tab', { name, exact: true })
+  const gallery = tab('Skin gallery')
+  const effects = tab('Effects & performance')
+  const management = tab('Skin management')
+  const focused = async control => {
+    const element = await control.elementHandle()
+    try { await page.waitForFunction(node => node === document.activeElement && node.matches(':focus-visible'), element) }
+    finally { await element.dispose() }
+  }
+  await launcher(page).press('Enter')
+  await main.locator('[data-saved-skin]').waitFor()
+  await gallery.press('ArrowRight')
+  await focused(effects)
+  assert.equal(await effects.getAttribute('aria-selected'), 'true')
+  await effects.press('End')
+  await focused(management)
+  assert.equal(await management.getAttribute('aria-selected'), 'true')
+  await management.press('Home')
+  await focused(gallery)
+  assert.equal(await gallery.getAttribute('aria-selected'), 'true')
+  await gallery.press('Tab')
+  const galleryPanel = main.getByRole('tabpanel', { name: 'Skin gallery' })
+  assert(await galleryPanel.evaluate(node => node.contains(document.activeElement)))
+  await session.resize(762, 820)
+  await page.waitForFunction(() => innerWidth >= 760 && innerWidth < 800)
+  await page.emulateMedia({ forcedColors: 'active' })
+  try {
+    const card = bySkin(main, deepOcean)
+    const back = ui.button(main, 'Back to gallery')
+    if (await back.isVisible()) await back.press('Enter')
+    await card.waitFor()
+    await card.press('Enter')
+    await focused(back)
+    await slide(page, directory, 'keyboard-narrow-detail.png')
+    await back.press('Enter')
+    await focused(card)
+    await slide(page, directory, 'keyboard-narrow-gallery.png')
+  } finally {
+    await page.emulateMedia({ forcedColors: null })
+    await session.resize(1280, 820)
+  }
+  await ui.open()
+  await page.keyboard.press('Escape')
+  await ui.panel.waitFor({ state: 'hidden' })
+  const account = page.getByRole('button', { name: 'Account menu', exact: true })
+  await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Account menu')
+  assert(await account.isVisible())
+  evidence.keyboard = { arrowsHomeEnd: true, tabEntersPanel: true, narrowDetailAndGalleryFocus: true, forcedColors: true, settingsEscapeFocus: true }
 }
 
 async function checkDrawPause(ui, session, evidence) {

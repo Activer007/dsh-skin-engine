@@ -307,7 +307,8 @@
 }
 
 [data-dsh-skin-controls] .dsh-skin-detail header + .dsh-skin-fields { margin-block-start: 4px; }
-[data-dsh-skin-controls] .dsh-skin-confirmation > p { margin-block-end: 8px; }
+:is([data-dsh-skin-controls], [data-dsh-skin-workspace]) .dsh-skin-confirmation > p { margin-block-end: 8px; }
+:is([data-dsh-skin-controls], [data-dsh-skin-workspace]) .dsh-skin-restore > p:empty { display: block; margin: 0; }
 
 [data-dsh-skin-workspace] .dsh-skin-favorite { margin-top: 4px; width: 100%; padding: 6px; }
 
