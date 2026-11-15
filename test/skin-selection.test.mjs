@@ -133,3 +133,26 @@ test('environment light preferences use normalized strength and require a declar
     skinId: 'ambient', revision: 4, preferences: { ...legacy.preferences, ambient: preferences },
   })
 })
+
+test('artwork preferences reject unsupported skins, absent assets and out-of-range controls without writes', async t => {
+  const fixture = await storageFixture(t)
+  const host = fixture.host()
+  const artwork = { asset: `${'a'.repeat(64)}.png`, fit: 'contain', x: 50, y: 50, scale: 1, opacity: 0.3 }
+  assert.equal((await host.save('a', 0, { preferences: { artwork } })).status, 400)
+  assert.notEqual((await host.save('com.dsh.skin.night-navigator', 0, { preferences: { artwork } })).status, 200)
+  assert.equal((await host.save('com.dsh.skin.night-navigator', 0, { preferences: { artwork: { ...artwork, scale: 100 } } })).status, 400)
+  assert.equal(fixture.writes(), 0)
+})
+
+test('a missing saved portrait image does not block editing other preferences', async t => {
+  const id = 'com.dsh.skin.night-navigator'
+  const artwork = { asset: `${'a'.repeat(64)}.png`, fit: 'contain', x: 50, y: 50, scale: 1, opacity: 0.3 }
+  const fixture = await storageFixture(t, { skinId: id, revision: 4, preferences: { [id]: { artwork } } })
+  const host = fixture.host()
+  const preferences = { artwork, colors: { canvas: '#182431' } }
+  assert.equal((await host.save(id, 4, { preferences })).status, 200)
+  const missing = { ...artwork, asset: `${'b'.repeat(64)}.png` }
+  assert.notEqual((await host.save(id, 5, { preferences: { ...preferences, artwork: missing } })).status, 200)
+  assert.deepEqual(await (await host.read()).json(), { skinId: id, revision: 5, preferences: { [id]: preferences } })
+  assert.equal(fixture.writes(), 1)
+})

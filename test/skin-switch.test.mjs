@@ -453,3 +453,35 @@ test('NAV07 history write failures cannot turn a successful apply into a failed 
   t.after(() => controller.dispose())
   assert.equal(await controller.apply('b'), true); assert.deepEqual(writes, ['b'])
 })
+
+test('custom portrait keeps scene safety layout, updates same-skin artwork and falls back when missing', async t => {
+  const id = 'com.dsh.skin.night-navigator'
+  const portrait = { ...choices[0], manifest: { ...choices[0].manifest, id } }
+  let missing = false
+  let rendered
+  class Image {
+    removeAttribute() {}
+    decode() { return missing && this.src.includes('user-artwork') ? Promise.reject(new Error('missing')) : Promise.resolve() }
+  }
+  const fixture = await switchFixture({
+    catalogue: () => [portrait],
+    globals: { Image, document: { baseURI: 'http://skin.test/' } },
+    prepare: choice => ({ ...dataFor(choice), scene: { layout: { safeArea: { contentLeftFraction: 0.2 }, artwork: {} } }, sceneArtworkUrl: '/original.png' }),
+    onMount(_id, _data, _preferences, artwork) { rendered = artwork },
+  })
+  const { controller } = fixture
+  t.after(() => controller.dispose())
+  const artwork = { asset: `${'a'.repeat(64)}.png`, fit: 'cover', x: 30, y: 60, scale: 1.2, opacity: 0.3 }
+  assert.equal(await controller.apply(id, { value: { artwork }, revision: 0, packageRevision: 'a' }), true)
+  assert.equal(rendered.kind, 'scene')
+  assert.equal(rendered.layout.safeArea.contentLeftFraction, 0.2)
+  assert.equal(rendered.layout.artwork.focalPoint[0], 0.3)
+  const next = { ...artwork, asset: `${'b'.repeat(64)}.png` }
+  assert.equal(await controller.apply(id, { value: { artwork: next }, revision: 1, packageRevision: 'a' }), true)
+  assert.match(rendered.image.src, /b{64}/)
+  missing = true
+  assert.equal(await controller.apply(id, { value: { artwork }, revision: 2, packageRevision: 'a' }), true)
+  assert.match(rendered.image.src, /original.png$/)
+  assert.equal(await controller.apply(id, { value: {}, revision: 3, packageRevision: 'a' }), true)
+  assert.match(rendered.image.src, /original.png$/)
+})

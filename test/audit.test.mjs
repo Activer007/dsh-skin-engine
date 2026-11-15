@@ -47,7 +47,7 @@ test('Host releases every registered route and closes its domain across 100 acti
   const host = hostFixture()
   for (let index = 0; index < 100; index++) {
     applyHost(host.ctx)
-    assert.equal(host.routes.size, 14)
+    assert.equal(host.routes.size, 16)
     await host.dispose()
     assert.equal(host.routes.size, 0)
   }

@@ -1,3 +1,4 @@
+import { ArtworkEditor } from './artwork-editor.js'
 import { useState } from 'react'
 import type { ColorScheme } from '../core/tokens.js'
 import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
@@ -21,12 +22,13 @@ interface DetailProps {
   choice: SkinChoice
   scheme: ColorScheme
   placeholder?: string
+  artworkEditorVisible: boolean
   onOpenEffects(): void
   onOpenManagement(): void
   editor: SkinEditor
 }
 
-export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, onOpenEffects, onOpenManagement, editor }: DetailProps) {
+export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, artworkEditorVisible, onOpenEffects, onOpenManagement, editor }: DetailProps) {
   const [previewScheme, setPreviewScheme] = useState<ColorScheme>()
   const { manifest, compatibility } = choice
   const { result, blocked, values, disabled, packageChanged, draft, busy, edit } = editor
@@ -60,6 +62,7 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, on
         <summary>{t('error.diagnostics')}</summary>
         <p>{compatibility.code ? `${compatibility.code} · ` : ''}{compatibility.message}</p>
       </details> : null}
+      {artworkEditorVisible && choice.source === 'built-in' ? <ArtworkEditor id={manifest.id} editor={editor} t={t} /> : null}
       <SkinEditorActions t={t} editor={editor} appearance={appearance} />
       {result?.data ? (
         <details open className="dsh-skin-disclosure">

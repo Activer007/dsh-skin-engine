@@ -43,10 +43,44 @@
   gap: 6px;
 }
 
-[data-dsh-skin-workspace] .dsh-skin-tabs [aria-selected="true"] {
+[data-dsh-skin-workspace] :is(.dsh-skin-tabs, .dsh-skin-native-tabs) [role="tab"] {
+  position: relative;
+  min-block-size: 40px;
+  cursor: pointer;
+}
+
+[data-dsh-skin-workspace] :is(.dsh-skin-tabs, .dsh-skin-native-tabs) [role="tab"][aria-selected="true"] {
   font-weight: 650;
-  background: var(--dsw-alias-bg-layer-3, Canvas);
-  border-color: var(--dsw-alias-label-primary, CanvasText);
+  color: var(--dsw-alias-label-primary, CanvasText);
+  background: color-mix(in srgb, currentColor 17%, var(--dsw-alias-bg-layer-3, Canvas));
+}
+
+[data-dsh-skin-workspace] :is(.dsh-skin-tabs, .dsh-skin-native-tabs) [role="tab"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 4px;
+  margin-inline: auto;
+  inline-size: 24px;
+  block-size: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (forced-colors: none) {
+  [data-dsh-skin-workspace] :is(.dsh-skin-tabs, .dsh-skin-native-tabs) [role="tab"][aria-selected="false"]:hover {
+    color: var(--dsw-alias-label-primary, CanvasText);
+    background: color-mix(in srgb, currentColor 9%, var(--dsw-alias-bg-module-platform, Canvas));
+  }
+  [data-dsh-skin-workspace] :is(.dsh-skin-tabs, .dsh-skin-native-tabs) [role="tab"][aria-selected="true"]:hover {
+    background: color-mix(in srgb, currentColor 22%, var(--dsw-alias-bg-layer-3, Canvas));
+  }
+}
+
+[data-dsh-skin-workspace] :is(.dsh-skin-tabs, .dsh-skin-native-tabs) [role="tab"]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
 }
 
 @container (min-width: 840px) {
@@ -216,7 +250,13 @@
 [data-dsh-skin-workspace] .dsh-skin-effects input[type="range"] { width: min(95px, 30vw); }
 
 @media (forced-colors: active) {
-  [data-dsh-skin-workspace] .dsh-skin-native-tabs [aria-selected="true"] { border: 1px solid Highlight; color: HighlightText; background: Highlight; }
+  [data-dsh-skin-workspace] .dsh-skin-native-tabs [role="tablist"] > [aria-hidden="true"] { visibility: hidden; }
+  [data-dsh-skin-workspace] .dsh-skin-native-tabs [role="tab"] { transition: none; }
+  [data-dsh-skin-workspace] :is(.dsh-skin-tabs, .dsh-skin-native-tabs) [role="tab"][aria-selected="true"] {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+  }
   [data-dsh-skin-workspace] .dsh-skin-setting-toggle [role="switch"] { border: 1px solid ButtonText; }
   [data-dsh-skin-workspace] .dsh-skin-setting-toggle [aria-checked="true"] { border: 2px solid Highlight; }
 }
@@ -227,6 +267,15 @@
   padding-block-start: 8px;
 }
 [data-dsh-skin-workspace] .dsh-skin-disclosure summary { cursor: pointer; font-weight: 600; }
+[data-dsh-skin-workspace] .dsh-skin-artwork-editor { display: grid; gap: 8px; min-inline-size: 0; }
+[data-dsh-skin-workspace] .dsh-skin-artwork-editor input { max-inline-size: 100%; }
+[data-dsh-skin-workspace] .dsh-skin-user-artwork-preview {
+  height: 160px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-2, Canvas);
+}
+[data-dsh-skin-workspace] .dsh-skin-user-artwork-preview img { display: block; width: 100%; height: 100%; }
 [data-dsh-skin-workspace] .dsh-skin-disclosure[open] > summary { margin-block-end: 8px; }
 [data-dsh-skin-workspace] .dsh-skin-disclosure > :is(.dsh-skin-actions, .dsh-skin-muted) { margin-block-start: 8px; }
 [data-dsh-skin-workspace] .dsh-skin-utilities > details {

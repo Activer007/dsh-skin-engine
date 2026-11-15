@@ -1,3 +1,4 @@
+import { sameArtwork, type ArtworkPreference } from './user-artwork.js'
 import { AMBIENT_LIGHT_MAX_INTENSITY, type SkinEffect } from '../core/effects.js'
 import type { ColorScheme, parseSkinTokens } from '../core/tokens.js'
 
@@ -12,6 +13,7 @@ export type EditableEffect = (typeof editableEffects)[number]
 export interface EffectPreference { enabled?: boolean; strength?: number }
 
 export interface SkinPreferences {
+  artwork?: ArtworkPreference
   quality?: QualityChoice
   colors?: Partial<Record<(typeof editableColors)[number], string>>
   effects?: Partial<Record<EditableEffect, EffectPreference>>
@@ -22,7 +24,7 @@ export function preferencesFor(values: Readonly<Record<string, SkinPreferences>>
 }
 
 export function samePreferences(a?: SkinPreferences | null, b?: SkinPreferences | null) {
-  return a?.quality === b?.quality
+  return sameArtwork(a?.artwork, b?.artwork) && a?.quality === b?.quality
     && editableColors.every(key => a?.colors?.[key] === b?.colors?.[key])
     && editableEffects.every(key => a?.effects?.[key]?.enabled === b?.effects?.[key]?.enabled
       && a?.effects?.[key]?.strength === b?.effects?.[key]?.strength)

@@ -35,6 +35,8 @@ export interface SkinSelection {
 
 export interface SkinArtwork {
   path: string
+  position?: [number, number]
+  scale?: number
   opacity: number
   size: 'cover' | 'contain' | 'auto'
 }

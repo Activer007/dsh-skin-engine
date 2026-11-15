@@ -1,3 +1,5 @@
+import { portraitSkinIds } from '../shared/user-artwork.js'
+import { readUserArtwork } from './user-artwork.js'
 import { createHash } from 'node:crypto'
 import { join } from 'node:path'
 import { withFileLock } from '@deepseek-ai/dsh-atomic-write'
@@ -110,6 +112,7 @@ export function registerSelectionRoutes(
       const previous = id ? preferencesFor(current.preferences, id) : undefined
       if (change.skinId && change.packageRevision) {
         const candidate = await registry.load(change.skinId, change.packageRevision, signal)
+        if (change.preferences?.artwork && candidate.source !== 'built-in') throw new PackageFileError('unsupported-artwork-skin', 400)
         if (candidate.source !== 'built-in' && !candidate.managed) throw new PackageFileError('skin-unavailable', 409)
         if (editableEffects.some(id => {
           const next = change.preferences?.effects?.[id]
@@ -119,6 +122,11 @@ export function registerSelectionRoutes(
         })) {
           throw new PackageFileError('undeclared-effect-preference', 400)
         }
+      }
+      const artwork = change.preferences?.artwork
+      if (artwork) {
+        if (!id || !portraitSkinIds.includes(id)) throw new PackageFileError('unsupported-artwork-skin', 400)
+        if (artwork.asset !== previous?.artwork?.asset) await readUserArtwork(profileDirectory, artwork.asset, signal)
       }
       const preferencesChanged = change.preferences !== undefined && !samePreferences(previous, change.preferences)
       if (id === current.skinId && !preferencesChanged) return Response.json(current, { headers })

@@ -54,6 +54,8 @@ export function mountArtwork(node: HTMLElement, artwork: PreparedArtwork, reconc
   node.append(image)
   if (artwork.kind === 'legacy') {
     node.style.opacity = String(artwork.style.opacity)
+    if (artwork.style.position) image.style.objectPosition = `${artwork.style.position[0]}% ${artwork.style.position[1]}%`
+    if (artwork.style.scale) image.style.transform = `scale(${artwork.style.scale})`
     image.style.objectFit = artwork.style.size === 'auto' ? 'none' : artwork.style.size
     return { update: (visible: boolean) => visible, dispose: () => image.remove() }
   }

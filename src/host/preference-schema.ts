@@ -1,9 +1,20 @@
+import { artworkAssetPattern } from '../shared/user-artwork.js'
 import * as z from 'zod/mini'
 import { skinIdSchema } from '../core/manifest.js'
 import { hexColor } from '../core/tokens.js'
 import { editableColors, editableEffects, qualityLevels } from '../shared/preferences.js'
 
+export const artworkPreferenceSchema = z.strictObject({
+  asset: z.string().check(z.regex(artworkAssetPattern)),
+  fit: z.enum(['contain', 'cover']),
+  x: z.number().check(z.minimum(0), z.maximum(100)),
+  y: z.number().check(z.minimum(0), z.maximum(100)),
+  scale: z.number().check(z.minimum(0.5), z.maximum(2)),
+  opacity: z.number().check(z.minimum(0), z.maximum(0.5)),
+})
+
 export const skinPreferencesSchema = z.strictObject({
+  artwork: z.optional(artworkPreferenceSchema),
   colors: z.optional(z.partialRecord(z.enum(editableColors), hexColor)),
   effects: z.optional(z.partialRecord(z.enum(editableEffects), z.strictObject({
     enabled: z.optional(z.boolean()),

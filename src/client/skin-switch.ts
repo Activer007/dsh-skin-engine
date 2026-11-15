@@ -1,3 +1,4 @@
+import { artworkUrl, portraitSkinIds, sameArtwork, type ArtworkPreference } from '../shared/user-artwork.js'
 import type { ColorScheme } from '../core/tokens.js'
 import type { PreparedArtwork, SkinSelection } from '../shared/skins.js'
 import { applyPreferences, preferencesFor, samePreferences, type SkinPreferences } from '../shared/preferences.js'
@@ -69,7 +70,18 @@ async function decodeArtwork(url: string, signal: AbortSignal) {
   }
 }
 
-async function prepareArtwork(data: SkinData, signal: AbortSignal): Promise<PreparedSkin['artwork']> {
+async function prepareArtwork(data: SkinData, signal: AbortSignal, custom?: ArtworkPreference): Promise<PreparedSkin['artwork']> {
+  if (custom && portraitSkinIds.includes(data.manifest.id)) {
+    try {
+      const image = await decodeArtwork(artworkUrl(custom.asset), AbortSignal.any([signal, AbortSignal.timeout(10_000)]))
+      if (data.scene) return { kind: 'scene', image, layout: { ...data.scene.layout,
+        artwork: { ...data.scene.layout.artwork, fit: custom.fit, scale: custom.scale, opacity: custom.opacity,
+          focalPoint: [custom.x / 100, custom.y / 100] },
+      } }
+      return { kind: 'legacy', image, style: { path: custom.asset, size: custom.fit, opacity: custom.opacity,
+        position: [custom.x, custom.y], scale: custom.scale } }
+    } catch { signal.throwIfAborted() } // Missing/corrupt personal image falls back to the original.
+  }
   if (data.scene) {
     const { layout } = data.scene
     async function decode(url: string | undefined): Promise<PreparedArtwork | undefined> {
@@ -200,13 +212,13 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     if (choice.compatibility) throw new Error(choice.compatibility.message)
     if (!canActivate(choice)) throw new Error('Local skin activation requires a validated installation.')
     for (const candidate of [hint, preview, committed]) {
-      if (candidate && samePackageRevision(candidate.choice, choice)) {
+      if (candidate && samePackageRevision(candidate.choice, choice) && sameArtwork(preferences?.artwork, candidate.preferences?.artwork)) {
         return samePreferences(preferences, candidate.preferences) ? candidate : { ...candidate, preferences }
       }
     }
     const data = await loadDetails(choice, signal)
     signal.throwIfAborted()
-    const artwork = await prepareArtwork(data, signal)
+    const artwork = await prepareArtwork(data, signal, preferences?.artwork)
     return { choice, data, preferences, artwork }
   }
 

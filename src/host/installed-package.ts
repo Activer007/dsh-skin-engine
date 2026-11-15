@@ -52,7 +52,7 @@ export async function bundledPreferences(location: PackageLocation, data: Return
     throw error
   }
   const result = preferenceFile.safeParse(parseJson(bytes))
-  if (!result.success || result.data.skinId !== data.manifest.id
+  if (!result.success || result.data.preferences.artwork !== undefined || result.data.skinId !== data.manifest.id
     || Object.keys(result.data.preferences.effects ?? {}).some(id => !data.effects.some(effect => effect.id === id))) {
     throw new PackageFileError('invalid-bundled-preferences', 422)
   }

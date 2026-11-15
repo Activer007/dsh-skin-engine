@@ -2,18 +2,18 @@
 
 Skin Engine 为 DeepSeek Harness 提供数据型皮肤、聊天预览和本地 ZIP 管理。
 
-当前主线包版本为 **1.9.1**，要求 **DSH 0.2.2-rc.1 或更新版本**。从 GitHub Releases 下载安装包和 SHA-256 校验文件。升级前退出目标 Profile 并备份原版插件包和皮肤数据。 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [升级与回装说明](docs/release-v1.md#v191-r1-发行)
+当前主线包版本为 **1.9.2**，要求 **DSH 0.2.2-rc.1 或更新版本**。已发布的安装包和 SHA-256 校验文件见 GitHub Releases。升级前退出目标 Profile 并备份原版插件包和皮肤数据。 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [升级与回装说明](docs/release-v1.md#v191-r1-发行)
 
 在已退出的 Windows Desktop 上，可用随应用安装的 DSH CLI 将归档原地安装到 `desktop` Profile。将示例里的路径换成实际文件路径，然后重新打开 DSH。
 
 ```powershell
-& '<DSH 安装目录>/resources/runtime/cli/bin/dsh.cmd' plugin --profile desktop add 'file:E:/path/to/dsh-plugin-skin-engine-1.9.1.tgz'
+& '<DSH 安装目录>/resources/runtime/cli/bin/dsh.cmd' plugin --profile desktop add 'file:E:/path/to/dsh-plugin-skin-engine-1.9.2.tgz'
 ```
 
 Web 使用目标 Profile 的 DSH CLI 安装，安装后重启该 Web Host。
 
 ```sh
-dsh plugin --profile web add -w file:/absolute/path/to/dsh-plugin-skin-engine-1.9.1.tgz
+dsh plugin --profile web add -w file:/absolute/path/to/dsh-plugin-skin-engine-1.9.2.tgz
 ```
 
 - 从左侧「外观中心」浏览皮肤、收藏、排序、调整皮肤特效和管理 ZIP。确认当前聊天可见后，「在聊天中预览」会启动约 30 秒的预览。

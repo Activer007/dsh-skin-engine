@@ -68,7 +68,7 @@ export function useSkinEditor(choice: SkinChoice | undefined, controller: Contro
     if (controller.getSnapshot().preview === id) void controller.cancelPreview()
   }
 
-  return { chatPreview, result, draft, values, busy, disabled, blocked, packageChanged, stale, previewBlock, applyBlock, applied, edit, apply, reviewDraft,
+  return { profileRevision: revision, packageRevision: choice?.revision, chatPreview, result, draft, values, busy, disabled, blocked, packageChanged, stale, previewBlock, applyBlock, applied, edit, apply, reviewDraft,
     discard, preview: () => {
       if (id && choice && chatPreview && revision !== undefined && !stale) {
         void chatPreview({ id, draft, packageRevision: choice.revision, profileRevision: revision })

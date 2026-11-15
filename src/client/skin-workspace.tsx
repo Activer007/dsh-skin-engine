@@ -245,6 +245,7 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
             setShowDetails(false)
           }}>{t('backToGallery')}</button>
           <SkinDetail key={`${choice.manifest.id}/${choice.revision}`} t={t} id={detailId} choice={choice} scheme={scheme}
+            artworkEditorVisible={activePage === 'gallery'}
             displayName={displayName(choice.manifest)}
             placeholder={placeholder} onOpenEffects={() => {
               settingsSession.editEffects(choice.manifest.id)

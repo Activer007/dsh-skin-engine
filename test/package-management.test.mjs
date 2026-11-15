@@ -105,7 +105,8 @@ async function fixture(t) {
     }
     return op(id, 'finish', {}, undefined, undefined, path)
   }
-  return { dir, request, op, staging, upload, registry, signal: abort.signal, failWrites: value => { failWrite = value } }
+  return { dir, request, op, staging, upload, registry, signal: abort.signal,
+    seedSelection: value => { selected = value }, failWrites: value => { failWrite = value } }
 }
 
 test('the Starter source packs reproducibly and passes the production ZIP importer', async t => {
@@ -535,4 +536,31 @@ test('chunk overflow and competing publishes preserve the bounded profile catalo
   const results = await Promise.all([host.upload(archive), host.upload(archive)])
   assert.deepEqual(results.map(response => response.status).sort(), [201, 409])
   assert.deepEqual(await host.staging(), [])
+})
+
+test('imported skin cannot reference private profile artwork', async t => {
+  const host = await fixture(t)
+  const files = packageFiles()
+  files.set('preferences.json', json({ schema: 'dsh.skin-preferences/v1', skinId, preferences: {
+    artwork: { asset: `${'a'.repeat(64)}.png`, fit: 'contain', x: 50, y: 50, scale: 1, opacity: 0.3 },
+  } }))
+  assert.equal((await host.upload(await zip(files))).status, 422)
+  assert.deepEqual(await host.staging(), [])
+})
+
+test('exporting built-in portrait preferences and assets omits all private image data', async t => {
+  const host = await fixture(t)
+  const id = 'com.dsh.skin.night-navigator'
+  const asset = `${'c'.repeat(64)}.png`
+  host.seedSelection({ skinId: id, revision: 1, preferences: {
+    [id]: { quality: 'low', artwork: { asset, fit: 'cover', x: 50, y: 50, scale: 1, opacity: 0.35 } },
+  } })
+  const skin = (await host.registry.catalogue(host.signal)).skins.find(item => item.manifest.id === id)
+  const query = new URLSearchParams({ id, revision: skin.revision, assets: '1', preferences: '1' })
+  const response = await host.request(root + '/packages/export?' + query)
+  assert.equal(response.status, 200)
+  const contents = await unzip(Buffer.from(await response.arrayBuffer()))
+  assert(contents.has('assets/navigator.webp'))
+  assert.deepEqual(JSON.parse(contents.get('preferences.json')).preferences, { quality: 'low' })
+  assert(![...contents].some(([name, bytes]) => name.includes(asset) || bytes.includes(asset)))
 })

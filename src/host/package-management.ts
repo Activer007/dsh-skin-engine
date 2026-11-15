@@ -179,7 +179,7 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
           .filter(([effectId]) => parsed.effects.some(effect => effect.id === effectId)))
         output.set(BUNDLE_PREFERENCES, jsonBytes({
           schema: BUNDLE_PREFERENCES_SCHEMA, skinId: id,
-          preferences: { ...values, effects: Object.keys(effects).length ? effects : undefined },
+          preferences: { quality: values.quality, colors: values.colors, effects: Object.keys(effects).length ? effects : undefined },
         }))
       }
     }

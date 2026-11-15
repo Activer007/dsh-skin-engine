@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-skin-engine",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "description": "Declarative skin engine for DeepSeek Harness",
   "private": true,
   "type": "module",
@@ -68,6 +68,8 @@
     "esbuild": "^0.27.0",
     "oxlint": "^1.25.0",
     "playwright-core": "1.65.0",
+    "react": "^19.2.0",
+    "react-test-renderer": "^19.2.0",
     "semver": "7.8.6",
     "typescript": "^5.9.3",
     "yauzl": "3.4.0",

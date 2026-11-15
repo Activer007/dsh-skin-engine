@@ -1,3 +1,5 @@
+import { registerUserArtworkRoutes } from './user-artwork.js'
+export { registerUserArtworkRoutes, readUserArtwork } from './user-artwork.js'
 import { createHash } from 'node:crypto'
 import { boolean } from 'zod/mini'
 import { readDshRuntimeVersion } from '../adapter/host-version.js'
@@ -69,10 +71,11 @@ export function apply(ctx: HostContext): void {
   const storage = ctx.storageDomain
   let opening: Promise<SelectionDomain<boolean> | undefined> | undefined
   let drainSelection: (() => Promise<unknown>) | undefined
+  let drainArtwork: (() => Promise<unknown>) | undefined
   let drainPackages: (() => Promise<unknown>) | undefined
   ctx.effect(() => async () => {
     lifetime.abort()
-    await Promise.all([drainPackages?.(), drainSelection?.(), opening?.then(domain => domain?.close())])
+    await Promise.all([drainArtwork?.(), drainPackages?.(), drainSelection?.(), opening?.then(domain => domain?.close())])
   }, 'skin-engine: stop audit requests and close storage')
 
   opening = storage.open<boolean>({
@@ -146,6 +149,7 @@ export function apply(ctx: HostContext): void {
     },
   })
   const register = (route: Route) => routes.register(route)
+  drainArtwork = registerUserArtworkRoutes(register, ctx.profileContext.dir, lifetime.signal)
   const registry = registerCatalogueRoutes(register, ctx.profileContext.dir, lifetime.signal)
   const transact = createSelectionStore(ctx.profileContext.dir, storage)
   drainSelection = registerSelectionRoutes(register, ctx.profileContext.dir, storage, registry, lifetime.signal, transact)
