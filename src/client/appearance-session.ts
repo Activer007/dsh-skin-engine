@@ -8,10 +8,11 @@ export interface WorkspaceView {
   tag: string
   source: string
   compatibleOnly: boolean
+  favoritesOnly: boolean
   managedId: string
 }
 function initialView(): WorkspaceView {
-  return { activePage: 'gallery', showDetails: false, query: '', tag: '', source: '', compatibleOnly: false, managedId: '' }
+  return { activePage: 'gallery', showDetails: false, query: '', tag: '', source: '', compatibleOnly: false, favoritesOnly: false, managedId: '' }
 }
 
 /** Window-scoped UI only. Never persists a profile or starts an effect. */

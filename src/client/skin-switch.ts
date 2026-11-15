@@ -37,6 +37,7 @@ interface SwitchOptions {
   blockReason(choice: SkinChoice, intent?: 'render' | 'apply'): string | undefined
   switchAppearance(choice: SkinChoice): (() => void) | undefined
   mount(skin: PreparedSkin, data: SkinData, artwork?: PreparedArtwork): MountedSkin
+  onApplied?(id: string): void
   previewMs?: number
 }
 
@@ -95,7 +96,7 @@ async function prepareArtwork(data: SkinData, signal: AbortSignal): Promise<Prep
   }
 }
 
-export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppearance, mount, previewMs = 30_000 }: SwitchOptions) {
+export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppearance, mount, onApplied, previewMs = 30_000 }: SwitchOptions) {
   let state: SwitchState = {
     catalogue: null, catalogueNotice: '', saved: null, rendered: null, preview: null, pending: null, saving: false, notice: '',
   }
@@ -302,6 +303,7 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
         const saved = await api.save(candidate?.choice ?? null, expected, signal, draft?.value)
         undoAppearance = undefined
         await adopt(saved, signal, candidate)
+        if (!signal.aborted && id) { try { onApplied?.(id) } catch { /* UI history must not affect saving. */ } }
         return !signal.aborted
       } catch (error) {
         if (signal.aborted) return

@@ -137,7 +137,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   const userData = join(directory, 'electron-user-data')
   const isolatedRenderer = ['catalogue-cache', 'character-samples'].includes(options.suite)
   const navigationSuite = ['navigation-release', 'navigation-visibility'].includes(options.suite)
-  const settingsSuite = options.suite.startsWith('settings-') || navigationSuite
+  const settingsSuite = options.suite.startsWith('settings-') || navigationSuite || options.suite === 'gallery-preferences'
 
   async function startDesktop(lifecycle, userDirectory = userData) {
     const cdp = await port()

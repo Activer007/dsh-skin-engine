@@ -1,6 +1,10 @@
 # 外观中心第一阶段：实施与验收台账
 
-## 基线与范围
+## 当前进度（2026-11-15）
+
+NAV-01–05、SYS-01 和 NAV-06 工具/部分集成记录已合并；PR #50 的合并提交为 `07be9b65e4c902b6056b4d567f15aa13e0f9a413`。NAV-06 **完整验收未完成**，详见 [合并后补验清单](navigation-release-guide.md)。下方 NAV-01、NAV-02–04 等章节是各自交付时的历史状态，不能将其中“未完成”当作当前功能状态；也不能把合并当成所有历史未验项已通过。
+
+## 历史基线与范围
 
 - Skin Engine：`76baaeaf7749303838c25457d147048909015591`（PR #44，1.8.2）。
 - 官方 DSH：`dsh-v0.2.2-rc.1`，`66491b05e3f05ad35bcdd4f6cd7ed26041d9e3db`。
@@ -113,6 +117,6 @@
 - 官方 DSH `0.2.2-rc.1` Web 与 Windows Desktop 使用同一归档（SHA-256 `b5bf8cd7a7bff55eb56bd00e66ff1ce2e168e5201cb4f5dba973251c671dc493`）。通过中英文设置、窗口模式及质量、Host 检查、关闭设置后预览保留、显式取消、二次确认恢复且偏好保留、外观中心草稿与 ZIP 导入。常规视口两个设置弹窗均为 800 CSS 像素宽，窄窗无横向溢出。
 - Web 截图和结果在 `.cache/sys-01/verified/web-Cuznhp/`，Windows Desktop 在 `.cache/sys-01/verified/desktop-ZfQL09/`。两端无未捕获页面异常。Desktop 记录了一条通用资源加载错误，隔离宿主均已退出。
 
-## NAV-06 集成准备
+## NAV-06 合并与待补验
 
-NAV-05（PR #47）与 SYS-01（PR #48）已合入主线。正式出口仍需固定一个包含两项合并的候选，对同一份包执行官方 Web 和 Windows Desktop 集成矩阵，并核对实际证据。 [迁移手册与验收矩阵](navigation-release-guide.md) · [证据索引模板](navigation-release-evidence.json)
+NAV-05（PR #47）、SYS-01（PR #48）、NAV-06 准备（PR #49）和部分最终集成记录（PR #50）已合入主线。历史同候选同包双端主要流程已有记录，完整门禁仍未满足。加载重复请求、停用迟到响应、原生取消固定和真实第三方共存需保留逐项状态，不能把自动测试或所有权标记夹具记成人工通过。 [迁移手册与验收矩阵](navigation-release-guide.md) · [证据索引模板](navigation-release-evidence.json)

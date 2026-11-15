@@ -33,7 +33,7 @@ async function clientArtifact(globals = {}) {
   return registered.factory(require)
 }
 
-async function switchFixture({ initial = null, previewMs, prepare, onMount, onSave, switchAppearance = () => undefined,
+async function switchFixture({ initial = null, previewMs, prepare, onMount, onSave, onApplied, switchAppearance = () => undefined,
   catalogue = () => choices, getColorScheme = () => 'dark', globals } = {}) {
   const { createSkinSwitch } = await clientArtifact(globals)
   let disk = { skinId: initial, revision: 0 }
@@ -57,7 +57,7 @@ async function switchFixture({ initial = null, previewMs, prepare, onMount, onSa
     },
   }
   const controller = createSkinSwitch({
-    api, previewMs, getColorScheme, blockReason() {}, switchAppearance,
+    api, previewMs, onApplied, getColorScheme, blockReason() {}, switchAppearance,
     mount({ preferences }, data, artwork) {
       const id = data.manifest.id
       onMount?.(id, data, preferences, artwork)
@@ -417,4 +417,36 @@ test('client installs the real settings slot and yields without removing foreign
   }
   assert.equal(root.get('data-dsh-skin-id'), 'foreign')
   assert.equal(observing, false)
+})
+
+
+test('NAV07 records successful explicit applies, not refresh, preview, cancel or reset', async t => {
+  const recent = []
+  const { controller } = await switchFixture({ initial: 'a', onApplied: id => recent.push(id) })
+  t.after(() => controller.dispose())
+  await controller.refresh(); await controller.preview('b'); await controller.cancelPreview()
+  assert.deepEqual(recent, [])
+  assert.equal(await controller.apply('b'), true)
+  assert.deepEqual(recent, ['b'])
+  await controller.apply(null)
+  assert.deepEqual(recent, ['b'])
+})
+test('NAV07 records no history from failed writes or a matching readback after a lost response', async t => {
+  const recent = []
+  const failed = await switchFixture({ onApplied: id => recent.push(id), onSave() { throw Error('failed') } })
+  t.after(() => failed.controller.dispose())
+  assert.equal(await failed.controller.apply('b'), false); assert.deepEqual(recent, [])
+  const unchanged = await switchFixture({ initial: 'b', onApplied: id => recent.push(id), onSave() { throw Error('failed') } })
+  t.after(() => unchanged.controller.dispose())
+  assert.equal(await unchanged.controller.apply('b'), true)
+  assert.equal(unchanged.disk().revision, 0)
+  assert.deepEqual(recent, [])
+  const confirmed = await switchFixture({ onApplied: id => recent.push(id), onSave(_choice, commit) { commit(); throw Error('lost response') } })
+  t.after(() => confirmed.controller.dispose())
+  assert.equal(await confirmed.controller.apply('b'), true); assert.deepEqual(recent, [])
+})
+test('NAV07 history write failures cannot turn a successful apply into a failed save', async t => {
+  const { controller, writes } = await switchFixture({ onApplied() { throw Error('quota') } })
+  t.after(() => controller.dispose())
+  assert.equal(await controller.apply('b'), true); assert.deepEqual(writes, ['b'])
 })

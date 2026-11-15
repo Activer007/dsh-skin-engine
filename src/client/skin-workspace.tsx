@@ -1,3 +1,4 @@
+import { orderGallery, type GalleryPreferenceStore, type GallerySort } from './gallery-preferences.js'
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { ImportSkin, PackageActions, PackageOperationStatus } from './package-controls.js'
 import { usePackageOperations, type PackageOperationsStore } from './package-operations.js'
@@ -18,6 +19,7 @@ const pages = ['gallery', 'effectsPage', 'managePage'] as const
 type Page = (typeof pages)[number]
 
 export interface WorkspaceProps {
+  galleryPreferences: GalleryPreferenceStore
   controller: ReturnType<typeof createSkinSwitch>
   getColorScheme(): 'light' | 'dark'
   settingsSession: ReturnType<typeof createAppearanceSession>
@@ -27,12 +29,13 @@ export interface WorkspaceProps {
   t?: TranslateSettings
 }
 
-export function SkinWorkspace({ controller, getColorScheme, settingsSession, packageOperations, backToChat, chatPreview, t: translate }: WorkspaceProps) {
+export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, settingsSession, packageOperations, backToChat, chatPreview, t: translate }: WorkspaceProps) {
   const [language, setLanguage] = useState(() => document.documentElement.lang)
   const t = translate ?? fallbackSettingsCopy(language)
+  const gallery = useSyncExternalStore(galleryPreferences.subscribe, galleryPreferences.getSnapshot)
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
   useSyncExternalStore(settingsSession.subscribe, settingsSession.getSnapshot)
-  const { activePage, showDetails, query, tag, source, compatibleOnly, managedId } = settingsSession.view
+  const { activePage, showDetails, query, tag, source, compatibleOnly, favoritesOnly, managedId } = settingsSession.view
   const setActivePage = (activePage: Page) => settingsSession.setView({ activePage })
   const setShowDetails = (showDetails: boolean) => settingsSession.setView({ showDetails })
   const search = (query: string) => settingsSession.setView({ query })
@@ -43,6 +46,7 @@ export function SkinWorkspace({ controller, getColorScheme, settingsSession, pac
   const detailBack = useRef<HTMLButtonElement>(null)
   const card = useRef<HTMLButtonElement>(null)
   const searchInput = useRef<HTMLInputElement>(null)
+  const sortSelect = useRef<HTMLSelectElement>(null)
   const focusTarget = useRef<'detail' | 'gallery' | undefined>(undefined)
   const tabId = useId()
   const operations = usePackageOperations(packageOperations)
@@ -53,13 +57,13 @@ export function SkinWorkspace({ controller, getColorScheme, settingsSession, pac
   const choices = state.catalogue?.skins ?? []
   const tags = [...new Set(choices.flatMap(item => item.manifest.tags ?? []))].sort()
   const term = query.trim().toLowerCase()
-  const visible = choices.filter(({ manifest, source: origin, compatibility }) => {
+  const visible = orderGallery(choices.filter(({ manifest, source: origin, compatibility }) => {
     if (source && source !== origin) return false
     if (compatibleOnly && compatibility) return false
     if (tag && !manifest.tags?.includes(tag)) return false
     return !term || [manifest.name, manifest.nameEn, manifest.author, manifest.id, ...(manifest.tags ?? [])]
       .some(value => value?.toLowerCase().includes(term))
-  })
+  }), gallery, language, favoritesOnly)
   const choice = choices.find(item => item.manifest.id === settingsSession.selected)
     ?? choices.find(item => item.manifest.id === state.saved?.skinId)
     ?? choices[0]
@@ -81,7 +85,7 @@ export function SkinWorkspace({ controller, getColorScheme, settingsSession, pac
   }
   const scheme = getColorScheme()
   const previewing = state.preview !== null || state.pending === 'preview'
-  const filtersActive = Boolean(query || tag || source || compatibleOnly)
+  const filtersActive = Boolean(query || tag || source || compatibleOnly || favoritesOnly)
   const placeholder = state.catalogue?.placeholderUrl
 
   useEffect(() => {
@@ -106,6 +110,7 @@ export function SkinWorkspace({ controller, getColorScheme, settingsSession, pac
     filterTag('')
     filterSource('')
     filterCompatibility(false)
+    settingsSession.setView({ favoritesOnly: false })
   }
 
   useEffect(() => {
@@ -179,9 +184,18 @@ export function SkinWorkspace({ controller, getColorScheme, settingsSession, pac
                 <option value="local">{t('local')}</option>
               </select>
             </label>
+            <label>{t('gallerySort')}<select ref={sortSelect} value={gallery.sort} onChange={event => galleryPreferences.setSort(event.currentTarget.value as GallerySort)}>
+              <option value="default">{t('sortDefault')}</option>
+              <option value="name">{t('sortName')}</option>
+              <option value="recent">{t('sortRecent')}</option>
+            </select></label>
           </fieldset>
+          <p className="dsh-skin-muted">{t('galleryPreferenceHelp')}</p>
+          {!galleryPreferences.persistent ? <p role="status">{t('galleryMemoryOnly')}</p> : null}
           <div className="dsh-skin-gallery-summary">
             {state.catalogue ? <span role="status">{visible.length ? t('galleryCount', { count: visible.length }) : t('noMatches')}</span> : null}
+            <label><input type="checkbox" disabled={loadingGallery} checked={favoritesOnly} onChange={event => settingsSession.setView({ favoritesOnly: event.currentTarget.checked })} />{t('favoritesOnly')}</label>
+            {gallery.recent.length ? <button type="button" onClick={() => { galleryPreferences.clearRecent(); sortSelect.current?.focus() }}>{t('clearRecent')}</button> : null}
             <label><input type="checkbox" disabled={loadingGallery} checked={compatibleOnly} onChange={event => filterCompatibility(event.currentTarget.checked)} />{t('compatibleOnly')}</label>
             {filtersActive ? <button type="button" onClick={clearFilters}>{t('clearFilters')}</button> : null}
           </div>
@@ -210,6 +224,15 @@ export function SkinWorkspace({ controller, getColorScheme, settingsSession, pac
                       <strong>{displayName(manifest)}</strong>
                       <small className="dsh-skin-badge" data-status={status}>{t(status)}</small>
                     </span>
+                  </button>
+                  <button type="button" className="dsh-skin-favorite" data-skin-favorite={manifest.id}
+                    aria-pressed={gallery.favorites.includes(manifest.id)}
+                    aria-label={t(gallery.favorites.includes(manifest.id) ? 'unfavoriteSkin' : 'favoriteSkin', { name: displayName(manifest) })}
+                    onClick={() => {
+                      galleryPreferences.toggleFavorite(manifest.id)
+                      if (favoritesOnly) searchInput.current?.focus()
+                    }}>
+                    {t(gallery.favorites.includes(manifest.id) ? 'favorited' : 'favorite')}
                   </button>
                 </li>
               )
@@ -249,7 +272,7 @@ export function SkinWorkspace({ controller, getColorScheme, settingsSession, pac
             <h3>{t('package.list')}</h3>
             <ImportSkin t={t} operations={operations} disabled={busy || loadingGallery} onInstalled={id => {
               settingsSession.select(id)
-              settingsSession.setView({ managedId: id, query: '', tag: '', source: '', compatibleOnly: false })
+              settingsSession.setView({ managedId: id, query: '', tag: '', source: '', compatibleOnly: false, favoritesOnly: false })
             }} />
           </header>
           <ul className="dsh-skin-packages">

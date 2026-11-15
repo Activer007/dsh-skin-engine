@@ -1,3 +1,4 @@
+import { createGalleryPreferences, GALLERY_PREFERENCES_KEY } from './gallery-preferences.js'
 import { createAppearanceSession } from './appearance-session.js'
 import { ChatPreviewBar, createChatPreview, type PreviewLayout } from './chat-preview.js'
 import { createPackageOperations } from './package-operations.js'
@@ -33,7 +34,15 @@ export function apply(ctx: ClientContext): void {
   const theme = createSkinTheme(ctx.theme, document)
   const effects = createEffectsRuntime(document)
   const getColorScheme = () => ctx.theme.getTheme().active.colorScheme
+  let storage: Storage | undefined
+  try { storage = window.localStorage } catch { /* Keep UI preferences in memory. */ }
+  const galleryPreferences = createGalleryPreferences(storage)
+  const syncGallery = (event: StorageEvent) => {
+    if (event.key === null || event.key === GALLERY_PREFERENCES_KEY) galleryPreferences.reload()
+  }
+  window.addEventListener('storage', syncGallery)
   const controller = createSkinSwitch({
+    onApplied: id => galleryPreferences.recordApplied(id),
     api: skinApi,
     getColorScheme,
     blockReason: theme.blockReason,
@@ -69,6 +78,7 @@ export function apply(ctx: ClientContext): void {
     preview?.dispose()
     packageOperations.dispose()
     appearanceSession.clear()
+    window.removeEventListener('storage', syncGallery)
     observer.disconnect()
     window.removeEventListener('focus', refreshOnFocus)
     controller.dispose()
@@ -90,7 +100,7 @@ export function apply(ctx: ClientContext): void {
   const locale = ctx.get?.('locale')
   if (locale) ctx.effect(() => locale.register(SETTINGS_LOCALE, settingsCopy), 'skin-engine: settings locale')
   registerAppearanceNavigation(ctx, locale?.bind(SETTINGS_LOCALE), {
-    controller, getColorScheme, settingsSession: appearanceSession, packageOperations, chatPreview: preview?.start,
+    controller, getColorScheme, galleryPreferences, settingsSession: appearanceSession, packageOperations, chatPreview: preview?.start,
   })
   if (preview) ctx.slots.inject('shell.overlay', () => ctx.slots.register({
     name: 'shell.overlay', id: 'dsh-skin-engine.chat-preview', locale: SETTINGS_LOCALE,

@@ -1,3 +1,4 @@
+import { checkGalleryPreferences } from './gallery-preferences.mjs'
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
@@ -68,9 +69,10 @@ const ambientPreferences = options.suite === 'ambient-preferences'
 const settingsIntegration = options.suite === 'settings-integration'
 const settingsLocale = settingsIntegration || options.suite === 'settings-locale'
 const navigation = options.suite === 'settings-navigation'
+const galleryPreferences = options.suite === 'gallery-preferences'
 const navigationRelease = options.suite === 'navigation-release'
 const navigationVisibility = options.suite === 'navigation-visibility'
-const systemSettings = navigationRelease || navigationVisibility || options.suite === 'system-settings'
+const systemSettings = galleryPreferences || navigationRelease || navigationVisibility || options.suite === 'system-settings'
 const settingsState = navigation || settingsIntegration || options.suite === 'settings-state'
 const settingsTabs = settingsIntegration || options.suite === 'settings-tabs'
 const settingsGallery = settingsIntegration || options.suite === 'settings-gallery'
@@ -264,7 +266,9 @@ try {
   }
   if (systemSettings) {
     ui = await enter(open, navigationVisibility && !desktop)
-    if (navigationVisibility) {
+    if (galleryPreferences) {
+      await checkGalleryPreferences(ui, session, directory, run, profileDir)
+    } else if (navigationVisibility) {
       run.navigationRelease = {}
       await checkNavigationVisibility(ui, session, run.navigationRelease)
     } else {

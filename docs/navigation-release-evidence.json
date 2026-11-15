@@ -19,7 +19,7 @@
     "evidence": []
   },
   "exceptions": [
-    "最终候选双端集成未执行"
+    "此文件是未填运行结果的模板，不是历史验收报告；PR #50 已合并，实际索引与剩余未验项见 navigation-release-guide.md"
   ],
   "runs": {
     "web": {
