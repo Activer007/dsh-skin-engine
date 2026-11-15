@@ -58,7 +58,7 @@ export async function checkNavigationReleaseHost(ui, session, directory, evidenc
   const bar = previewBar(page)
   const launch = launcher(page)
   async function go() {
-    await activate(launch)
+    if (!await main.isVisible()) await activate(launch)
     await main.waitFor()
     await main.locator('[data-saved-skin]').waitFor()
     await main.getByRole('status').filter({ hasText: /^Loading…$/ }).waitFor({ state: 'hidden' })

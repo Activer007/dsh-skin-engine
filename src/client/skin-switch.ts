@@ -25,6 +25,7 @@ interface SwitchState {
   saved: SkinSelection | null
   rendered: string | null
   preview: string | null
+  previewDeadline?: number
   pending: OperationKind | null
   pendingPreviewOwner?: symbol
   saving: boolean
@@ -155,7 +156,7 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
     clearTimeout(timer)
     timer = undefined
     preview = null
-    if (state.preview !== null) publish({ preview: null })
+    if (state.preview !== null) publish({ preview: null, previewDeadline: undefined })
   }
 
   function begin(kind: OperationKind, pendingPreviewOwner?: symbol) {
@@ -294,8 +295,9 @@ export function createSkinSwitch({ api, getColorScheme, blockReason, switchAppea
       clearPreview()
       if (kind === 'preview' && candidate) {
         preview = candidate
-        publish({ preview: candidate.choice.manifest.id })
+        const previewDeadline = performance.now() + previewMs
         timer = setTimeout(() => { if (preview === candidate) void cancelPreview() }, previewMs)
+        publish({ preview: candidate.choice.manifest.id, previewDeadline })
         return
       }
       publish({ saving: true })

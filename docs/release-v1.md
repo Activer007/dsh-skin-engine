@@ -1,5 +1,24 @@
 # DSH Skin Engine v1 安装与验收
 
+## v1.9.1 R1 发行
+
+- 从 v1.8.2 升级后，皮肤库、皮肤特效和 ZIP 操作从左侧「外观中心」进入。画廊支持收藏、最近应用及排序。打开「在聊天中预览」后，可以在真实聊天中试用约 30 秒。
+- 「设置 → 皮肤引擎」保留窗口效果、诊断和紧急恢复。外观中心和设置页均可二次确认恢复默认外观，皮肤包与各皮肤偏好会保留。
+- 插件、Client 和 Host 版本为 1.9.1。皮肤声明的 Engine API 为 1.4.0，最低 DSH 版本为 0.2.2-rc.1。 [官方宿主实测范围](dsh-compatibility.md)
+- Worktable 和 Wallpaper Engine 的真实共存暂缓。历史 NAV-06 验收矩阵、例外与失败记录继续保留。 [NAV-06 证据](navigation-release-guide.md#证据索引与门禁命令)
+
+原地升级前退出目标 Profile，备份当前插件归档、Profile 插件配置、皮肤包及选择文件。按 [README 安装命令](../README.md) 用 1.9.1 归档替换并重启，在 DSH 插件详情核对安装版本，从「设置 → 皮肤引擎 → 诊断」核对 Client 和 Host 版本。随后进入外观中心核对已应用的皮肤、偏好与本地 ZIP。
+
+回装到 1.8.2 时，退出同一 Profile，用相同安装命令换回已校验的 1.8.2 归档，再打开原 Profile 从旧设置图库核对保存状态与本地 ZIP。升级前备份可用于手动恢复损坏或缺失的选择、包目录及配置。回装比 1.8.2 更早的版本时，按对应版本的存储兼容说明处理。 [完整回滚说明](#回滚)
+
+包含新版 README 的构建候选为 `879c38d1a6cfae47a921d208fe08c5469b97cba1`。在 Windows x64、Node 24.16.0、npm 12.2.1 上从两份独立 LF 检出运行 `verify:local`，构建、类型检查、Lint、106 项测试通过，27 份归档逐字节一致。`dsh-plugin-skin-engine-1.9.1.tgz` 为 1,474,638 字节，SHA-256 为 `dcc7e0a1b982dc5983a31a1c6a4ee802321ac6fdeb5c9fc8b965b9affdee0865`。与首轮归档相比，83 个文件中只有 README 内容变化。后续证据提交只更新位于归档之外的 `docs/release-v1.md`。 [本地复建命令](local-verification.md)
+
+官方 DSH `0.2.2-rc.3` Web 和 Windows Desktop 使用这一份 1.9.1 归档及正式 v1.8.2 归档（SHA-256 `2073d38119ddd217c384d3d1c0802b7a09113871fa0a2475165954b1470924db`）。每端在同一 Profile 依次运行 1.8.2、1.9.1、1.8.2。升级后 Deep Ocean、修订 1、`low` 偏好及导入的 ZIP 均保留。从 1.9.1 外观中心保存 `high` 后，回装的 1.8.2 读取修订 2 并在旧设置页显示新偏好。三个阶段的 Client 与 Host 版本一致，导入包 ID、版本及修订一致。两个隔离宿主与浏览器均已关闭。 [复跑命令](acceptance.md#运行)
+
+最终归档的 LHA 证据分别在 `.cache/r1/rel02/final-host/web-VYwmIb/` 和 `.cache/r1/rel02/final-host/desktop-Qyvfk9/`，含 `result.json`、`previous-diagnostics.png`、`upgraded-diagnostics.png`、`rolledBack-diagnostics.png` 和 `upgraded-appearance-center.png`。三个插件阶段均无未捕获页面异常。Windows 在测试插件安装前记录了 `ECONNRESET` 和同一次启动的 `dsh-desktop:boot` 错误，原始日志在该报告目录下的 `electron-user-data/logs/`。安装后的三个插件阶段均通过，控制台 `net::ERR_FAILED` 记录保留在报告中。
+
+首轮归档来自 `21c6e5a1b4295bbabfc89a9e6e75e6d40024d2fd`，SHA-256 为 `b87b02f6fa339d5ae0a772645b33591feb03690790a5d34b8c37e58cbe817872`。其原始结果保留在 `.cache/r1/rel02/host/web-7Vwu1w/` 和 `.cache/r1/rel02/host/desktop-f6Ar88/`。首轮 Windows 在安装测试插件前的启动阶段记录了一次 `ECONNRESET`，三个插件版本阶段随后均通过。R1 发行范围以官方宿主的验证为准。历史 NAV-06 的 rc.1 性能和后台采样继续引用原候选。 [兼容记录](dsh-compatibility.md) · [NAV-06 实测](navigation-release-guide.md)
+
 ## v1.5 应用皮肤时切换 DSH 外观
 
 在 Skin Engine 点击「Apply」时，若皮肤声明的明暗与当前 DSH 外观不同，引擎会通过 DSH 原生主题服务切换到对应外观，并保存皮肤。应用失败时恢复原外观。当前外观已经匹配、皮肤支持双模式或未指定模式时，沿用当前 DSH 设置。

@@ -9,7 +9,7 @@ import { settings, switchSkins } from './browser.mjs'
 import { checkAppearanceNavigation } from './appearance-navigation.mjs'
 import { checkSystemSettings } from './system-settings.mjs'
 import { checkNavigationReleaseHost, checkNavigationRestart, checkNavigationCatalogue, checkNavigationVisibility, checkNavigationUninstall } from './navigation-release.mjs'
-import { checkLateNavigationRead, checkLateNavigationSave, checkLateNavigationRestart, checkNavigationRaces } from './navigation-reliability.mjs'
+import { checkChatPreviewControls, checkLateNavigationRead, checkLateNavigationSave, checkLateNavigationRestart, checkNavigationRaces } from './navigation-reliability.mjs'
 import { checkNavigationRestore } from './navigation-restore.mjs'
 import { appearanceReport, checkAppearance } from './appearance.mjs'
 import { checkArtwork } from './artwork.mjs'
@@ -31,7 +31,7 @@ import { checkSettingsControls, checkSettingsTabs } from './settings-tabs.mjs'
 import { checkSurfaces, seedSurfaceHistory } from './surfaces.mjs'
 import { installTokenProbe } from './token-probe.mjs'
 import { checkTokens } from './tokens.mjs'
-import { saveOldSelection, verifyUpgrade } from './upgrade.mjs'
+import { checkReleaseUpgrade, saveOldSelection, verifyUpgrade } from './upgrade.mjs'
 import { checkPackageUpdates } from './updates.mjs'
 
 const { values: options } = parseArgs({ options: {
@@ -60,6 +60,7 @@ const supported = ['switch', 'performance', 'lifecycle']
 const suites = options.suite === 'all' ? supported : options.suite.split(',')
 const desktop = options.platform === 'desktop'
 const upgrade = options.suite === 'upgrade'
+const releaseUpgrade = options.suite === 'release-upgrade'
 const packages = options.suite === 'packages'
 const catalogueCache = options.suite === 'catalogue-cache'
 const characters = options.suite === 'character-samples'
@@ -78,7 +79,8 @@ const navigationReliability = options.suite === 'navigation-reliability'
 const navigationPerformance = options.suite === 'navigation-performance'
 const navigationUninstall = options.suite === 'navigation-uninstall'
 const navigationRestore = options.suite === 'navigation-restore'
-const navigationEvidence = navigationRelease || navigationVisibility || navigationReliability || navigationPerformance || navigationUninstall || navigationRestore
+const navigationPreview = options.suite === 'navigation-preview'
+const navigationEvidence = navigationRelease || navigationVisibility || navigationReliability || navigationPerformance || navigationUninstall || navigationRestore || navigationPreview
 const systemSettings = galleryPreferences || navigationEvidence || options.suite === 'system-settings'
 const settingsState = navigation || settingsIntegration || options.suite === 'settings-state'
 const settingsTabs = settingsIntegration || options.suite === 'settings-tabs'
@@ -93,9 +95,10 @@ const previewsOnly = options.suite === 'scene-previews'
 const scenes = previewsOnly || options.suite === 'scenes'
 const cssSample = options.suite === 'css-sample'
 const sample = cssSample || options.suite === 'static-sample'
-assert(systemSettings || upgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls || sceneMotion || options.suite === 'surfaces'
+assert(systemSettings || upgrade || releaseUpgrade || packages || catalogueCache || packageUpdate || appearance || dual || artwork || scenes || characters || sample || tokens || effects || ambientPreferences || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls || sceneMotion || options.suite === 'surfaces'
   || suites.every(suite => supported.includes(suite)), 'Unknown suite')
 assert(!upgrade || (desktop && options['from-archive']), 'Upgrade needs Desktop and --from-archive')
+assert(!releaseUpgrade || options['from-archive'], 'Release upgrade needs --from-archive')
 assert(!(packages || scenes || characters || tokens) || options['sample-dir'], 'Package, scene, and token acceptance need --sample-dir')
 assert(!(sample || sceneMotion || settingsGallery) || options['sample-zip'], 'Sample acceptance needs --sample-zip')
 assert(!appearance || !desktop, 'Appearance acceptance targets the official Web host')
@@ -118,7 +121,7 @@ const run = {
   pageErrors: [],
 }
 if (!desktop) run.web = { launches: [] }
-const settingsChecks = systemSettings || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls
+const settingsChecks = systemSettings || releaseUpgrade || settingsLocale || settingsState || settingsTabs || settingsGallery || settingsEffects || settingsPackages || settingsControls
 const interruption = appearance || dual || artwork || scenes || characters || tokens || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache ? new AbortController() : undefined
 if (appearance) run.appearance = appearanceReport()
 const save = () => writeFile(join(directory, 'result.json'), JSON.stringify(run, null, 2) + '\n')
@@ -135,10 +138,10 @@ if (interruption) {
   process.on('SIGTERM', interrupt)
 }
 
-async function enter(open, lifecycle, appearance, loading) {
+async function enter(open, lifecycle, appearance, loading, systemOnly = systemSettings) {
   session = await open(lifecycle, loading && holdInitialCatalogue)
   session.page.on('pageerror', error => run.pageErrors.push(redact(error.message)))
-  if (navigation || systemSettings) {
+  if (navigation || systemSettings || releaseUpgrade) {
     run.consoleErrors ??= []
     session.page.on('console', message => {
       if (message.type() === 'error') run.consoleErrors.push(redact(message.text()))
@@ -160,16 +163,17 @@ async function enter(open, lifecycle, appearance, loading) {
     })
   }
   if ((tokens || dual || effects || ambientPreferences || settingsChecks || sceneMotion || catalogueCache || characters) && desktop) await session.show()
-  return settings(session.page, desktop, appearance, loading, systemSettings)
+  return settings(session.page, desktop, appearance, loading, systemOnly)
 }
 
 console.log(`Acceptance output: ${directory}`)
 try {
   run.artifact = await identify(options.archive, run.hostVersion)
-  const firstArchive = upgrade ? resolve(options['from-archive']) : options.archive
-  const firstArtifact = upgrade ? await identify(firstArchive, run.hostVersion) : run.artifact
+  const changingVersion = upgrade || releaseUpgrade
+  const firstArchive = changingVersion ? resolve(options['from-archive']) : options.archive
+  const firstArtifact = changingVersion ? await identify(firstArchive, run.hostVersion) : run.artifact
   if (interruption) run.gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
-  if (navigationEvidence) {
+  if (navigationEvidence || releaseUpgrade) {
     assert(/^[a-f0-9]{40}$/.test(options.candidate ?? ''), 'Pass the full candidate SHA with --candidate')
     assert.equal(execFileSync('git', ['rev-parse', '--verify', `${options.candidate}^{commit}`], { encoding: 'utf8' }).trim(), options.candidate)
     for (const dependency of ['67cf4c8cebbbdd2517247300ab356fae0ea0dbc9', '30830bf5fb156a45896850802aebb7f2a71f5baa']) {
@@ -290,6 +294,9 @@ try {
     } else if (navigationRestore) {
       run.navigationRestore = {}
       await checkNavigationRestore(ui, directory, run.navigationRestore)
+    } else if (navigationPreview) {
+      run.navigationPreview = {}
+      await checkChatPreviewControls(ui, directory, run.navigationPreview)
     } else if (navigationPerformance) {
       run.performance = {}
       await performanceComparison(ui, run.performance, session.show)
@@ -337,6 +344,7 @@ try {
     else if (navigationPerformance) console.log('Verified foreground comparison and native background pause')
     else if (navigationUninstall) console.log('Verified native surfaces and cleanup after plugin uninstall')
     else if (navigationRestore) console.log('Verified restore confirmation, conflict, readback and focus')
+    else if (navigationPreview) console.log('Verified the chat preview countdown, cancel return and automatic expiry')
     else console.log('Verified system settings, Appearance Center and emergency recovery')
   }
   if (settingsTabs) {
@@ -434,6 +442,26 @@ try {
     interruption.signal.throwIfAborted()
     console.log('Verified 10/100-package catalogue reads and lazy previews')
   }
+  if (releaseUpgrade) {
+    run.fromArtifact = firstArtifact
+    run.releaseUpgrade = {}
+    const openVersion = async current => {
+      if (session) {
+        const stage = current ? 'previous' : 'upgraded'
+        run.releaseUpgrade[`${stage}Log`] = session.logs()
+        await session.close()
+        assert(!session.browser.isConnected())
+        session = undefined
+        await save()
+        await install(current ? options.archive : firstArchive, current ? run.artifact : firstArtifact)
+      }
+      return enter(open, false, 'dark', undefined, current)
+    }
+    await checkReleaseUpgrade(openVersion, run.artifact.version, firstArtifact.version, directory, run.releaseUpgrade)
+    run.hostLog = session.logs()
+    interruption.signal.throwIfAborted()
+    console.log(`Verified upgrade ${firstArtifact.version} → ${run.artifact.version} and rollback with the same profile`)
+  }
   if (upgrade) {
     run.fromArtifact = firstArtifact
     ui = await enter(open, false)
@@ -487,7 +515,7 @@ try {
       rootInert: document.getElementById('root')?.inert,
       dialogs: [...document.querySelectorAll('[role="dialog"]')].map(dialog => dialog.querySelector('h1,h2,h3')?.textContent),
     })).catch(() => null)
-    if (navigationEvidence) {
+    if (navigationEvidence || releaseUpgrade) {
       await session.page.screenshot({ path: join(directory, 'failure.png'), timeout: 5000 }).catch(() => {})
       run.sidebarControls = await session.page.getByRole('button').evaluateAll(buttons =>
         buttons.map(button => button.getAttribute('aria-label')).filter(label => /sidebar|侧边栏/i.test(label ?? ''))).catch(() => [])

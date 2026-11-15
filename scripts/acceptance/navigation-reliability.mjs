@@ -84,6 +84,40 @@ async function openFromChat(ui) {
   await main.getByRole('status').filter({ hasText: /^Loading…$/ }).waitFor({ state: 'hidden' })
 }
 
+export async function checkChatPreviewControls(ui, directory, evidence) {
+  const { page, activate, button, selection, waitForSkin } = ui
+  const main = mainPanel(page)
+  const bar = toolbar(page)
+  const timer = bar.getByRole('timer')
+  const before = await selection()
+  await openFromChat(ui)
+  await activate(main.getByRole('tab', { name: 'Skin gallery', exact: true }))
+  await activate(main.locator(`[data-skin-card="${deepOcean.id}"]`))
+  await activate(button(main, 'Adjust effects'))
+  const effects = main.getByRole('tabpanel', { name: 'Effects & performance' })
+  const quality = effects.getByRole('combobox', { name: 'Skin effect quality' })
+  await quality.selectOption('low')
+  const preview = () => pressEnabled(page, button(effects, 'Preview in chat'))
+  await preview()
+  await timer.filter({ hasText: /^Preview ends in 30s$/ }).waitFor()
+  await timer.filter({ hasText: /^Preview ends in 29s$/ }).waitFor()
+  await page.screenshot({ path: join(directory, 'chat-preview-countdown.png'), scale: 'css' })
+  await button(bar, 'Cancel preview').press('Enter')
+  await bar.waitFor({ state: 'detached' })
+  await effects.waitFor()
+  assert.equal(await quality.inputValue(), 'low')
+  await waitForSkin(before.skinId)
+  assert.deepEqual(await selection(), before)
+  await page.screenshot({ path: join(directory, 'chat-preview-return.png'), scale: 'css' })
+  await preview()
+  await timer.waitFor()
+  await bar.waitFor({ state: 'detached', timeout: 34_000 })
+  await waitForSkin(before.skinId)
+  assert(!await main.isVisible())
+  assert.deepEqual(await selection(), before)
+  Object.assign(evidence, { countdown: [30, 29], keyboardCancel: true, returnedToDraft: true, expiredInChat: true })
+}
+
 async function reloadButton(ui) {
   const main = mainPanel(ui.page)
   await ui.activate(main.getByRole('tab', { name: 'Skin management' }))

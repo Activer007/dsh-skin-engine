@@ -136,8 +136,8 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   const profileDir = join(home, 'profiles', profile)
   const userData = join(directory, 'electron-user-data')
   const isolatedRenderer = ['catalogue-cache', 'character-samples'].includes(options.suite)
-  const navigationSuite = ['navigation-release', 'navigation-visibility', 'navigation-reliability', 'navigation-performance', 'navigation-uninstall', 'navigation-restore'].includes(options.suite)
-  const settingsSuite = options.suite.startsWith('settings-') || navigationSuite || options.suite === 'gallery-preferences'
+  const navigationSuite = ['navigation-release', 'navigation-visibility', 'navigation-reliability', 'navigation-performance', 'navigation-uninstall', 'navigation-restore', 'navigation-preview'].includes(options.suite)
+  const settingsSuite = options.suite.startsWith('settings-') || navigationSuite || ['gallery-preferences', 'release-upgrade'].includes(options.suite)
 
   async function startDesktop(lifecycle, userDirectory = userData) {
     const cdp = await port()

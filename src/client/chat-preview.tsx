@@ -1,4 +1,5 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { APPEARANCE_PANEL } from './appearance-navigation.js'
 import { SettingsButton } from './settings-controls.js'
 import { fallbackSettingsCopy, settingsError, type TranslateSettings } from './settings-copy.js'
 import type { createAppearanceSession, SettingsDraft } from './appearance-session.js'
@@ -7,7 +8,7 @@ import type { PackageOperationsStore } from './package-operations.js'
 
 type Controller = ReturnType<typeof createSkinSwitch>
 export interface PreviewLayout {
-  selectPanel(panel: null): void
+  selectPanel(panel: typeof APPEARANCE_PANEL | null): void
   beginNavigation(): AbortSignal
   panelInfo: {
     getSnapshot(): { activePanelId: string | null }
@@ -72,6 +73,11 @@ export function createChatPreview(layout: PreviewLayout, controller: Controller,
     if (shouldCancel) void controller.cancelPreview()
     publish({})
   }
+  function cancelFromChat() {
+    const returnToAppearance = !disposed && Boolean(status.request) && inChat()
+    cancel()
+    if (returnToAppearance) layout.selectPanel(APPEARANCE_PANEL)
+  }
   function release() {
     const active = operation
     operation = undefined
@@ -127,7 +133,7 @@ export function createChatPreview(layout: PreviewLayout, controller: Controller,
     }
   })
   return {
-    start, apply, cancel, getSnapshot: () => status,
+    start, apply, cancel, cancelFromChat, getSnapshot: () => status,
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener) } },
     dispose() {
       disposed = true
@@ -140,6 +146,21 @@ export function createChatPreview(layout: PreviewLayout, controller: Controller,
 }
 
 export type ChatPreview = ReturnType<typeof createChatPreview>
+
+function PreviewCountdown({ deadline, t }: { deadline: number; t: TranslateSettings }) {
+  const read = () => Math.max(0, Math.ceil((deadline - performance.now()) / 1000))
+  const [remaining, setRemaining] = useState(read)
+  useEffect(() => {
+    const update = () => setRemaining(Math.max(0, Math.ceil((deadline - performance.now()) / 1000)))
+    const interval = setInterval(update, 1000)
+    document.addEventListener('visibilitychange', update)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', update)
+    }
+  }, [deadline])
+  return <div role="timer" style={{ fontVariantNumeric: 'tabular-nums' }}>{t('previewRemaining', { seconds: remaining })}</div>
+}
 
 export function ChatPreviewBar({ preview, controller, t = fallbackSettingsCopy(document.documentElement.lang) }: {
   preview: ChatPreview
@@ -161,10 +182,12 @@ export function ChatPreviewBar({ preview, controller, t = fallbackSettingsCopy(d
       background: 'var(--dsw-alias-bg-layer-2, Canvas)', color: 'var(--dsw-alias-label-primary, CanvasText)',
       border: '1px solid var(--dsw-alias-settings-card-stroke, GrayText)', borderRadius: 10, padding: 12 }}>
     <div role="status">{error ? settingsError(t, state.notice, error) : ready
-      ? t('previewing') + ' · ' + (displayName ?? request?.id) + '. ' + t('previewExpiry') : t('loading')}</div>
+      ? t('previewing') + ' · ' + (displayName ?? request?.id) : t('loading')}</div>
+    {ready && state.previewDeadline !== undefined
+      ? <PreviewCountdown key={state.previewDeadline} deadline={state.previewDeadline} t={t} /> : null}
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBlockStart: 8 }}>
       {ready ? <SettingsButton primary disabled={state.pending === 'apply'} onClick={() => void preview.apply()}>{t('apply')}</SettingsButton> : null}
-      <SettingsButton disabled={state.pending === 'apply'} onClick={preview.cancel}>{t(error ? 'dismissPreviewNotice' : 'cancelPreview')}</SettingsButton>
+      <SettingsButton disabled={state.pending === 'apply'} onClick={preview.cancelFromChat}>{t(error ? 'dismissPreviewNotice' : 'cancelPreview')}</SettingsButton>
     </div>
   </section>
 }

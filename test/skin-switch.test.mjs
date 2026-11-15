@@ -17,7 +17,7 @@ async function clientArtifact(globals = {}) {
   let registered
   const source = await readFile(new URL('../lib/client.js', import.meta.url), 'utf8')
   vm.runInNewContext(source, {
-    AbortController, AbortSignal, URL, Error, clearTimeout, setTimeout, queueMicrotask,
+    AbortController, AbortSignal, URL, Error, clearTimeout, setTimeout, queueMicrotask, performance,
     __ModuleLoader__: { load(entry) { registered = entry } }, ...globals,
   })
   assert.equal(registered.id, 'dsh-plugin-skin-engine')
@@ -77,11 +77,14 @@ async function switchFixture({ initial = null, previewMs, prepare, onMount, onSa
 test('preview stays window-local and cancellation or expiry reads the authoritative saved skin', async t => {
   const { controller, writes, visual, disk, change } = await switchFixture({ previewMs: 25 })
   t.after(() => controller.dispose())
+  const started = performance.now()
   await controller.preview('a')
   assert.equal(visual(), 'a')
+  assert(controller.getSnapshot().previewDeadline >= started + 25)
   assert.deepEqual(disk(), { skinId: null, revision: 0 })
   await controller.cancelPreview()
   assert.equal(visual(), null)
+  assert.equal(controller.getSnapshot().previewDeadline, undefined)
   await controller.apply('a')
   assert.deepEqual(writes, ['a'])
   await controller.preview('b')

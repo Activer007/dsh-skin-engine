@@ -67,6 +67,10 @@ node scripts/acceptance/run.mjs --platform desktop --host-version 0.2.2-rc.1 --a
 
 `--suite navigation-restore --candidate <完整 Git SHA>` 定向检查外观中心和系统设置恢复默认时的键盘焦点、真实 Host 409 冲突和回读。脚本会丢弃一次真实保存的回执，核对重复确认只写入一次，并检查皮肤包和偏好保留、真实聊天预览退出，以及两个入口显示同步。输出含两张确认截图和 `result.json`。
 
+`--suite navigation-preview --candidate <完整 Git SHA>` 检查聊天预览倒计时从 30 秒递减，键盘取消会返回外观中心原页签并保留草稿，到期则恢复已保存外观并留在聊天。报告和截图保存在隔离验收输出目录。
+
+`--suite release-upgrade --candidate <完整 Git SHA> --from-archive <旧版 tgz 路径>` 在官方 Web 或 Windows Desktop 的同一个隔离 Profile 中执行两次原地替换。`--archive` 指定发行候选。从旧版设置导入 ZIP 并保存偏好，重启进入候选，在外观中心修改偏好，再回装旧版核对两个版本的 Client/Host、真实渲染、修订、偏好和 ZIP。输出含三个阶段的诊断截图、新版外观中心截图及 `result.json`。 [R1 发行实测](release-v1.md#v191-r1-发行)
+
 Web 前后台绘制另用 `--suite navigation-visibility --candidate <完整 Git SHA>`，以本机 Chrome 的标签切换或窗口最小化验证文档进入后台。沿用集成实测的候选归档和宿主版本。
 
 精简设置版的发布级性能可用 `--suite navigation-performance --candidate <完整 Git SHA> --hidden-seconds 300`。它通过外观中心保存 Deep Ocean，在系统设置切换窗口特效及确认恢复默认。前台依次采集 Default、静态、P0 两个配对轮次，再重启隔离宿主进行原生后台暂停。Web 和 Windows 分开运行，以免失焦或重新安装干扰采样。

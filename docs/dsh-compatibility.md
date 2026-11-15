@@ -1,6 +1,6 @@
 # DSH 版本支持规则
 
-Skin Engine 自 1.8.1 起声明 `DSH >=0.2.2-rc.1`。主线 1.9.0 的安装声明、可选的 app-boot peer 声明和运行时判断均采用该最低版本。真实宿主结果按版本记录。
+Skin Engine 自 1.8.1 起声明 `DSH >=0.2.2-rc.1`。1.9.1 的安装声明、可选的 app-boot peer 声明和运行时判断均采用该最低版本。真实宿主结果按版本记录。
 
 低于最低版本、版本缺失或格式无效时，运行时返回 `unsupported-host`，提示当前版本及最低要求。每个皮肤包自己的 `dshCompatibility` 和 Engine API 要求继续独立检查。宿主安装器在安装阶段检查 `engines.dsh`。
 
@@ -33,3 +33,5 @@ Skin Engine 自 1.8.1 起声明 `DSH >=0.2.2-rc.1`。主线 1.9.0 的安装声�
 实际卸载使用已审查候选 `ba9ebc65483b52b5744ecb2c1c5e3b3b18a41ae2` 的可复现 LF 归档，SHA-256 `5e98784b57e47217486bb17d849f39c51aeef1e665a391702586bd8e5f0e0663`。沿用隔离宿主命令，传入 `--suite navigation-uninstall --host-version 0.2.2-rc.3 --candidate ba9ebc65483b52b5744ecb2c1c5e3b3b18a41ae2`。报告及卸载前后截图位于 `.cache/r1/comp01-uninstall/web-rm4oYg/` 和 `.cache/r1/comp01-uninstall/desktop-uGiWyL/`。Web 使用随后提交为 `d1d3e3c` 的测试改动，报告头记录当时的基线 `225f43e`；Windows 从 `d1d3e3c` 运行。两端验收无未捕获页面异常，宿主和浏览器均已关闭。
 
 第三方真实共存暂缓并退出本轮发行范围。历史完整 NAV-06 门禁及原始记录保留。
+
+1.9.1 的正式候选在官方 `0.2.2-rc.3` Web 与 Windows Desktop 验证从 1.8.2 原地升级和回装，两个版本均可读取已保存选择、偏好和本地皮肤包。rc.1 保留既有主流程和可靠性证据。 [1.9.1 双端记录](release-v1.md#v191-r1-发行)
