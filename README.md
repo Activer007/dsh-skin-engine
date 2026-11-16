@@ -8,6 +8,8 @@
 
 [下载已发布版本](https://github.com/Activer007/dsh-skin-engine/releases) · [安装与升级](docs/release-v1.md#安装与启用) · [1.10.0 版本说明](docs/release-v1.md#v1100-新版外观中心)
 
+https://github.com/user-attachments/assets/d6c27d84-83e1-4312-94fa-3eb256a44455
+
 **Deep Ocean 实拍** · 前半段以 2 倍速展示浮尘，后半段以原速展示液态折射。 [高清 MP4](docs/images/v1.10.0/deep-ocean-showcase.mp4)
 
 ## 找到适合你的外观
@@ -37,7 +39,7 @@
 
 安装后，打开 **外观中心 → 皮肤库**，选择皮肤，点击「在聊天中预览」或「应用并保存」。试试「曙光航站」或「夜航员」的 **自定义皮肤 → 人物场景图片**，换成自己的插画。
 
-[人物换图说明](docs/user-artwork-stage1.md) · [皮肤作者入门](skin-sources/examples/README.md) · [开发路线图](docs/development-roadmap.md)
+[人物换图说明](docs/user-artwork-stage1.md) · [皮肤作者入门](skin-sources/examples/README.md) · [项目沿革](docs/history.md) · [开发路线图](docs/development-roadmap.md)
 
 ## 许可证与联系
 

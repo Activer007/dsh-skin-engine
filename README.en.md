@@ -8,6 +8,8 @@ Open **Appearance Center** from the sidebar to find a quiet background for writi
 
 [Download releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用) · [1.10.0 release notes (Chinese)](docs/release-v1.md#v1100-新版外观中心)
 
+https://github.com/user-attachments/assets/d6c27d84-83e1-4312-94fa-3eb256a44455
+
 **Deep Ocean in action.** Floating dust at 2× speed, followed by liquid refraction at normal speed. [HD MP4](docs/images/v1.10.0/deep-ocean-showcase.mp4)
 
 ## Find a skin that suits you
@@ -37,7 +39,7 @@ Requires **DSH 0.2.2-rc.1 or later**. Download a .tgz from [GitHub Releases](htt
 
 Open **Appearance Center → Skin gallery**, choose a skin, then select **Preview in chat** or **Apply**. To try your own illustration, choose Dawn Station or Night Navigator and open **Customize skin**.
 
-[Portrait customization (Chinese)](docs/user-artwork-stage1.md) · [Skin authoring examples (Chinese)](skin-sources/examples/README.md) · [Roadmap (Chinese)](docs/development-roadmap.md)
+[Portrait customization (Chinese)](docs/user-artwork-stage1.md) · [Skin authoring examples (Chinese)](skin-sources/examples/README.md) · [Project history](docs/history.md) · [Roadmap (Chinese)](docs/development-roadmap.md)
 
 ## License and contact
 
