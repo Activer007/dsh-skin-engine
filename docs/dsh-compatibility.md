@@ -1,6 +1,6 @@
 # DSH 版本支持规则
 
-Skin Engine 自 1.8.1 起声明 `DSH >=0.2.2-rc.1`。1.9.1 的安装声明、可选的 app-boot peer 声明和运行时判断均采用该最低版本。真实宿主结果按版本记录。
+Skin Engine 自 1.8.1 起声明 `DSH >=0.2.2-rc.1`。1.9.3 的安装声明、可选的 app-boot peer 声明和运行时判断均采用该最低版本。真实宿主结果按版本记录。 [1.9.3 发行与实测范围](release-v1.md#v193-人物皮肤换图)
 
 低于最低版本、版本缺失或格式无效时，运行时返回 `unsupported-host`，提示当前版本及最低要求。每个皮肤包自己的 `dshCompatibility` 和 Engine API 要求继续独立检查。宿主安装器在安装阶段检查 `engines.dsh`。
 

@@ -100,18 +100,19 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
   }
 
   useEffect(() => {
-    const target = focusTarget.current
+    const destination = focusTarget.current
     focusTarget.current = undefined
-    if (target === 'detail') detailBack.current?.focus()
-    if (target === 'gallery') (card.current ?? searchInput.current)?.focus()
-  }, [showDetails])
+    if (destination === 'detail') {
+      const back = detailBack.current
+      const target = back?.getClientRects().length ? back : document.getElementById(detailId)
+      target?.focus()
+    }
+    if (destination === 'gallery') (card.current ?? searchInput.current)?.focus()
+  }, [showDetails, detailId])
 
   function clearFilters() {
-    search('')
-    filterTag('')
-    filterSource('')
-    filterCompatibility(false)
-    settingsSession.setView({ favoritesOnly: false })
+    settingsSession.setView({ query: '', tag: '', source: '', compatibleOnly: false, favoritesOnly: false })
+    searchInput.current?.focus()
   }
 
   useEffect(() => {
@@ -155,7 +156,11 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
           <RestoreDefault controller={controller} packageOperations={packageOperations} t={t} />
         </div>
       </header>
-      <p role="note">{t('chatPreviewHelp')}</p>
+      <details className="dsh-skin-help">
+        <summary>{t('appearanceHelp')}</summary>
+        <p role="note">{t('chatPreviewHelp')}</p>
+        <p className="dsh-skin-muted">{t('galleryPreferenceHelp')}</p>
+      </details>
       {state.preview ? <p role="status"><strong>{t('previewing')} · {name(state.preview)}</strong> · {t('previewExpiry')}</p> : null}
       <p role="status">{state.notice ? settingsError(t, state.notice, 'error.selection') : state.saving ? t('saving') : state.pending ? t('loading') : ''}</p>
       <PackageOperationStatus t={t} operations={operations} name={displayName} />
@@ -169,34 +174,44 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
             <h3>{t('gallery')}</h3>
             <button type="button" disabled={loadingGallery} onClick={() => openManagement()}>{t('package.import')}</button>
           </header>
-          <fieldset className="dsh-skin-fields dsh-skin-filters" disabled={loadingGallery}>
-            <label>{t('search')}<input ref={searchInput} type="search" value={query} onChange={event => search(event.currentTarget.value)} /></label>
-            <label>{t('tag')}
-              <select value={tag} onChange={event => filterTag(event.currentTarget.value)}>
-                <option value="">{t('allTags')}</option>
-                {tags.map(value => <option key={value}>{value}</option>)}
-              </select>
-            </label>
-            <label>{t('source')}
-              <select value={source} onChange={event => filterSource(event.currentTarget.value)}>
-                <option value="">{t('allSkins')}</option>
-                <option value="built-in">{t('builtin')}</option>
-                <option value="local">{t('local')}</option>
-              </select>
-            </label>
-            <label>{t('gallerySort')}<select ref={sortSelect} value={gallery.sort} onChange={event => galleryPreferences.setSort(event.currentTarget.value as GallerySort)}>
-              <option value="default">{t('sortDefault')}</option>
-              <option value="name">{t('sortName')}</option>
-              <option value="recent">{t('sortRecent')}</option>
-            </select></label>
-          </fieldset>
-          <p className="dsh-skin-muted">{t('galleryPreferenceHelp')}</p>
+          <label className="dsh-skin-search">{t('search')}
+            <input ref={searchInput} type="search" disabled={loadingGallery}
+              value={query} onChange={event => search(event.currentTarget.value)} />
+          </label>
+          <details className="dsh-skin-filter-options">
+            <summary>{t('galleryFilters')}{tag || source || compatibleOnly || gallery.sort !== 'default' ? ` · ${t('filtersConfigured')}` : ''}</summary>
+            <fieldset className="dsh-skin-fields dsh-skin-filters" disabled={loadingGallery}>
+              <label>{t('tag')}
+                <select value={tag} onChange={event => filterTag(event.currentTarget.value)}>
+                  <option value="">{t('allTags')}</option>
+                  {tags.map(value => <option key={value}>{value}</option>)}
+                </select>
+              </label>
+              <label>{t('source')}
+                <select value={source} onChange={event => filterSource(event.currentTarget.value)}>
+                  <option value="">{t('allSkins')}</option>
+                  <option value="built-in">{t('builtin')}</option>
+                  <option value="local">{t('local')}</option>
+                </select>
+              </label>
+              <label>{t('gallerySort')}
+                <select ref={sortSelect} value={gallery.sort}
+                  onChange={event => galleryPreferences.setSort(event.currentTarget.value as GallerySort)}>
+                  <option value="default">{t('sortDefault')}</option>
+                  <option value="name">{t('sortName')}</option>
+                  <option value="recent">{t('sortRecent')}</option>
+                </select>
+              </label>
+            </fieldset>
+            <div className="dsh-skin-gallery-summary">
+              <label><input type="checkbox" disabled={loadingGallery} checked={compatibleOnly} onChange={event => filterCompatibility(event.currentTarget.checked)} />{t('compatibleOnly')}</label>
+              {gallery.recent.length ? <button type="button" onClick={() => { galleryPreferences.clearRecent(); sortSelect.current?.focus() }}>{t('clearRecent')}</button> : null}
+            </div>
+          </details>
           {!galleryPreferences.persistent ? <p role="status">{t('galleryMemoryOnly')}</p> : null}
           <div className="dsh-skin-gallery-summary">
             {state.catalogue ? <span role="status">{visible.length ? t('galleryCount', { count: visible.length }) : t('noMatches')}</span> : null}
             <label><input type="checkbox" disabled={loadingGallery} checked={favoritesOnly} onChange={event => settingsSession.setView({ favoritesOnly: event.currentTarget.checked })} />{t('favoritesOnly')}</label>
-            {gallery.recent.length ? <button type="button" onClick={() => { galleryPreferences.clearRecent(); sortSelect.current?.focus() }}>{t('clearRecent')}</button> : null}
-            <label><input type="checkbox" disabled={loadingGallery} checked={compatibleOnly} onChange={event => filterCompatibility(event.currentTarget.checked)} />{t('compatibleOnly')}</label>
             {filtersActive ? <button type="button" onClick={clearFilters}>{t('clearFilters')}</button> : null}
           </div>
           {choice && !visible.includes(choice) ? <p>{t('editingOutsideFilter', { name: displayName(choice.manifest) })}</p> : null}
@@ -205,6 +220,7 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
             {loadingGallery ? [0, 1, 2].map(index => <li key={index} className="dsh-skin-gallery-skeleton" aria-hidden="true" />) : null}
             {visible.map(item => {
               const { manifest } = item
+              const favorited = gallery.favorites.includes(manifest.id)
               const status = item.compatibility ? 'incompatible'
                 : state.preview === manifest.id ? 'previewing'
                   : state.saved?.skinId === manifest.id ? (state.rendered === manifest.id ? 'applied' : 'saved')
@@ -226,13 +242,13 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
                     </span>
                   </button>
                   <button type="button" className="dsh-skin-favorite" data-skin-favorite={manifest.id}
-                    aria-pressed={gallery.favorites.includes(manifest.id)}
-                    aria-label={t(gallery.favorites.includes(manifest.id) ? 'unfavoriteSkin' : 'favoriteSkin', { name: displayName(manifest) })}
+                    aria-pressed={favorited}
+                    aria-label={t('favoriteSkin', { name: displayName(manifest) })}
                     onClick={() => {
                       galleryPreferences.toggleFavorite(manifest.id)
                       if (favoritesOnly) searchInput.current?.focus()
                     }}>
-                    {t(gallery.favorites.includes(manifest.id) ? 'favorited' : 'favorite')}
+                    <span aria-hidden="true">{favorited ? '★' : '☆'}</span>
                   </button>
                 </li>
               )

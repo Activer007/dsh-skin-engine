@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { deepOcean, resources } from './browser.mjs'
+import { deepOcean, resources, openGalleryFilters } from './browser.mjs'
 import { zipJson } from './packages.mjs'
 import { event, foreign, marker } from './token-probe.mjs'
 
@@ -82,6 +82,7 @@ export async function checkSettingsIntegration(ui, session, archive, directory, 
   const sample = await zipJson(await readFile(archive))
   assert.equal(sample.colorScheme, 'both')
   await ui.choose(incompatible)
+  await openGalleryFilters(panel)
   const compatible = panel.getByRole('checkbox', { name: 'Compatible only' })
   assert(await button(detail(incompatible), 'Apply').isDisabled())
   await compatible.check()

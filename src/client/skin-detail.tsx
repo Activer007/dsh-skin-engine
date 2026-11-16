@@ -37,7 +37,7 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
   const imageScheme = manifest.colorScheme === 'both' ? previewScheme ?? scheme : manifest.colorScheme ?? scheme
 
   return (
-    <section id={id} className="dsh-skin-detail" data-skin-detail={manifest.id} aria-label={t('details', { name: displayName })}>
+    <section id={id} tabIndex={-1} className="dsh-skin-detail" data-skin-detail={manifest.id} aria-label={t('details', { name: displayName })}>
       <header>
         <h3>{displayName}</h3>
         <p className="dsh-skin-muted">{t('editingSkin', { name: displayName })}</p>

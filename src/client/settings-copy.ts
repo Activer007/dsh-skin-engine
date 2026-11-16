@@ -1,15 +1,15 @@
 export const SETTINGS_LOCALE = 'dsh-skin-engine.settings'
 
 const en = {
+  appearanceHelp: "Preview and browser preferences",
+  galleryFilters: "Filters and sorting",
+  filtersConfigured: "Active",
   gallerySort: "Sort",
   sortDefault: "Catalogue order",
   sortName: "Name",
   sortRecent: "Recently applied",
   favoritesOnly: "Favorites only",
-  favorite: "Favorite",
-  favorited: "Favorited",
   favoriteSkin: "Favorite {name}",
-  unfavoriteSkin: "Unfavorite {name}",
   clearRecent: "Clear recent history",
   galleryPreferenceHelp: "Favorites, sorting and the last 20 successfully applied skins are saved in this browser only. Previewing does not add history.",
   galleryMemoryOnly: "Browser storage is unavailable. These preferences will last only for this plugin session.",
@@ -252,6 +252,9 @@ type Values = Record<string, string | number>
 export type TranslateSettings = (key: Key, values?: Values) => string
 
 const zh: Record<Key, string> = {
+  appearanceHelp: "预览与浏览器偏好说明",
+  galleryFilters: "筛选与排序",
+  filtersConfigured: "已设置",
   appearanceCenter: "外观中心",
   appearanceUnsaved: "偏好尚未保存。应用后会保存到此皮肤。",
   chatPreview: "在聊天中预览",
@@ -267,10 +270,7 @@ const zh: Record<Key, string> = {
   sortName: "名称",
   sortRecent: "最近应用",
   favoritesOnly: "只看收藏",
-  favorite: "收藏",
-  favorited: "已收藏",
   favoriteSkin: "收藏 {name}",
-  unfavoriteSkin: "取消收藏 {name}",
   clearRecent: "清空最近记录",
   galleryPreferenceHelp: "收藏、排序与最近成功应用的 20 款皮肤仅保存在此浏览器中。预览不会加入记录。",
   galleryMemoryOnly: "浏览器存储不可用，这些偏好仅保留到本次插件会话结束。",

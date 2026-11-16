@@ -1,3 +1,4 @@
+import { openGalleryFilters } from './browser.mjs'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -175,8 +176,9 @@ export async function checkPackages(sampleDir, profileDir, evidence, openWindow)
       await ui.dismissOnboarding()
       const started = performance.now()
       await open()
+      await openGalleryFilters(gallery)
       await gallery.getByRole('combobox', { name: 'Source', exact: true }).selectOption('local')
-      const cards = gallery.locator('.dsh-skin-gallery button')
+      const cards = gallery.locator('[data-skin-card]')
       assert.equal(await cards.count(), count)
       const first = fixtures[0].manifest
       const last = fixtures.at(-1).manifest
@@ -244,9 +246,10 @@ export const palette = page => page.locator('body').evaluate(node => {
 
 async function checkFilters(ui, manifest) {
   const gallery = ui.panel.getByRole('region', { name: 'Skin gallery', exact: true })
-  const cards = gallery.locator('.dsh-skin-gallery button')
+  const cards = gallery.locator('[data-skin-card]')
   const card = cards.filter({ hasText: new RegExp([manifest.name, manifest.nameEn].filter(Boolean).map(RegExp.escape).join('|')) })
   const search = gallery.getByRole('searchbox', { name: 'Search skins' })
+  await openGalleryFilters(gallery)
   const tag = gallery.getByRole('combobox', { name: 'Tag', exact: true })
   const source = gallery.getByRole('combobox', { name: 'Source', exact: true })
   const names = [manifest.name, manifest.nameEn].filter(Boolean)

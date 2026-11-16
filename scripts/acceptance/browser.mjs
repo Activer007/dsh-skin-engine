@@ -227,3 +227,10 @@ export async function showMode(ui, state, foreground) {
     return cache === 0 && (!canvas || canvas.width === 0)
   }, state, { polling: 100 })
 }
+
+export async function openGalleryFilters(root) {
+  const disclosure = root.locator('.dsh-skin-filter-options')
+  if (await disclosure.count() && !await disclosure.evaluate(node => node.open)) {
+    await disclosure.locator(':scope > summary').click()
+  }
+}

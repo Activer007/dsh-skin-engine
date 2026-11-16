@@ -1,3 +1,4 @@
+import { openGalleryFilters } from './browser.mjs'
 import assert from 'node:assert/strict'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -67,9 +68,10 @@ export async function checkCatalogueCache({ ui, foreground }, profileDir, eviden
       }
       const started = performance.now()
       await ui.open()
+      await openGalleryFilters(gallery)
       await gallery.getByRole('combobox', { name: 'Source', exact: true }).selectOption('local')
       await gallery.getByRole('button', { name: new RegExp(`^${RegExp.escape(fixtures.at(-1).manifest.name)} `) }).waitFor()
-      assert.equal(await gallery.locator('.dsh-skin-gallery button').count(), count)
+      assert.equal(await gallery.locator('[data-skin-card]').count(), count)
       // Desktop keeps its renderer alive. Use a previously unseen image for the second sample.
       const first = fixtures[desktop && count === 100 ? 10 : 0].manifest
       const last = fixtures.at(-1).manifest

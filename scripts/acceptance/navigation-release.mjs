@@ -4,7 +4,7 @@ import { appendFile, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { checkMainPackageNavigation } from './appearance-navigation.mjs'
-import { deepOcean, resources, showMode } from './browser.mjs'
+import { deepOcean, resources, showMode, openGalleryFilters } from './browser.mjs'
 import { seedCatalogue } from './catalogue.mjs'
 import { zipJson } from './packages.mjs'
 import { versionedSkin } from '../../test/fixtures/package-versions.mjs'
@@ -497,6 +497,7 @@ export async function checkNavigationCatalogue(ui, profileDir, evidence) {
     page.on('request', record)
     try {
       await activate(main.getByRole('tab', { name: 'Skin gallery' }))
+      await openGalleryFilters(main)
       await main.getByRole('combobox', { name: 'Source', exact: true }).selectOption('local')
       const cards = main.locator('[data-skin-card^="fixture.scale-"]')
       await cards.nth(size - 1).waitFor()

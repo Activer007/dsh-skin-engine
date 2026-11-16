@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { deepOcean } from './browser.mjs'
+import { deepOcean, openGalleryFilters } from './browser.mjs'
 import { seedCatalogue } from './catalogue.mjs'
 
 /** Run against an isolated real host; not a substitute for NAV06's full matrix. */
@@ -20,10 +20,12 @@ export async function checkGalleryPreferences(ui, session, directory, evidence, 
   assert.equal(await star.getAttribute('aria-pressed'), 'true')
   await main.getByRole('checkbox', { name: 'Favorites only', exact: true }).check()
   assert.equal(await main.locator('[data-skin-card]').count(), 1)
+  await openGalleryFilters(main)
   await main.getByRole('combobox', { name: 'Sort', exact: true }).selectOption('name')
   assert.deepEqual(await selection(), before)
   await main.getByRole('button', { name: 'Back to chat', exact: true }).press('Enter')
   await activate(launcher())
+  await openGalleryFilters(main)
   assert.equal(await main.getByRole('combobox', { name: 'Sort', exact: true }).inputValue(), 'name')
   assert.equal(await main.getByRole('checkbox', { name: 'Favorites only' }).isChecked(), true)
   // Removing the focused result from a filtered list must leave keyboard focus usable.
@@ -44,6 +46,7 @@ export async function checkGalleryPreferences(ui, session, directory, evidence, 
   await page.waitForFunction(({ key, id }) => JSON.parse(localStorage.getItem(key) ?? 'null')?.recent[0] === id,
     { key, id: deepOcean.id })
   const saved = await selection()
+  await openGalleryFilters(main)
   await main.getByRole('combobox', { name: 'Sort', exact: true }).selectOption('recent')
   assert.equal(await main.locator('[data-skin-card]').first().getAttribute('data-skin-card'), deepOcean.id)
   await page.screenshot({ path: join(directory, 'gallery-preferences-en.png'), scale: 'css' })
@@ -52,6 +55,7 @@ export async function checkGalleryPreferences(ui, session, directory, evidence, 
   await activate(launcher())
   await main.waitFor()
   assert.equal(await star.getAttribute('aria-pressed'), 'true')
+  await openGalleryFilters(main)
   assert.equal(await main.getByRole('combobox', { name: 'Sort', exact: true }).inputValue(), 'recent')
   assert.deepEqual(await selection(), saved)
   await main.getByRole('button', { name: 'Clear recent history', exact: true }).click()
@@ -64,6 +68,7 @@ export async function checkGalleryPreferences(ui, session, directory, evidence, 
     await ui.expand(main.getByText('Catalogue maintenance', { exact: true }))
     await activate(main.getByRole('button', { name: 'Reload skins' }))
     await activate(main.getByRole('tab', { name: 'Skin gallery' }))
+    await openGalleryFilters(main)
     await main.getByRole('combobox', { name: 'Source', exact: true }).selectOption('local')
     const sort = main.getByRole('combobox', { name: 'Sort', exact: true })
     await sort.selectOption('name')
@@ -88,6 +93,7 @@ export async function checkGalleryPreferences(ui, session, directory, evidence, 
   if (!await main.isVisible()) await activate(launcher())
   await session.resize(762, 820)
   await page.waitForFunction(() => innerWidth >= 760 && innerWidth <= 764)
+  await openGalleryFilters(main)
   await main.getByRole('combobox', { name: '排序', exact: true }).waitFor()
   const geometry = await main.evaluate(node => ({ width: node.clientWidth, scroll: node.scrollWidth }))
   assert.equal(geometry.width, geometry.scroll)
