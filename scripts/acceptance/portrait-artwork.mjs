@@ -54,7 +54,12 @@ try {
     await main().locator('[data-saved-skin]').waitFor()
     await ui.activate(main().getByRole('tab', { name: 'Skin gallery', exact: true }))
   }
-  const choose = id => ui.activate(main().locator(`[data-skin-card="${id}"]`))
+  const openCustomization = id => ui.expand(main().locator(`[data-skin-detail="${id}"] [data-skin-customization] > summary`))
+  const select = id => ui.activate(main().locator(`[data-skin-card="${id}"]`))
+  const choose = async id => {
+    await select(id)
+    await openCustomization(id)
+  }
   const click = (label, root = main()) => ui.activate(ui.button(root, label))
   const snap = name => ui.page.screenshot({ path: join(directory, name + '.png'), scale: 'css', timeout: 7000 })
   const saved = id => main().locator(`[data-saved-skin="${id}"]`).waitFor()
@@ -80,7 +85,7 @@ try {
   await ui.page.getByRole('treeitem', { name: /Skin Engine acceptance history|Untitled/ }).first().press('Enter')
   await ui.page.getByText('Fixture response.', { exact: true }).waitFor()
   await open()
-  await choose(dark)
+  await select(dark)
   await click('Apply')
   await saved(dark)
   const baseline = await ui.selection()
@@ -148,6 +153,7 @@ try {
   assert.deepEqual(await ui.selection(), baseline)
   await snap('dark-chat-preview-wide')
   await click('Cancel preview', preview())
+  await openCustomization(dark)
   await custom().waitFor()
   await click('Apply')
   await main().getByRole('status').filter({ hasText: /^Skin applied\.$/ }).waitFor()

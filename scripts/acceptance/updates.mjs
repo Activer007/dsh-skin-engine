@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { packageVersionPair, versionedSkin as skin } from '../../test/fixtures/package-versions.mjs'
-import { deepOcean } from './browser.mjs'
+import { deepOcean, openSkinTechnical } from './browser.mjs'
 import { packagePanel, palette } from './packages.mjs'
 
 const canvas = 'canvas[data-dsh-skin-effect-layer="canvas"]'
@@ -12,7 +12,10 @@ export async function checkPackageUpdates(evidence, openWindow) {
   evidence.fixtures = [first, next].map(bytes => ({ bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') }))
   let ui = await openWindow('dark')
   const actions = () => packagePanel(ui).openActions(skin)
-  const showVersion = version => ui.detail(skin).getByText(new RegExp(`^Skin package v${RegExp.escape(version)} ·`)).waitFor()
+  const showVersion = async version => {
+    await openSkinTechnical(ui.detail(skin))
+    await ui.detail(skin).getByText(new RegExp(`^Skin package v${RegExp.escape(version)} ·`)).waitFor()
+  }
   const update = async () => {
     await (await actions()).getByLabel('Update from .dshskin.zip').setInputFiles(zipFile('1.1.0', next))
     await ui.panel.getByRole('status').filter({ hasText: 'Skin updated to v1.1.0.' }).waitFor()

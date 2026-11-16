@@ -91,6 +91,7 @@ export function SkinEffects({ t, choice, editor, displayName }: {
       <p>{t('editingSkin', { name: displayName })}</p>
       <p className="dsh-skin-muted">{t('skinEffectsScope')}</p>
     </header>
+    <div className="dsh-skin-primary-actions"><SkinEditorActions t={t} editor={editor} appearance={appearance} canDiscard /></div>
     {blocked ? <p>{choice.compatibility?.code === 'unsupported-host'
       ? t('error.unsupportedHost', { version: MINIMUM_DSH_VERSION })
       : t(choice.compatibility ? 'error.compatibility' : 'validatedRequired')}</p> : null}
@@ -145,6 +146,5 @@ export function SkinEffects({ t, choice, editor, displayName }: {
         {result.data.diagnostics.map(issue => <p key={issue.path}>{issue.code} · {issue.message}</p>)}
       </details> : null}
     </> : null}
-    <SkinEditorActions t={t} editor={editor} appearance={appearance} canDiscard />
   </section>
 }

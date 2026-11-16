@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { deepOcean, resources, openGalleryFilters } from './browser.mjs'
+import { deepOcean, resources, openGalleryFilters, openSkinTechnical } from './browser.mjs'
 import { zipJson } from './packages.mjs'
 import { event, foreign, marker } from './token-probe.mjs'
 
@@ -90,6 +90,7 @@ export async function checkSettingsIntegration(ui, session, archive, directory, 
   assert(await detail(incompatible).isVisible())
   await compatible.uncheck()
   await ui.choose(unmanaged)
+  await openSkinTechnical(detail(unmanaged))
   await activate(button(detail(unmanaged), 'Manage this skin'))
   const actions = panel.locator('[data-managed-package="' + unmanaged.id + '"]')
   assert.equal(await button(actions, 'Export ZIP').count(), 0)
@@ -113,6 +114,7 @@ export async function checkSettingsIntegration(ui, session, archive, directory, 
   }
   const images = await Promise.all([breakImage(image), breakImage(thumb)])
   assert(images.every(item => item.width > 0 && item.original !== item.fallback))
+  await openSkinTechnical(detail(sample))
   assert(await detail(sample).getByText(/^Skin package v/).isVisible())
 
   const diagnosticsTab = ui.pageTab('Skin management')

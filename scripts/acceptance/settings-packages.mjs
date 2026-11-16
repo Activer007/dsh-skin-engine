@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { packageVersionPair, versionedSkin as skin } from '../../test/fixtures/package-versions.mjs'
-import { deepOcean } from './browser.mjs'
+import { deepOcean, openSkinTechnical } from './browser.mjs'
 import { packagePanel, zipJson } from './packages.mjs'
 
 export async function checkSettingsPackages(ui, session, directory, evidence) {
@@ -17,6 +17,7 @@ export async function checkSettingsPackages(ui, session, directory, evidence) {
   await ui.choose(deepOcean)
   const detail = ui.detail(deepOcean)
   assert.equal(await detail.getByRole('button', { name: 'Export ZIP' }).count(), 0)
+  await openSkinTechnical(detail)
   await activate(button(detail, 'Manage this skin'))
   const builtIn = panel.locator('[data-managed-package="' + deepOcean.id + '"]')
   await button(builtIn, 'Export ZIP').waitFor()

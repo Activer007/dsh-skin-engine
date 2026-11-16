@@ -234,3 +234,8 @@ export async function openGalleryFilters(root) {
     await disclosure.locator(':scope > summary').click()
   }
 }
+
+export async function openSkinTechnical(detail) {
+  const summary = detail.locator('[data-skin-technical] > summary')
+  if (!await summary.evaluate(node => node.parentElement.open)) await summary.press('Enter')
+}

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { deepOcean } from './browser.mjs'
+import { deepOcean, openSkinTechnical } from './browser.mjs'
 import { packagePanel } from './packages.mjs'
 import { packageVersionPair, versionedSkin } from '../../test/fixtures/package-versions.mjs'
 
@@ -25,6 +25,7 @@ export async function verifyUpgrade(ui, version, before) {
   await ui.open()
   await panel.getByText(`Client engine v${version}`, { exact: true }).waitFor()
   const detail = ui.detail(deepOcean)
+  await openSkinTechnical(detail)
   const skinVersion = detail.getByText(/^Skin package v1\.0\.0/)
   await skinVersion.waitFor()
   const versionText = await skinVersion.innerText()

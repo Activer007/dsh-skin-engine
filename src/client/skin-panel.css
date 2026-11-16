@@ -266,6 +266,9 @@
 }
 [data-dsh-skin-workspace] .dsh-skin-disclosure summary { cursor: pointer; font-weight: 600; }
 [data-dsh-skin-workspace] .dsh-skin-artwork-editor { display: grid; gap: 8px; min-inline-size: 0; }
+[data-dsh-skin-workspace] .dsh-skin-primary-actions { display: grid; gap: 8px; }
+[data-dsh-skin-workspace] .dsh-skin-primary-actions button { min-block-size: 40px; }
+[data-dsh-skin-workspace] [data-skin-customization] .dsh-skin-artwork-editor { margin-block-end: 16px; }
 [data-dsh-skin-workspace] .dsh-skin-artwork-editor input { max-inline-size: 100%; }
 [data-dsh-skin-workspace] .dsh-skin-user-artwork-preview {
   height: 160px;

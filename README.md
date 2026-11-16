@@ -12,22 +12,22 @@ Skin Engine 是 DeepSeek Harness 的外观插件。在左侧「外观中心」�
 
 ## 安装
 
-当前版本为 **1.9.3**，要求 **DSH 0.2.2-rc.1 或更新版本**。在 GitHub Releases 下载安装包和 SHA-256 校验文件。升级前退出目标 Profile 并备份原版插件包和皮肤数据。 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [升级与回装说明](docs/release-v1.md#v193-人物皮肤换图)
+当前源码版本为 **1.10.0**，要求 **DSH 0.2.2-rc.1 或更新版本**。已发布的安装包和 SHA-256 校验文件见 GitHub Releases。升级前退出目标 Profile 并备份原版插件包和皮肤数据。 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [升级与回装说明](docs/release-v1.md#v193-人物皮肤换图)
 
 在已退出的 Windows Desktop 上，可用随应用安装的 DSH CLI 将归档原地安装到 `desktop` Profile。将示例里的路径换成实际文件路径，然后重新打开 DSH。
 
 ```powershell
-& '<DSH 安装目录>/resources/runtime/cli/bin/dsh.cmd' plugin --profile desktop add 'file:E:/path/to/dsh-plugin-skin-engine-1.9.3.tgz'
+& '<DSH 安装目录>/resources/runtime/cli/bin/dsh.cmd' plugin --profile desktop add 'file:E:/path/to/dsh-plugin-skin-engine-<版本>.tgz'
 ```
 
 Web 使用目标 Profile 的 DSH CLI 安装，安装后重启该 Web Host。
 
 ```sh
-dsh plugin --profile web add -w file:/absolute/path/to/dsh-plugin-skin-engine-1.9.3.tgz
+dsh plugin --profile web add -w 'file:/absolute/path/to/dsh-plugin-skin-engine-<版本>.tgz'
 ```
 
 ## 试用人物换图
 
-打开「外观中心 → 皮肤库」，选择「夜航员」等人物皮肤，在右侧「人物场景图片」下选择一张图片。先在聊天中预览，满意后点「应用并保存」。每个 Profile 最多保存 32 张，每张最大 5 MiB。恢复内置图、取消或放弃草稿都会保留图片文件。 [换图说明与限制](docs/user-artwork-stage1.md)
+打开「外观中心 → 皮肤库」，选择「夜航员」等人物皮肤，展开右侧「自定义皮肤」，在「人物场景图片」下选择一张图片。先在聊天中预览，满意后点「应用并保存」。每个 Profile 最多保存 32 张，每张最大 5 MiB。恢复内置图、取消或放弃草稿都会保留图片文件。 [换图说明与限制](docs/user-artwork-stage1.md)
 
 [外观中心操作手册](docs/navigation-release-guide.md#当前主线的操作入口) · [兼容性与实测范围](docs/dsh-compatibility.md) · [SceneSpec 皮肤作者文档](docs/scene-spec.md) · [开发路线图](docs/development-roadmap.md)

@@ -31,19 +31,13 @@ interface DetailProps {
 export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, artworkEditorVisible, onOpenEffects, onOpenManagement, editor }: DetailProps) {
   const [previewScheme, setPreviewScheme] = useState<ColorScheme>()
   const { manifest, compatibility } = choice
-  const { result, blocked, values, disabled, packageChanged, draft, busy, edit } = editor
+  const { result, blocked, values, disabled, packageChanged, edit } = editor
   const colors = result?.data && resolveSkinColors(result.data.tokens, scheme)
   const appearance = t(`appearance.${manifest.colorScheme ?? 'any'}`)
   const imageScheme = manifest.colorScheme === 'both' ? previewScheme ?? scheme : manifest.colorScheme ?? scheme
 
   return (
     <section id={id} tabIndex={-1} className="dsh-skin-detail" data-skin-detail={manifest.id} aria-label={t('details', { name: displayName })}>
-      <header>
-        <h3>{displayName}</h3>
-        <p className="dsh-skin-muted">{t('editingSkin', { name: displayName })}</p>
-        <p className="dsh-skin-muted">{t('skinVersion', { version: manifest.version })} · {manifest.author ?? t('unknownAuthor')} · {t('appearance', { scheme: appearance })} · {t(choice.source === 'built-in' ? 'builtin' : 'local')}</p>
-        {manifest.description ? <p>{manifest.description}</p> : null}
-      </header>
       <div className="dsh-skin-preview-art">
         <SkinPreviewImage path={choice.previews[imageScheme]} placeholder={placeholder}
           alt={t('previewImage', { name: displayName, scheme: t(`appearance.${imageScheme}`) })} />
@@ -55,6 +49,11 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
           </select>
         </label> : null}
       </div>
+      <header>
+        <h3>{displayName}</h3>
+        {manifest.description ? <p>{manifest.description}</p> : null}
+      </header>
+      <div className="dsh-skin-primary-actions"><SkinEditorActions t={t} editor={editor} appearance={appearance} canDiscard /></div>
       {blocked ? <p>{compatibility?.code === 'unsupported-host'
         ? t('error.unsupportedHost', { version: MINIMUM_DSH_VERSION })
         : t(compatibility ? 'error.compatibility' : 'validatedRequired')}</p> : null}
@@ -62,11 +61,10 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
         <summary>{t('error.diagnostics')}</summary>
         <p>{compatibility.code ? `${compatibility.code} · ` : ''}{compatibility.message}</p>
       </details> : null}
-      {artworkEditorVisible && choice.source === 'built-in' ? <ArtworkEditor id={manifest.id} editor={editor} t={t} /> : null}
-      <SkinEditorActions t={t} editor={editor} appearance={appearance} />
       {result?.data ? (
-        <details open className="dsh-skin-disclosure">
+        <details className="dsh-skin-disclosure" data-skin-customization>
           <summary>{t('customize')}</summary>
+          {artworkEditorVisible && choice.source === 'built-in' ? <ArtworkEditor id={manifest.id} editor={editor} t={t} /> : null}
           <fieldset disabled={disabled || packageChanged}>
             <legend>{t('preferences')}</legend>
             <div className="dsh-skin-fields">
@@ -85,17 +83,20 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
                 {t('useIncluded')}
               </button>
             ) : null}
-            {draft ? (
-              <button type="button" disabled={busy} onClick={editor.discard}>{t('discard')}</button>
-            ) : null}
           </div>
         </details>
       ) : null}
       <div className="dsh-skin-actions">
         <button type="button" onClick={onOpenEffects}>{t('openEffects')}</button>
-        <button type="button" onClick={onOpenManagement}>{t('openManagement')}</button>
       </div>
-      <p className="dsh-skin-muted">{t('engineApi')} {manifest.engineApi}{manifest.dshCompatibility ? ` · DSH ${manifest.dshCompatibility}` : ''}</p>
+      <details className="dsh-skin-disclosure" data-skin-technical>
+        <summary>{t('packageInformation')}</summary>
+        <p className="dsh-skin-muted">{t('skinVersion', { version: manifest.version })} · {manifest.author ?? t('unknownAuthor')} · {t('appearance', { scheme: appearance })} · {t(choice.source === 'built-in' ? 'builtin' : 'local')}</p>
+        <p className="dsh-skin-muted">{t('engineApi')} {manifest.engineApi}{manifest.dshCompatibility ? ` · DSH ${manifest.dshCompatibility}` : ''}</p>
+        <div className="dsh-skin-actions">
+          <button type="button" onClick={onOpenManagement}>{t('openManagement')}</button>
+        </div>
+      </details>
     </section>
   )
 }

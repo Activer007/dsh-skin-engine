@@ -2,6 +2,7 @@ export const SETTINGS_LOCALE = 'dsh-skin-engine.settings'
 
 const en = {
   appearanceHelp: "Preview and browser preferences",
+  packageInformation: "Package and technical information",
   galleryFilters: "Filters and sorting",
   filtersConfigured: "Active",
   gallerySort: "Sort",
@@ -253,6 +254,7 @@ export type TranslateSettings = (key: Key, values?: Values) => string
 
 const zh: Record<Key, string> = {
   appearanceHelp: "预览与浏览器偏好说明",
+  packageInformation: "包与技术信息",
   galleryFilters: "筛选与排序",
   filtersConfigured: "已设置",
   appearanceCenter: "外观中心",
