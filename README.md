@@ -38,3 +38,9 @@
 安装后，打开 **外观中心 → 皮肤库**，选择皮肤，点击「在聊天中预览」或「应用并保存」。试试「曙光航站」或「夜航员」的 **自定义皮肤 → 人物场景图片**，换成自己的插画。
 
 [人物换图说明](docs/user-artwork-stage1.md) · [皮肤作者入门](skin-sources/examples/README.md) · [开发路线图](docs/development-roadmap.md)
+
+## 许可证与联系
+
+Skin Engine 源码采用 [MIT 许可证](LICENSE)。插画、截图、视频及第三方组件的授权分别以各自的[素材来源与授权说明](docs/release-asset-notes.md)和许可声明为准。
+
+联系邮箱：[85155.00@gmail.com](mailto:85155.00@gmail.com)。

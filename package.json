@@ -1,6 +1,7 @@
 {
   "name": "dsh-plugin-skin-engine",
   "version": "1.10.0",
+  "license": "MIT",
   "description": "Declarative skin engine for DeepSeek Harness",
   "private": true,
   "type": "module",

@@ -96,7 +96,7 @@ async function packageFiles(label, source) {
   assert.equal(pack.version, manifest.version)
   const host = await import(pathToFileURL(join(source, 'lib/host.js')).href)
   const files = new Set([
-    'package.json', 'cordis.patch.yml', 'lib/host.js', 'lib/client.js',
+    'package.json', 'LICENSE', 'cordis.patch.yml', 'lib/host.js', 'lib/client.js',
     'lib/THIRD-PARTY-NOTICES.txt', 'docs/release-asset-notes.md', 'docs/release-assets.json',
   ])
   // npm also includes localized root READMEs absent from package.json.files.

@@ -38,3 +38,9 @@ Requires **DSH 0.2.2-rc.1 or later**. Download a .tgz from [GitHub Releases](htt
 Open **Appearance Center → Skin gallery**, choose a skin, then select **Preview in chat** or **Apply**. To try your own illustration, choose Dawn Station or Night Navigator and open **Customize skin**.
 
 [Portrait customization (Chinese)](docs/user-artwork-stage1.md) · [Skin authoring examples (Chinese)](skin-sources/examples/README.md) · [Roadmap (Chinese)](docs/development-roadmap.md)
+
+## License and contact
+
+The Skin Engine source code is licensed under the [MIT License](LICENSE). Artwork, screenshots, videos, and third-party components have separate terms. See the [asset notes](docs/release-asset-notes.md) and applicable license notices.
+
+Contact [85155.00@gmail.com](mailto:85155.00@gmail.com).
