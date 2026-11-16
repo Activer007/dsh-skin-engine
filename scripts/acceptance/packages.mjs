@@ -145,7 +145,7 @@ export async function checkPackages(sampleDir, profileDir, evidence, openWindow)
   const root = join(profileDir, 'skin-engine', 'packages')
   const { manifest } = initial.skins[0]
   const preview = await readFile(new URL(
-    '../../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/deep-ocean/preview/dark.png', import.meta.url,
+    '../../skin-sources/examples/skins/deep-ocean/preview/dark.png', import.meta.url,
   ))
   evidence.catalogue = []
   for (const count of [10, 100]) {

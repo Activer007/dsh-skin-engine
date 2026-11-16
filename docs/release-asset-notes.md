@@ -43,10 +43,10 @@ NEXT-09 的「夜航员 · 轻量视差」沿用夜航员场景版的插画和�
 
 | 附件顺序 | 随包插画 | DSH 外观 |
 | --- | --- | --- |
-| 1 | [蓝弧远航](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/blue-arc/assets/portrait.webp) | 深色 |
-| 2 | [曙光航站](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/dawn-station/assets/portrait.webp) | 浅色 |
-| 3 | [月窗余晖](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/moonlit-horizon/assets/portrait.webp) | 深色 |
-| 4 | [绯雨霓虹](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/crimson-rain/assets/portrait.webp) | 深色 |
+| 1 | [蓝弧远航](../skin-sources/examples/skins/blue-arc/assets/portrait.webp) | 深色 |
+| 2 | [曙光航站](../skin-sources/examples/skins/dawn-station/assets/portrait.webp) | 浅色 |
+| 3 | [月窗余晖](../skin-sources/examples/skins/moonlit-horizon/assets/portrait.webp) | 深色 |
+| 4 | [绯雨霓虹](../skin-sources/examples/skins/crimson-rain/assets/portrait.webp) | 深色 |
 
 ## 既有皮肤与运行时素材
 
@@ -64,7 +64,7 @@ NEXT-09 的「夜航员 · 轻量视差」沿用夜航员场景版的插画和�
 
 ## v1.3 人物系列
 
-三幅插画使用内置 imagegen，以夜航员的原画作为人物身份参考。生成的 PNG 转码为 WebP，分别保存在 [晨光温室](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/morning-observatory/assets/portrait.webp)、[青玉书库](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/jade-archive/assets/portrait.webp)和[雨夜列车](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/rainline/assets/portrait.webp)的皮肤包内。画廊缩略图来自官方 DSH Web `0.2.2-rc.1` 的隔离空白会话，原始尺寸为 1280 × 820。
+三幅插画使用内置 imagegen，以夜航员的原画作为人物身份参考。生成的 PNG 转码为 WebP，分别保存在 [晨光温室](../skin-sources/examples/skins/morning-observatory/assets/portrait.webp)、[青玉书库](../skin-sources/examples/skins/jade-archive/assets/portrait.webp)和[雨夜列车](../skin-sources/examples/skins/rainline/assets/portrait.webp)的皮肤包内。画廊缩略图来自官方 DSH Web `0.2.2-rc.1` 的隔离空白会话，原始尺寸为 1280 × 820。
 
 **晨光温室**
 

@@ -8,12 +8,12 @@ import { packagePanel } from './packages.mjs'
 const path = 'api/dsh-skin-engine'
 const fixturePrefix = 'fixture.scale-'
 const previewFile = new URL(
-  '../../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/deep-ocean/preview/dark.png', import.meta.url,
+  '../../skin-sources/examples/skins/deep-ocean/preview/dark.png', import.meta.url,
 )
 
 export async function seedCatalogue(profileDir, from, to) {
   const manifest = JSON.parse(await readFile(new URL(
-    '../../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/deep-ocean/skin.json', import.meta.url,
+    '../../skin-sources/examples/skins/deep-ocean/skin.json', import.meta.url,
   ), 'utf8'))
   const preview = await readFile(previewFile)
   for (let index = from; index < to; index++) {

@@ -6,7 +6,7 @@ import { ZipFile } from 'yazl'
 import { resources } from './browser.mjs'
 import { packagePanel } from './packages.mjs'
 
-const source = new URL('../../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/blue-arc/', import.meta.url)
+const source = new URL('../../skin-sources/examples/skins/blue-arc/', import.meta.url)
 const skin = { id: 'example.scene-artwork-acceptance', name: 'Scene Artwork Acceptance' }
 const asset = 'assets/portrait.webp'
 const artSelector = '[data-dsh-skin-scene-artwork]'

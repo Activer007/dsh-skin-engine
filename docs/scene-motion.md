@@ -1,6 +1,6 @@
 # 夜航员的轻量视差与环境光
 
-「夜航员 · 轻量视差」沿用夜航员的靛蓝舷窗原画、基色、焦点和响应式布局。样例是独立的 `com.dsh.skin.night-navigator.motion` 皮肤包，可与原场景版并排导入。它只展示插画和环境光，方便直接比较原画与轻动效。 [样例源码](../DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/night-navigator-motion/skin.json)
+「夜航员 · 轻量视差」沿用夜航员的靛蓝舷窗原画、基色、焦点和响应式布局。样例是独立的 `com.dsh.skin.night-navigator.motion` 皮肤包，可与原场景版并排导入。它只展示插画和环境光，方便直接比较原画与轻动效。 [样例源码](../skin-sources/examples/scenes/night-navigator-motion/skin.json)
 
 ## 声明和运行方式
 
@@ -22,7 +22,7 @@
 ## 打包与复跑
 
 ```powershell
-npm run pack:skin -- DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/night-navigator-motion .cache/scene-motion
+npm run pack:skin -- skin-sources/examples/scenes/night-navigator-motion .cache/scene-motion
 ```
 
 在 [官方真宿主命令](acceptance.md#运行) 加上 `--suite scene-motion --sample-zip .cache/scene-motion/com.dsh.skin.night-navigator.motion.dshskin.zip`。每端保存宽窗动效、宽窗静态和窄窗静态实拍，记录实际位移、光照、正文和输入对比度、回退及清理。长时和配对性能沿用路线图的集成关口。

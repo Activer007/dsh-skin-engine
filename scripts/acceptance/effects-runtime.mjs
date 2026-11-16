@@ -20,7 +20,7 @@ const isEffectEnabled = control => control.evaluate(node => node instanceof HTML
 const canvas = layers('canvas')
 const refraction = layers('refraction')
 const fallback = layers('refraction-fallback')
-const source = new URL('../../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/', import.meta.url)
+const source = new URL('../../skin-sources/examples/skins/', import.meta.url)
 
 async function oldFormatZip(withAmbient = false) {
   const [ocean, neon] = await Promise.all(['deep-ocean', 'obsidian-neon'].map(async name =>

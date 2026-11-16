@@ -19,7 +19,7 @@
 ```powershell
 npm ci
 npm run build
-$source = 'DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes'
+$source = 'skin-sources/examples/scenes'
 $out = '.cache/scene-samples'
 foreach ($skin in 'night-navigator','morning-observatory','crimson-rain') {
   node scripts/pack-samples.mjs --source "$source/$skin" $out

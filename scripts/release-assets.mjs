@@ -5,7 +5,7 @@ import { relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = new URL('../', import.meta.url)
-export const examples = 'DSH_Skin_Engine_Development_Pack_v1.0/examples'
+export const examples = 'skin-sources/examples'
 export const releaseSampleDirectories = [
   'skins/ink-focus', 'skins/warm-dusk',
   'scenes/night-navigator', 'scenes/morning-observatory', 'scenes/crimson-rain', 'scenes/night-navigator-motion',

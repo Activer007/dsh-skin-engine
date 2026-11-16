@@ -37,5 +37,5 @@ PR #52 最终候选 `5093e0f40c322bd5c4362ec4240b5a2e864657d9` 合入 `917034f06
 
 - `npm run typecheck`、`npm run lint`、差异检查通过。
 - `gallery-preferences`、`appearance-session`、`appearance-navigation`、`skin-switch` 共 27 项定向测试通过，包含成功保存/失败/未知结果回读的历史记录语义。
-- 构建已完成 host/client bundle，但整体 `npm run build` 在打包原示例时因云端源码快照缺少 `DSH_Skin_Engine_Development_Pack_v1.0/examples` 文件而停止；不能称完整 build、全量测试或 verify:local 通过。
+- 构建已完成 host/client bundle，但整体 `npm run build` 在打包原示例时因云端源码快照缺少 `skin-sources/examples` 文件而停止；不能称完整 build、全量测试或 verify:local 通过。
 - 新宿主验收脚本尚未运行，需 LHA 同包双端执行并修正实际发现；无真实界面截图交付，也没有把逻辑测试冒充视觉验收。

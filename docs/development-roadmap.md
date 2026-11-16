@@ -30,7 +30,7 @@
 - **NEXT-02 以迁移 PR 合并为收口。** 本地检查先落到维护分支。迁移通过检查与自动审查并合并后，后续开发与打包均以 `main` 为基准，保留 `codex/v1-maintenance`。NEXT-01 的 `appearance` 和 `switch` 套件继续按各自场景复用。 [验收入口](acceptance.md)
 - **G1 已交付场景布局与首批样例。** NEXT-07 的单包双明暗使用 NEXT-06 已审计的表面范围，素材随 NEXT-13 纳入清单。 [SceneSpec v1 契约](scene-spec.md) · [三套场景样例](scene-samples.md) · [语义 Token 矩阵](host-token-matrix.md)
 - **常规 PR 只验证受影响的路径。** 每次以一个明确范围提交，查看本地检查和自动审查，修复后定向复测再合并。100 次切换、300 秒后台和整套配对性能留在集成或正式发布关口。NEXT-10 的 10/100 包样本只用于验证索引工作量。16.7 ms 是同环境 P95 持续增量排查线。测试记录 Git SHA、tarball SHA、宿主版本、结果和复现命令，结束后关闭本轮启动的 DSH 和浏览器。 [验收方法](acceptance.md)
-- 建议从 NEXT-05 验证过的一套场景提炼带注释的作者模板，独立小 PR 交付。新增独立样例沿用 ZIP 工作流，现有内置 skinId 的迁移须先有兼容方案。皮肤编辑器、视频壁纸和在线市场另立专题，第三方包遵守声明式安全边界。 [样例与模板](../DSH_Skin_Engine_Development_Pack_v1.0/examples/README.md) · [本地包更新与回滚](local-package-updates.md)
+- 建议从 NEXT-05 验证过的一套场景提炼带注释的作者模板，独立小 PR 交付。新增独立样例沿用 ZIP 工作流，现有内置 skinId 的迁移须先有兼容方案。皮肤编辑器、视频壁纸和在线市场另立专题，第三方包遵守声明式安全边界。 [样例与模板](../skin-sources/examples/README.md) · [本地包更新与回滚](local-package-updates.md)
 
 ## 设置面板改版
 
@@ -57,26 +57,26 @@ UI-10 的收藏与排序由 NAV-07 交付。NEXT-14 壁纸共存、独立编辑�
 
 **M0–M5 本地验收完成。** 官方 DSH `0.2.2-rc.1` 的 Web 和 Windows Desktop 已验证 v1 候选包、三套 ZIP 样板、八项效果和 Auto。产物、安装、回滚及兼容矩阵见 [v1 安装与验收](release-v1.md)。 [宿主审计](host-audit.md#m1-实施基线) · [PR-02 验收](#pr-02-校验结果) · [PR-03 验收](#pr-03-目录与资源验收) · [PR-04 验收](#pr-04-静态切换验收) · [PR-05 验收](#pr-05-css-效果验收) · [PR-06 验收](#pr-06-浮尘与性能基线) · [PR-07 验收](#pr-07-管理器与偏好验收) · [PR-08 验收](#pr-08-包管理与安全验收) · [PR-09 验收](#pr-09-p1-效果验收) · [PR-10 验收](#pr-10-折射与自动质量验收) · [PR-11 验收](#pr-11-发布回归)
 
-本仓库在 `470b1f6` 已有产品蓝图、Manifest Schema、三套示例数据及视觉参考。实现沿用一个 DSH 插件管理多套数据包的架构，由引擎提供内置效果。Host 管包目录、校验、资源和持久化，Client 管预览与渲染，DSH Adapter 集中管理宿主差异。在线市场、远程更新、皮肤脚本和 Shader 编辑器排在 v1 之后。 [开发包](../DSH_Skin_Engine_Development_Pack_v1.0/README.md) · [原始任务清单](../DSH_Skin_Engine_Development_Pack_v1.0/docs/10-Codex-Task-Backlog.md)
+本仓库在 `470b1f6` 已有产品蓝图、Manifest Schema、三套示例数据及视觉参考。实现沿用一个 DSH 插件管理多套数据包的架构，由引擎提供内置效果。Host 管包目录、校验、资源和持久化，Client 管预览与渲染，DSH Adapter 集中管理宿主差异。在线市场、远程更新、皮肤脚本和 Shader 编辑器排在 v1 之后。 开发包 (private archive) · 原始任务清单 (private archive)
 
 ## v1.0.3 交付复盘
 
-`3d0e032` 构建的 **Skin Engine v1.0.3** 是本节的历史对照基线。官方 DSH `0.2.2-rc.1` 的 Web 和 Windows Desktop 已通过新版面板专项验证。实际 Windows Desktop 配置曾使用内置 CLI 从 v1.0.0 原地升到 v1.0.3，并在重启后核对安装包、启用状态和保存选择。插件版本、皮肤包版本和 Engine API 是三项独立的版本。 [v1.0.3 产物与安装](release-v1.md#v103-设置面板整理) · [产品需求](../DSH_Skin_Engine_Development_Pack_v1.0/docs/01-Product-Requirements.md)
+`3d0e032` 构建的 **Skin Engine v1.0.3** 是本节的历史对照基线。官方 DSH `0.2.2-rc.1` 的 Web 和 Windows Desktop 已通过新版面板专项验证。实际 Windows Desktop 配置曾使用内置 CLI 从 v1.0.0 原地升到 v1.0.3，并在重启后核对安装包、启用状态和保存选择。插件版本、皮肤包版本和 Engine API 是三项独立的版本。 [v1.0.3 产物与安装](release-v1.md#v103-设置面板整理) · 产品需求 (private archive)
 
 | 原规划目标 | 当前交付和待办 |
 | --- | --- |
 | M0–M1，FR-01–04。一个引擎管理多套声明式包，支持校验、切换及可逆挂载 | 已交付。宿主边界固定在官方 `0.2.2-rc.1`。文件锁和修订号保护同 profile 写入，已实测两个 Web Host 竞争提交及持锁进程异常退出后恢复。 [宿主审计](host-audit.md#m1-实施基线) · [切换验收](#pr-04-静态切换验收) |
 | M2、M4，FR-05。八项效果、共享调度、质量档及降级 | v1.0.0 完成完整验收。v1.0.2 调整 Deep Ocean 输入框底色及浮尘，实测保留 Balanced 的 56 粒子预算。该次输入框截图为新会话，已有会话的输入框和最终包的性能对照纳入下一轮。 [八项效果](release-v1.md#八项效果) · [Deep Ocean 修订](release-v1.md#v102-deep-ocean-外观微调) |
-| M3，FR-06–09。预览、应用、恢复、偏好、搜索和 ZIP 管理 | 已交付。v1.0.1 增加就地应用反馈，v1.0.3 采用宽窗画廊与详情并排、窄窗单列，按需展开参数与诊断。旧版曾被误认为已升级，皮肤卡片仍只展示包版本，运行中的引擎版本缺少直观入口。 [面板复验](release-v1.md#v103-设置面板整理) · [管理器蓝图](../DSH_Skin_Engine_Development_Pack_v1.0/docs/07-Manager-UI-UX.md) |
+| M3，FR-06–09。预览、应用、恢复、偏好、搜索和 ZIP 管理 | 已交付。v1.0.1 增加就地应用反馈，v1.0.3 采用宽窗画廊与详情并排、窄窗单列，按需展开参数与诊断。旧版曾被误认为已升级，皮肤卡片仍只展示包版本，运行中的引擎版本缺少直观入口。 [面板复验](release-v1.md#v103-设置面板整理) · 管理器蓝图 (private archive) |
 | M5。10/100 包、100 次切换、后台 300 秒、性能、安全和共存 | 完整证据对应 v1.0.0 极光缓存包。与 v1.0.3 解包逐文件比较，仅 `package.json`、`lib/client.js` 和 Deep Ocean 的 `effects.json` 变化，Host 安全及存储证据可沿用同字节基线。v1.0.3 两端专项复验覆盖布局、键盘、偏好和 Deep Ocean ZIP 导入与卸载，长时、压力和性能结果仍按原产物归档。 [发布验收矩阵](release-v1.md#候选包复验进度) · [最终性能复测](release-v1.md#desktop-最终性能复测) |
-| 深浅色和作者能力 | 三套随包样板都有深色预览。浅色时已有原生回退与选择保留，首套浅色皮肤待设计和验证。Host 从 CSS 提取白名单值，由引擎映射到已审计的表面。圆角、字体、阴影等字段可通过校验，实际宿主映射仍需独立审计。 [样板](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/) · [令牌](../src/core/tokens.ts) · [CSS 白名单](../src/host/skin-css.ts) |
+| 深浅色和作者能力 | 三套随包样板都有深色预览。浅色时已有原生回退与选择保留，首套浅色皮肤待设计和验证。Host 从 CSS 提取白名单值，由引擎映射到已审计的表面。圆角、字体、阴影等字段可通过校验，实际宿主映射仍需独立审计。 [样板](../skin-sources/examples/skins/) · [令牌](../src/core/tokens.ts) · [CSS 白名单](../src/host/skin-css.ts) |
 | FR-10、FR-11。本地皮肤包更新与回滚、在线目录 | 引擎 tarball 已有原地换版与回滚流程。ZIP 导入遇到相同 skinId 返回 `duplicate-id`，本地皮肤包更新是待实现的功能。在线目录和远程下载继续排在本地包生命周期之后。 [包管理实现](../src/host/package-management.ts) · [引擎回滚](release-v1.md#回滚) |
 
 ## v1.0.4–v1.1 历史任务与验收
 
 **v1.0.4 是下一轮开发的双端验收基线。** PR-15、PR-16、PR-17 和最终候选包验收已合并。Web 与 Windows Desktop 使用同一候选包核对设置页、输入框、停用恢复及发布矩阵。Desktop 补齐配对性能。 [v1.0.3 基线](acceptance.md#v103-基线记录) · [v1.0.4 发布回归](acceptance.md#v104-发布回归记录)
 
-**v1.1.0 已完成发布验收。** PR-20 交付独立打包入口和作者 Starter。PR-19、PR-21 将皮肤库扩至四套内置和两套独立 ZIP。PR-18、PR-22 交付本地更新与单步回滚。两条线用同一份 v1.1.0 tarball 通过双端发布矩阵。 [Starter 与打包说明](../DSH_Skin_Engine_Development_Pack_v1.0/examples/README.md) · [v1.1.0 发布回归](acceptance.md#v110-发布回归)
+**v1.1.0 已完成发布验收。** PR-20 交付独立打包入口和作者 Starter。PR-19、PR-21 将皮肤库扩至四套内置和两套独立 ZIP。PR-18、PR-22 交付本地更新与单步回滚。两条线用同一份 v1.1.0 tarball 通过双端发布矩阵。 [Starter 与打包说明](../skin-sources/examples/README.md) · [v1.1.0 发布回归](acceptance.md#v110-发布回归)
 
 | 顺序 | 任务 | 依赖 | 可验收结果 |
 | --- | --- | --- | --- |
@@ -89,13 +89,13 @@ UI-10 的收藏与排序由 NAV-07 交付。NEXT-14 壁纸共存、独立编辑�
 | PR-21 · P1 | 扩充样例库并验收画廊 | PR-19、PR-20 | 交付「静墨」和「暖暮」两个 ZIP。核对名称、标签和来源筛选，验证缩略图、预览、保存、重启恢复和卸载。结合 10/100 包夹具核对目录和预览加载成本。 |
 | PR-22 · P1 | 实现本地更新与回滚 · FR-10 | PR-18 | 从独立更新入口对同 ID 的新包做 staging 校验后提交，普通导入继续拒绝重复 ID。验证更新后偏好保留、可回滚，以及读写竞争、取消、磁盘故障或进程中断后旧包可恢复。 |
 
-PR-15 的脚本覆盖真实安装、预览取消、应用保存、设置页恢复和渲染基线。PR-16 补测真实 Desktop 原地升级。日常改动按影响面选最少用例，复用仍适用的证据，失败后针对性补测。多个阶段合入后的大版本等集成里程碑，再用同一候选包集中跑两端的 10/100 包、ZIP 往返、100 次切换、真实隐藏 300 秒与恢复，以及 Default、静态和 P0 的配对性能。沿用 PR-06 的 16.7 ms 持续回归排查线。Host、安全边界或数据契约有变更时，选对应认证、取消、回滚和恶意包负例。 [基线与门槛](#pr-06-浮尘与性能基线) · [原始验收](../DSH_Skin_Engine_Development_Pack_v1.0/docs/11-Testing-and-Acceptance.md)
+PR-15 的脚本覆盖真实安装、预览取消、应用保存、设置页恢复和渲染基线。PR-16 补测真实 Desktop 原地升级。日常改动按影响面选最少用例，复用仍适用的证据，失败后针对性补测。多个阶段合入后的大版本等集成里程碑，再用同一候选包集中跑两端的 10/100 包、ZIP 往返、100 次切换、真实隐藏 300 秒与恢复，以及 Default、静态和 P0 的配对性能。沿用 PR-06 的 16.7 ms 持续回归排查线。Host、安全边界或数据契约有变更时，选对应认证、取消、回滚和恶意包负例。 [基线与门槛](#pr-06-浮尘与性能基线) · 原始验收 (private archive)
 
 新增 DSH 支持版本单独立项，先指定官方产物，再验证 Loader、设置槽、令牌、认证路由和适配回退。Wallpaper Engine 继续沿用实测通过的被动让路策略，重新考虑主动标记前先复验真实轮播。FR-11 保持在本地包更新之后。 [宿主支持边界](host-audit.md#m1-实施基线) · [共存证据](host-audit.md#t5-01a-参考插件共存)
 
 ### 皮肤样例与作者模板
 
-现有三套样例均为深色。Deep Ocean 覆盖 P0 组合，Aurora 覆盖冷色环境光，Obsidian Neon 覆盖虹彩、星空和交互涟漪。v1.1 首批目标是 **4 套内置皮肤、2 套独立 ZIP 样例**，共 6 种外观，另有作者 Starter。内置皮肤对应的 `.sample` ZIP 用于演示导入，和原皮肤算同一种外观。 [现有样例](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/) · [内置目录](../src/host/built-in-skins.ts) · [打包入口](../scripts/pack-samples.mjs)
+现有三套样例均为深色。Deep Ocean 覆盖 P0 组合，Aurora 覆盖冷色环境光，Obsidian Neon 覆盖虹彩、星空和交互涟漪。v1.1 首批目标是 **4 套内置皮肤、2 套独立 ZIP 样例**，共 6 种外观，另有作者 Starter。内置皮肤对应的 `.sample` ZIP 用于演示导入，和原皮肤算同一种外观。 [现有样例](../skin-sources/examples/skins/) · [内置目录](../src/host/built-in-skins.ts) · [打包入口](../scripts/pack-samples.mjs)
 
 | 样例 | 使用场景和实现 | 交付与专项验收 |
 | --- | --- | --- |
@@ -106,7 +106,7 @@ PR-15 的脚本覆盖真实安装、预览取消、应用保存、设置页恢�
 
 #### 首批之后的模板任务
 
-作者从 `examples/templates/` 复制源码，用户从 `examples/skins/` 对应的 ZIP 导入皮肤。继续复用 `pack:skin` 和生产校验器。样例扩大视觉选择，模板各演示一条可复刻的实现路径。 [源码与打包入口](../DSH_Skin_Engine_Development_Pack_v1.0/examples/README.md)
+作者从 `examples/templates/` 复制源码，用户从 `examples/skins/` 对应的 ZIP 导入皮肤。继续复用 `pack:skin` 和生产校验器。样例扩大视觉选择，模板各演示一条可复刻的实现路径。 [源码与打包入口](../skin-sources/examples/README.md)
 
 | 优先级 | 候选任务与依赖 | 可验收结果 |
 | --- | --- | --- |
@@ -121,7 +121,7 @@ v1.2 采用两套静态内置样例扩大画廊。雾松是第二套浅色样例
 
 #### 样例交付标准
 
-1. 每套用户样例使用稳定 ID、SemVer、明确的颜色模式及最少所需能力。用实际支持的语义令牌和内置效果制作，沿用 ZIP 文件、资源和 CSS 校验。作者起步模板须能按文档复刻并完成导入。 [包契约](../DSH_Skin_Engine_Development_Pack_v1.0/docs/03-Skin-Package-Spec.md)
+1. 每套用户样例使用稳定 ID、SemVer、明确的颜色模式及最少所需能力。用实际支持的语义令牌和内置效果制作，沿用 ZIP 文件、资源和 CSS 校验。作者起步模板须能按文档复刻并完成导入。 包契约 (private archive)
 2. 预览来自官方 DSH 的隔离空白会话，覆盖所声明的模式，素材记录来源和许可。新增样例登记 ZIP 与预览体积。内置候选另记录 tarball 增量。打包后核对清单、包内预览路径和 SHA-256。 [素材记录](release-asset-notes.md)
 3. Web 和 Windows Desktop 均用同一候选包完成导入、预览取消、应用、重启恢复、卸载和 Default 清理。代表性样例在新旧会话和键盘操作下核对正文、输入框、焦点和菜单，常规视口宽度为 1280 CSS 像素，响应式布局补测 760 CSS 像素。正常正文采用至少 4.5:1 的项目对比度目标，记录实际取样表面及运行模式。 [窗口尺寸要求](acceptance.md)
 4. 记录宿主版本、候选包 SHA、截图与结果。测试成功、失败或取消后，都关闭本轮启动的 DSH Desktop、Web Host 和浏览器夹具，并按隔离目录和进程记录确认退出。 [复跑流程](acceptance.md)
@@ -153,9 +153,9 @@ v1.2 采用两套静态内置样例扩大画廊。雾松是第二套浅色样例
 | 议题 | 当前差异与建议决策 | 决策门 |
 | --- | --- | --- |
 | 版本和字段 | DSH 优先按 `engines.dsh` 检查组合包，字段缺席时才检查 DSH peer 范围。用户可针对精确的插件版本和 DSH 版本授予安装与启动豁免。引擎独立验证皮肤的 `engineApi`、`dshCompatibility` 和 Adapter 支持范围。数据包的 DSH 范围采用 `includePrerelease: true`，所以示例的 `>=0.2.0` 可以匹配 `0.2.2-rc.1`。实际宿主版本还须命中 Adapter 已验证范围，读不到版本或版本不受支持时保留 Default。优先探测宿主导出的 `getDshRuntimeVersion()` 在预构建组合包中的可用性。 [DSH 版本检查](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/boot/app-boot/README.zh.md#profiles) · [版本豁免](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/boot/plugin-manager/README.zh.md#version-compatibility-and-exemptions) | PR-02 用正式版、RC、alpha、未知宿主及宿主豁免场景验证独立判定。 |
-| Schema 和兼容诊断 | Manifest Schema 已设置 `additionalProperties: false`，而安全章将未知字段定为警告。建议 v1 按 Schema 拒绝未知字段和 capability。Tokens 与 Effects 用各自 JSON 的 `schema` 版本，取消共存章中额外的 `tokenSchema` 和 `effectsSchema` 提案。已知效果参数与声明能力不符时拒绝加载。未知效果 ID 只产生诊断并跳过。用 SemVer 解析器补足现有正则接受 `1.0.0-01` 和 `1.0.0-alpha..1` 的缺口。 [Manifest Schema](../DSH_Skin_Engine_Development_Pack_v1.0/schemas/skin-manifest.schema.json) · [安全规范](../DSH_Skin_Engine_Development_Pack_v1.0/docs/08-Performance-Security.md) · [SemVer 2.0.0](https://semver.org/) | M1 用三套有效示例和负向夹具锁定行为。 |
-| 示例皮肤 | PR-02 校验并打包三套初稿，早期预览缺席时使用占位。M1 用 Deep Ocean 和 Aurora 验证可切换主题，M4 用 Obsidian Neon 验证 P1 组合。M5 三套样板均已随包提供真实深色预览，清单与当前交付一致。 [示例皮肤](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/) | 扩大色彩模式声明前先完成相应真实宿主实测。 |
-| 设置与渲染表面 | 引擎通过已验证的 `settings.section` 注册设置页，设置入口独立于活动皮肤。M0 已确认应用背景和一个可见侧栏的令牌载体。每个 surface 记录源码、定位方式、是否有盒子、状态变化和原生回退。顶栏、右栏按证据开放，编辑器、菜单和弹窗保持原生交互与层叠。 [宿主适配蓝图](../DSH_Skin_Engine_Development_Pack_v1.0/docs/06-Host-Adapter-and-Coexistence.md) · [DSH 设置槽](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/client/ui-settings/src/client/contract/slots.ts#L57) | 后续开放装饰层前复验浅深色、窄窗、侧栏收起、浮层焦点与卸载。 |
+| Schema 和兼容诊断 | Manifest Schema 已设置 `additionalProperties: false`，而安全章将未知字段定为警告。建议 v1 按 Schema 拒绝未知字段和 capability。Tokens 与 Effects 用各自 JSON 的 `schema` 版本，取消共存章中额外的 `tokenSchema` 和 `effectsSchema` 提案。已知效果参数与声明能力不符时拒绝加载。未知效果 ID 只产生诊断并跳过。用 SemVer 解析器补足现有正则接受 `1.0.0-01` 和 `1.0.0-alpha..1` 的缺口。 [Manifest Schema](../skin-sources/schemas/skin-manifest.schema.json) · 安全规范 (private archive) · [SemVer 2.0.0](https://semver.org/) | M1 用三套有效示例和负向夹具锁定行为。 |
+| 示例皮肤 | PR-02 校验并打包三套初稿，早期预览缺席时使用占位。M1 用 Deep Ocean 和 Aurora 验证可切换主题，M4 用 Obsidian Neon 验证 P1 组合。M5 三套样板均已随包提供真实深色预览，清单与当前交付一致。 [示例皮肤](../skin-sources/examples/skins/) | 扩大色彩模式声明前先完成相应真实宿主实测。 |
+| 设置与渲染表面 | 引擎通过已验证的 `settings.section` 注册设置页，设置入口独立于活动皮肤。M0 已确认应用背景和一个可见侧栏的令牌载体。每个 surface 记录源码、定位方式、是否有盒子、状态变化和原生回退。顶栏、右栏按证据开放，编辑器、菜单和弹窗保持原生交互与层叠。 宿主适配蓝图 (private archive) · [DSH 设置槽](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/client/ui-settings/src/client/contract/slots.ts#L57) | 后续开放装饰层前复验浅深色、窄窗、侧栏收起、浮层焦点与卸载。 |
 | 壁纸和旧皮肤 | 区分引擎内部作用域 `data-dsh-skin-id` 与外部让路标记 `data-dsh-skin`。M0 实测 Wallpaper Engine 1.4.2 在让路结束后恢复了壁纸和轮播开关，定时切换未继续。首轮遇到活动壁纸或旧皮肤时保留当前所有者。引擎预览中遇到冲突时只释放自己的令牌。仅玻璃的让路已有正向证据，外部标记由 Adapter 按验证过的条件发布并按所有权撤回。 [实测与回退](host-audit.md#t5-01a-参考插件共存) | M1 做所有权和回退测试，M5 用真实插件重验。启用活动轮播让路前须实测恢复后的自动切换。 |
 | 随包资源 | 公开图片沿用 M0 验证的 `./assets/*` 导出、内容摘要文件名及 `require.asset`。DSH 只提供活动客户端包导出的白名单图片。Web Host 返回公开 immutable 缓存头，Desktop 转发将 `/plugins/` 响应设为 `no-store`。CSS、字体和用户导入素材按引擎的类型与访问规则提供，私有资源使用 owner 路由和 `Cache-Control: no-store`。 [包资源](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/client/modules/README.zh.md#package-assets) · [Desktop 转发](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/apps/desktop/src/web-document.ts#L64) | PR-03 分别验证两端缓存头、缺图占位、访问权限、取消、路径和 MIME。 |
 | 私有 API 和本地导入 | 沿用 M0 的 `ctx.connection.fetch.register` 精确 `/api/…` 路由。载体完成认证与来源检查，Connection 仅向 owner Peer 派发，注册由所属 fiber 释放。Host 还须按当前 profile 校验包和资源归属。该 RC 支持 `GET`、`HEAD`、`POST`，保存和删除使用命名 POST。`requestBody: 'streaming'` 由引擎逐块计数并处理取消。Desktop 校验应用 Origin 后转发，Host 收到的是认证转发请求。M0 的 Desktop 客户端已证实取消，Host 端收到取消仍需复验。 [Connection API](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/client/connection/src/rpc.ts#L146) · [owner 派发](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/packages/client/connection/src/rpc-host.ts#L208) · [Desktop 转发](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/apps/desktop/src/web-document.ts#L77) · [取消证据](host-audit.md#t0-03-样机验证) | 先交付内置皮肤和受控本地目录。PR-08 用两端真实入口验证中途取消、Host 停止处理和 staging 回收后开放 ZIP。 |
@@ -184,7 +184,7 @@ v1.2 采用两套静态内置样例扩大画廊。雾松是第二套浅色样例
 | M4 · PR-09 至 PR-10 | Click Ripple、Starfield、Holographic Glass、Liquid Refraction | 三项 P1 可独立开关。P2 默认关闭，主动启用才创建 WebGL 上下文，创建失败或丢失时切回 CSS。 |
 | M5 · PR-11 | 真宿主回归、压力测试和发版 | 三套示例可安装，八项效果均有开关和降级路径，安全用例和兼容矩阵达标，提供安装及回滚说明。 |
 
-M3 形成用户可操作的 P0 体验版。完整 v1 在 M5 发布。如果实测决定延期 Liquid Refraction，需明确调整 v1 范围和验收口径。原蓝图的阶段估算相加为 **18–25 个工程日**，以一名熟悉 DSH 的工程师为前提。M0 结束后根据宿主差异、导入安全与测试成本重新估算。 [原始里程碑](../DSH_Skin_Engine_Development_Pack_v1.0/docs/09-Milestones-and-PR-Plan.md) · [原始发布门槛](../DSH_Skin_Engine_Development_Pack_v1.0/docs/11-Testing-and-Acceptance.md)
+M3 形成用户可操作的 P0 体验版。完整 v1 在 M5 发布。如果实测决定延期 Liquid Refraction，需明确调整 v1 范围和验收口径。原蓝图的阶段估算相加为 **18–25 个工程日**，以一名熟悉 DSH 的工程师为前提。M0 结束后根据宿主差异、导入安全与测试成本重新估算。 原始里程碑 (private archive) · 原始发布门槛 (private archive)
 
 ## 可执行任务
 
@@ -215,9 +215,9 @@ PR 验收至少包含构建、类型检查、lint、相关正反例及回退用�
 | --- | --- |
 | 宿主与共存 | 同版本同 profile 先取官方 Default 基线，再测 Windows Desktop 与 Web 的浅/深色、窄/宽窗口、会话/工作区、侧栏、编辑器、菜单、弹窗和键盘焦点。检查壁纸让路前后的选择、轮播、玻璃与主题。其他平台按实测填写矩阵。 |
 | 状态与泄漏 | 覆盖预览取消、超时、刷新，快速切换、加载失败、写入失败、活动包卸载、插件禁用与重启。100 次切换后，引擎持有的节点、标记、路由、监听器和 Canvas 数量回到预期。Default 和静态主题无常驻引擎 RAF。 |
-| 性能与降级 | 在每端用同一设备、宿主版本、分辨率和会话夹具比较 Default、纯静态及 P0 四效果。沿用 PR-06 的质量预算与回归门槛，并在真实窗口后台五分钟后检查停帧与恢复。 [PR-06 基线](#pr-06-浮尘与性能基线) · [初始预算](../DSH_Skin_Engine_Development_Pack_v1.0/docs/08-Performance-Security.md) · [参考测量方法](https://github.com/Small-tailqwq/dsh-deep-whale/blob/d9bb4989c941d4d1d5cee1fa8388f2d14f0a771b/docs/performance-issue-114.md) |
+| 性能与降级 | 在每端用同一设备、宿主版本、分辨率和会话夹具比较 Default、纯静态及 P0 四效果。沿用 PR-06 的质量预算与回归门槛，并在真实窗口后台五分钟后检查停帧与恢复。 [PR-06 基线](#pr-06-浮尘与性能基线) · 初始预算 (private archive) · [参考测量方法](https://github.com/Small-tailqwq/dsh-deep-whale/blob/d9bb4989c941d4d1d5cee1fa8388f2d14f0a771b/docs/performance-issue-114.md) |
 | 包安全与规模 | 10/100 套只扫描 Manifest，按需取可见预览及活动资源。拒绝穿越、压缩炸弹、未知能力、CSS 逃逸及未授权请求。安装失败保持已安装目录、活动皮肤和用户配置的一致性。 |
-| 视觉与可访问性 | 逐项对照效果参考图。玻璃和背景在浅深色下保证正文、代码块及焦点可辨。低档、Reduced Motion、不支持滤镜和 WebGL 丢失时仍可正常操作。发布门槛为安全负向用例全部通过，兼容矩阵内无已知阻断或高优先级问题。 [视觉参考索引](../DSH_Skin_Engine_Development_Pack_v1.0/docs/13-Visual-Reference-Index.md) |
+| 视觉与可访问性 | 逐项对照效果参考图。玻璃和背景在浅深色下保证正文、代码块及焦点可辨。低档、Reduced Motion、不支持滤镜和 WebGL 丢失时仍可正常操作。发布门槛为安全负向用例全部通过，兼容矩阵内无已知阻断或高优先级问题。 视觉参考索引 (private archive) |
 
 ## PR-01 验收清单
 
@@ -296,7 +296,7 @@ PR 验收至少包含构建、类型检查、lint、相关正反例及回退用�
 
 ## PR-09 P1 效果验收
 
-- T4-01、T4-02 和 T4-03 交付点击涟漪、星空和虹彩玻璃。Obsidian Neon 将三项 P1 与液态玻璃组合。偏好支持三项独立开关及半径、亮度和强度调整。Host 存储升至 v3 并兼容读取 v1、v2，Desktop 换包后读回 PR-08 保存的偏好。 [样板配置](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/obsidian-neon/effects.json) · [偏好](../src/shared/preferences.ts)
+- T4-01、T4-02 和 T4-03 交付点击涟漪、星空和虹彩玻璃。Obsidian Neon 将三项 P1 与液态玻璃组合。偏好支持三项独立开关及半径、亮度和强度调整。Host 存储升至 v3 并兼容读取 v1、v2，Desktop 换包后读回 PR-08 保存的偏好。 [样板配置](../skin-sources/examples/skins/obsidian-neon/effects.json) · [偏好](../src/shared/preferences.ts)
 - 涟漪由已审计对话背景的被动点击监听触发。最多保留四组，每组一至三圈，排除编辑器、交互控件和选中文本，按实际经过时间淘汰。仅涟漪时，空闲与隐藏均释放绘图缓冲。星空与浮尘共用粒子模型、Canvas 和调度器。星数上限为 Low 32、Balanced 72、High 120。 [涟漪](../src/client/effects/ripple.ts) · [星空](../src/client/effects/starfield.ts)
 - 虹彩只挂在经审核的展开侧栏。指针坐标经共享调度器合并后写入装饰节点的局部变量。单独启用虹彩时使用原生侧栏颜色的填充。Low、Economy、Static 和 Reduced Motion 保留静态星空和虹彩，停用涟漪。折叠侧栏或宿主载体退出后撤回装饰。 [虹彩](../src/client/effects/holographic.ts) · [效果运行时](../src/client/effects/p0.ts)
 - `npm run typecheck`、`npm run lint` 和 `npm test` 通过，共 31 项。新增用例覆盖星点上限和回到空闲、涟漪容量和超时、虹彩局部写入与回收。预构建包为 `.cache/pr-09/dsh-plugin-skin-engine-0.0.8-p1.0.tgz`，SHA-256 为 `a8953c62a0a73cc5ed9032c2f4d1356e735ae303af5e1c438a8a9b678e6c4e40`。 [运行时测试](../test/effects-runtime.test.mjs)
@@ -305,7 +305,7 @@ PR 验收至少包含构建、类型检查、lint、相关正反例及回退用�
 
 ## PR-10 折射与自动质量验收
 
-- T4-04 和 T5-02b 交付可选 Liquid Refraction 及 Auto。Deep Ocean 声明折射参数，用户在详情主动启用后可预览或保存。皮肤自带的启用声明仍受用户偏好控制。偏好领域升至 v4，继续读取 v1 至 v3。 [偏好合并](../src/shared/preferences.ts) · [Deep Ocean 配置](../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/deep-ocean/effects.json)
+- T4-04 和 T5-02b 交付可选 Liquid Refraction 及 Auto。Deep Ocean 声明折射参数，用户在详情主动启用后可预览或保存。皮肤自带的启用声明仍受用户偏好控制。偏好领域升至 v4，继续读取 v1 至 v3。 [偏好合并](../src/shared/preferences.ts) · [Deep Ocean 配置](../skin-sources/examples/skins/deep-ocean/effects.json)
 - 折射只读取引擎生成的 128 × 128 纹理，在已审计背景层上绘制。画布按材质配置与窗口预算共同限幅，Balanced 上限 524,288 像素。初始化失败、上下文丢失或降档时切到 CSS。上下文恢复后重建 GPU 资源。隐藏、Off 或离开安全表面时释放 GPU 层，Reduced Motion 与 Static 使用 CSS 背景。 [折射实现](../src/client/effects/refraction.ts) · [WebGL 上下文丢失扩展](https://registry.khronos.org/webgl/extensions/WEBGL_lose_context/)
 - Auto 以 Balanced 开始。24 个样本中至少 8 次帧间隔超过约 45.3 ms 或引擎工作超过 8 ms 即降 Low。Low 观察 80 个样本，单帧引擎工作超过 4 ms 或间隔超过 100 ms 时重置观察，间隔超过 70 ms 的样本最多 8 个。初版 Desktop Low 采样中，115 个间隔有 15 个超过 58 ms，放宽后可容纳一次 60 Hz 刷新周期的抖动。纯 CSS 动画由同一个时钟采样，静态和空闲不采样。 [Auto 策略](../src/client/effects/auto-quality.ts) · [共享时钟](../src/client/effects/frame-scheduler.ts)
 - `npm run typecheck`、`npm run lint` 和 `npm test` 通过，共 34 项。预构建包为 `.cache/pr-10/dsh-plugin-skin-engine-0.0.9-refraction.1.tgz`，SHA-256 为 `6f0ab47d031307c2f582eaec7ce8623e950303b089fc408fa93a3236f6f271a8`。同一包装入官方 Web 的 `skin-engine-refraction` 和 Windows Desktop 的 `desktop`。 [运行时测试](../test/effects-runtime.test.mjs)

@@ -2,9 +2,9 @@
 
 | 作者起点 | 独立样例 | 画面与回退 |
 | --- | --- | --- |
-| [浅色人物模板](../DSH_Skin_Engine_Development_Pack_v1.0/examples/templates/portrait-light/) | [青笺阅览室](../DSH_Skin_Engine_Development_Pack_v1.0/examples/characters/jade-reading-room/) · `example.jade-reading-room` | 淡青纸面、青玉书库原画和静态右侧构图 |
-| [深色人物模板](../DSH_Skin_Engine_Development_Pack_v1.0/examples/templates/portrait-dark/) | [末班车札记](../DSH_Skin_Engine_Development_Pack_v1.0/examples/characters/last-train-study/) · `example.last-train-study` | 葡萄灰车厢、雨夜列车原画与玫瑰窗光。窄窗或减少动效时显示静态原画 |
-| [双明暗人物模板](../DSH_Skin_Engine_Development_Pack_v1.0/examples/templates/portrait-dual/) | [晨昏观测](../DSH_Skin_Engine_Development_Pack_v1.0/examples/characters/twilight-shift/) · `example.twilight-shift` | 浅色温室与深色舷窗共用同一皮肤 ID 和偏好，跟随 DSH 外观切换 |
+| [浅色人物模板](../skin-sources/examples/templates/portrait-light/) | [青笺阅览室](../skin-sources/examples/characters/jade-reading-room/) · `example.jade-reading-room` | 淡青纸面、青玉书库原画和静态右侧构图 |
+| [深色人物模板](../skin-sources/examples/templates/portrait-dark/) | [末班车札记](../skin-sources/examples/characters/last-train-study/) · `example.last-train-study` | 葡萄灰车厢、雨夜列车原画与玫瑰窗光。窄窗或减少动效时显示静态原画 |
+| [双明暗人物模板](../skin-sources/examples/templates/portrait-dual/) | [晨昏观测](../skin-sources/examples/characters/twilight-shift/) · `example.twilight-shift` | 浅色温室与深色舷窗共用同一皮肤 ID 和偏好，跟随 DSH 外观切换 |
 
 每套模板都含完整的 Manifest、令牌、SceneSpec 和包内原画，可独立复制打包。三种配方把人物锚在右侧，左侧留出对话安全区，并在 760 和 520 CSS 像素断点降低插画尺寸和透明度。浅色和双明暗配方采用静态插画。深色配方沿用轻量视差和环境光，减少动效时保留静态插画。 [场景声明契约](scene-spec.md) · [轻量视差](scene-motion.md)
 
@@ -14,7 +14,7 @@
 
 ```powershell
 npm ci --ignore-scripts
-$examples = 'DSH_Skin_Engine_Development_Pack_v1.0/examples'
+$examples = 'skin-sources/examples'
 $copy = '.cache/my-portrait'
 New-Item -ItemType Directory -Force .cache | Out-Null
 Copy-Item -LiteralPath "$examples/templates/portrait-dual" -Destination $copy -Recurse
@@ -35,7 +35,7 @@ npm run pack:skin -- $copy .cache/character-zips
 
 ```powershell
 npm run build
-$examples = 'DSH_Skin_Engine_Development_Pack_v1.0/examples'
+$examples = 'skin-sources/examples'
 $output = '.cache/character-zips'
 foreach ($skin in 'jade-reading-room','last-train-study','twilight-shift') {
   node scripts/pack-samples.mjs --source "$examples/characters/$skin" $output
@@ -45,7 +45,7 @@ foreach ($skin in 'jade-reading-room','last-train-study','twilight-shift') {
 
 插画的原始字节和来源沿用现有素材清单。样例的预览图取自官方 DSH 的隔离会话。 [发包素材记录](release-asset-notes.md)
 
-1280 × 820 实拍随 ZIP 提供。 [青笺阅览室](../DSH_Skin_Engine_Development_Pack_v1.0/examples/characters/jade-reading-room/preview/light.png) · [末班车札记](../DSH_Skin_Engine_Development_Pack_v1.0/examples/characters/last-train-study/preview/dark.png) · [晨昏观测浅色](../DSH_Skin_Engine_Development_Pack_v1.0/examples/characters/twilight-shift/preview/light.png) · [晨昏观测深色](../DSH_Skin_Engine_Development_Pack_v1.0/examples/characters/twilight-shift/preview/dark.png)
+1280 × 820 实拍随 ZIP 提供。 [青笺阅览室](../skin-sources/examples/characters/jade-reading-room/preview/light.png) · [末班车札记](../skin-sources/examples/characters/last-train-study/preview/dark.png) · [晨昏观测浅色](../skin-sources/examples/characters/twilight-shift/preview/light.png) · [晨昏观测深色](../skin-sources/examples/characters/twilight-shift/preview/dark.png)
 
 ## 复跑真宿主检查
 

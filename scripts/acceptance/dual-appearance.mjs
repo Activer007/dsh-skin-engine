@@ -15,7 +15,7 @@ const palettes = {
   dark: { canvas: '#0b1220', sidebar: '#111d2d' },
 }
 const artwork = '[data-dsh-skin-scene-artwork] > img'
-const samples = new URL('../../DSH_Skin_Engine_Development_Pack_v1.0/examples/scenes/', import.meta.url)
+const samples = new URL('../../skin-sources/examples/scenes/', import.meta.url)
 
 export async function packDualAppearanceFixture() {
   const zip = new ZipFile()

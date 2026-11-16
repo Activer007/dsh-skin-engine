@@ -67,7 +67,7 @@ Windows Desktop 的既有专项和 NEXT-01 的 Web 专项使用同一份 v1.5.0 
 
 纸白是浅色静态皮肤，使用暖白画布和浅暖灰侧栏。切换到深色后采用 DSH 原生深色，保存的纸白选择继续保留。返回浅色时恢复纸白。运行 `npm run pack:samples -- <输出目录>` 生成包括 `paper-light.dshskin.zip` 在内的四个内置样例 ZIP。纸白的内置 ID 为 `com.dsh.skin.paper-light`，配套 ZIP 使用 `com.dsh.skin.paper-light.sample`，两者皮肤包版本均为 `1.0.0`。 [静态样例验收](acceptance.md#纸白样例验收) · [预览素材](release-asset-notes.md)
 
-静墨和暖暮是深色独立样例。按 [样例源码说明](../DSH_Skin_Engine_Development_Pack_v1.0/examples/README.md) 用 `pack:skin` 生成两个 ZIP，然后在「设置 → Skin Engine → Import ZIP」分别导入。静墨采用石墨色静态外观，暖暮采用暖棕画布和低强度边缘流光。 [静墨与暖暮验收](acceptance.md#静墨与暖暮样例验收)
+静墨和暖暮是深色独立样例。按 [样例源码说明](../skin-sources/examples/README.md) 用 `pack:skin` 生成两个 ZIP，然后在「设置 → Skin Engine → Import ZIP」分别导入。静墨采用石墨色静态外观，暖暮采用暖棕画布和低强度边缘流光。 [静墨与暖暮验收](acceptance.md#静墨与暖暮样例验收)
 
 已导入的本地皮肤可在详情页展开「Package actions」，通过「Update ZIP」选择同 ID 的较新版本。更新成功后，使用「Roll back to v…」及确认按钮回到上一版。画廊保留皮肤选择与保存偏好。 [本地更新与回滚验收](acceptance.md#本地更新与回滚验收)
 
@@ -75,7 +75,7 @@ Windows Desktop 的既有专项和 NEXT-01 的 Web 专项使用同一份 v1.5.0 
 
 当前分支的候选包可按本地校验流程从锁定提交打包，并用第二份独立检出复核 SHA-256。以下命令保留用于复现 v1.1.0 的历史产物。 [本地校验](local-verification.md)
 
-在独立工作树以 LF 换行检出 `56d1f51`，使用 Node.js 24.16.0、npm 12.2.1 和仓库锁文件重建。可通过 `git -c core.autocrlf=false worktree add --detach <路径> 56d1f51` 创建工作树。以下命令在该工作树根目录运行。输出包含引擎 tarball、四个内置皮肤对应的 `.sample` ZIP、两个独立样例 ZIP 和 Starter ZIP。作者可继续复制 Starter 源码再改用自己的 ID。 [作者模板](../DSH_Skin_Engine_Development_Pack_v1.0/examples/templates/starter/README.md)
+在独立工作树以 LF 换行检出 `56d1f51`，使用 Node.js 24.16.0、npm 12.2.1 和仓库锁文件重建。可通过 `git -c core.autocrlf=false worktree add --detach <路径> 56d1f51` 创建工作树。以下命令在该工作树根目录运行。输出包含引擎 tarball、四个内置皮肤对应的 `.sample` ZIP、两个独立样例 ZIP 和 Starter ZIP。作者可继续复制 Starter 源码再改用自己的 ID。 [作者模板](../skin-sources/examples/templates/starter/README.md)
 
 ```powershell
 npm ci

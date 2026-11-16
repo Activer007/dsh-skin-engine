@@ -111,7 +111,7 @@ async function fixture(t) {
 
 test('the Starter source packs reproducibly and passes the production ZIP importer', async t => {
   const host = await fixture(t)
-  const starter = fileURLToPath(new URL('../DSH_Skin_Engine_Development_Pack_v1.0/examples/templates/starter/', import.meta.url))
+  const starter = fileURLToPath(new URL('../skin-sources/examples/templates/starter/', import.meta.url))
   const script = fileURLToPath(new URL('../scripts/pack-samples.mjs', import.meta.url))
   const pack = (source, output) => promisify(execFile)(process.execPath, [script, '--source', source, output])
   const copy = join(host.dir, 'source')
@@ -202,7 +202,7 @@ test('the local update fixtures load independently and ordinary import rejects t
 test('standalone Ink Focus and Warm Dusk packages still install and load without a SceneSpec', async t => {
   const host = await fixture(t)
   for (const name of ['ink-focus', 'warm-dusk']) {
-    const source = fileURLToPath(new URL(`../DSH_Skin_Engine_Development_Pack_v1.0/examples/skins/${name}/`, import.meta.url))
+    const source = fileURLToPath(new URL(`../skin-sources/examples/skins/${name}/`, import.meta.url))
     const { manifest, files } = await readSkinSource(source)
     assert.equal((await host.upload(await zip(files))).status, 201)
     const item = (await host.registry.catalogue(host.signal)).skins.find(skin => skin.manifest.id === manifest.id)
