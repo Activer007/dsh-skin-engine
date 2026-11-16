@@ -1,33 +1,40 @@
 # DSH Skin Engine
 
-Skin Engine 是 DeepSeek Harness 的外观插件。在左侧「外观中心」浏览皮肤、调整特效、替换人物插画，并在真实聊天里预览效果。
+简体中文 · [English](README.en.md)
 
-## 项目亮点
+**给 DeepSeek Harness 换个外观，在真实聊天里试好再保存。**
 
-- **13 款内置皮肤**涵盖深色、浅色、动态特效和人物插画。皮肤库支持搜索、筛选、收藏及按最近应用排序。
-- **八款人物皮肤支持换图**。选择本地 PNG、JPEG 或 WebP，可调整适应／填充、位置、缩放和不透明度，也可恢复内置图。私人图片按 DSH Profile 保存，导出 ZIP 时会排除。
-- **30 秒聊天预览**显示实时倒计时。主动取消会回到发起预览的页签，保留未应用草稿。
-- **按窗口调整特效**，可调整模式和质量，也可从外观中心和系统设置恢复 DSH 原生外观。
-- **本地 ZIP 管理**支持导入、导出、更新和回滚。支持明暗两套配色与插画的皮肤可以跟随 DSH 外观切换。
+从左侧打开「外观中心」，挑一款喜欢的皮肤。想要安静的写作背景、带极光的深色界面，或右侧带人物插画的工作空间，都可以先看看实际效果。
 
-## 安装
+[下载已发布版本](https://github.com/Activer007/dsh-skin-engine/releases) · [安装与升级](docs/release-v1.md#安装与启用) · [1.10.0 版本说明](docs/release-v1.md#v1100-新版外观中心)
 
-当前源码版本为 **1.10.0**，要求 **DSH 0.2.2-rc.1 或更新版本**。已发布的安装包和 SHA-256 校验文件见 GitHub Releases。升级前退出目标 Profile 并备份原版插件包和皮肤数据。 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [升级与回装说明](docs/release-v1.md#v193-人物皮肤换图)
+**Deep Ocean 实拍** · 前半段以 2 倍速展示浮尘，后半段以原速展示液态折射。 [高清 MP4](docs/images/v1.10.0/deep-ocean-showcase.mp4)
 
-在已退出的 Windows Desktop 上，可用随应用安装的 DSH CLI 将归档原地安装到 `desktop` Profile。将示例里的路径换成实际文件路径，然后重新打开 DSH。
+## 找到适合你的外观
 
-```powershell
-& '<DSH 安装目录>/resources/runtime/cli/bin/dsh.cmd' plugin --profile desktop add 'file:E:/path/to/dsh-plugin-skin-engine-<版本>.tgz'
-```
+**浏览响应快。** 搜索、筛选和收藏即时更新，静态缩略图随滚动按需加载。
 
-Web 使用目标 Profile 的 DSH CLI 安装，安装后重启该 Web Host。
+**动效更省资源。** 窗口隐藏时暂停绘制，回到前台自动恢复。也可按窗口切换到节能或静态模式。
 
-```sh
-dsh plugin --profile web add -w 'file:/absolute/path/to/dsh-plugin-skin-engine-<版本>.tgz'
-```
+- **11 款内置皮肤。** 从 Deep Ocean 的深蓝与流光，到纸白的暖色阅读界面。用大图卡片浏览，用星标收藏，也可搜索或只看收藏。
+- **在聊天里试用 30 秒。** 倒计时内可以直接保存。取消后回到原页签，刚才的改动还在。画廊显示静态缩略图，聊天预览能看到实际动态效果。
+- **换上自己的图片。** 六款人物皮肤支持替换插画，调整位置、缩放和透明度。展开「自定义皮肤」就能编辑，收起也会保留草稿。
+- **按需要调节氛围。** 可以调低特效或保持静态，也可以恢复 DSH 默认外观。自制皮肤可通过 ZIP 导入、导出和分享。
 
-## 试用人物换图
+![绯雨霓虹应用后的聊天界面，右侧是人物插画与雨夜霓虹](docs/images/v1.10.0/crimson-rain-chat.png)
 
-打开「外观中心 → 皮肤库」，选择「夜航员」等人物皮肤，展开右侧「自定义皮肤」，在「人物场景图片」下选择一张图片。先在聊天中预览，满意后点「应用并保存」。每个 Profile 最多保存 32 张，每张最大 5 MiB。恢复内置图、取消或放弃草稿都会保留图片文件。 [换图说明与限制](docs/user-artwork-stage1.md)
+**绯雨霓虹** · 右侧是雨夜人物插画，聊天仍有独立的阅读区域。
 
-[外观中心操作手册](docs/navigation-release-guide.md#当前主线的操作入口) · [兼容性与实测范围](docs/dsh-compatibility.md) · [SceneSpec 皮肤作者文档](docs/scene-spec.md) · [开发路线图](docs/development-roadmap.md)
+![曙光航站应用后的新会话首页，右侧是浅色人物插画](docs/images/v1.10.0/dawn-station-chat.png)
+
+**曙光航站** · 银灰舷窗映着晨光，适合喜欢浅色外观的人。
+
+![新版外观中心，左侧是大卡片皮肤库，右侧是曙光航站详情与预览、应用按钮](docs/images/v1.10.0/appearance-center.png)
+
+## 安装与上手
+
+需要 **DSH 0.2.2-rc.1 或更新版本**。从 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) 下载安装包，再按 [Windows 和 Web 安装说明](docs/release-v1.md#安装与启用) 安装。升级前请退出 DSH 并备份原配置。
+
+安装后，打开 **外观中心 → 皮肤库**，选择皮肤，点击「在聊天中预览」或「应用并保存」。试试「曙光航站」或「夜航员」的 **自定义皮肤 → 人物场景图片**，换成自己的插画。
+
+[人物换图说明](docs/user-artwork-stage1.md) · [皮肤作者入门](skin-sources/examples/README.md) · [开发路线图](docs/development-roadmap.md)

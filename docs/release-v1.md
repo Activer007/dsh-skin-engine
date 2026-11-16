@@ -1,5 +1,18 @@
 # DSH Skin Engine v1 安装与验收
 
+## v1.10.0 新版外观中心
+
+- **画廊更好逛。** 大卡片适合看图，星标可直接收藏。搜索和「只看收藏」常驻，标签、来源、排序与兼容性选项按需展开。
+- **预览和保存更好找。** 皮肤详情与特效页把「在聊天中预览」和「应用并保存」放到前面。折叠自定义、切换页签或取消聊天预览后，未应用的草稿可以继续编辑。
+- **内置皮肤调整为 11 款。** 「晨光温室」和「雨夜列车」退出内置皮肤库，人物换图仍覆盖六款皮肤。「晨光温室 · 场景版」仍可作为独立作者样例导入。
+- 原来使用这两款皮肤的用户在升级后会看到 DSH 默认外观，可从画廊重新选择。原有偏好和图片仍保存在本地。
+
+![新版外观中心的 11 款皮肤画廊和曙光航站详情](images/v1.10.0/appearance-center.png)
+
+![展开曙光航站的自定义区域，可更换人物插画和调整颜色](images/v1.10.0/portrait-editing.png)
+
+[曙光航站的新会话截图](images/v1.10.0/dawn-station-chat.png) · [安装与启用](#安装与启用) · [回滚](#回滚)
+
 ## v1.9.3 人物皮肤换图
 
 - 八款内置人物皮肤可替换单张图片，支持适应／填充、位置、缩放、不透明度和恢复内置图。缺图时显示内置图，仍可保存其他偏好。 [人物换图说明](user-artwork-stage1.md)
@@ -167,9 +180,9 @@ dsh --profile web
 
 若目标 Web profile 正在运行，完成安装后重启它，再打开本次启动的访问地址。
 
-**Windows Desktop** 由 Electron 管理 `desktop` profile 的插件。在全局「插件」面板选择「安装第三方插件」，将 `.tgz` 的绝对路径粘贴到「包名或地址」。安装后选择「立即启用」，重新启动 Desktop，再从账号菜单打开「设置 → Skin Engine」。
+**Windows Desktop** 由 Electron 管理 `desktop` profile 的插件。在全局「插件」面板选择「安装第三方插件」，将 `.tgz` 的绝对路径粘贴到「包名或地址」。安装后选择「立即启用」，重新启动 Desktop，再从左侧打开「外观中心」。
 
-**Windows Desktop 原地升级** 从「应用 → 退出」完全退出 Desktop，然后调用该安装自带的 CLI。用本机 Desktop 安装路径及目标 tarball 的绝对路径替换示例。命令完成后重新打开应用，在「插件」详情核对 `dsh-plugin-skin-engine` 的版本及启用状态。宽窗下 Skin Engine 页面显示并排画廊和详情，卡片上显示的是各皮肤包自身的版本。 [DSH 内置命令](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/apps/desktop/README.zh.md#bundled-command-runtime)
+**Windows Desktop 原地升级** 从「应用 → 退出」完全退出 Desktop，然后调用该安装自带的 CLI。用本机 Desktop 安装路径及目标 tarball 的绝对路径替换示例。命令完成后重新打开应用，在「插件」详情核对 `dsh-plugin-skin-engine` 的版本及启用状态。外观中心标题旁显示客户端引擎版本，皮肤包版本可在详情的「包与技术信息」里查看。 [DSH 内置命令](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/apps/desktop/README.zh.md#bundled-command-runtime)
 
 ```powershell
 & '<local-path>/deepseek-harness/resources/runtime/cli/bin/dsh.cmd' plugin --profile desktop add 'file:E:/path/to/dsh-plugin-skin-engine-1.1.0.tgz'

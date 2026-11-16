@@ -1,9 +1,0 @@
-:root[data-dsh-skin-id="com.dsh.skin.morning-observatory"] {
-  color-scheme: light;
-}
-
-:root[data-dsh-skin-id="com.dsh.skin.morning-observatory"] [data-dsh-skin-package-art] {
-  background-image: url("assets/portrait.webp");
-  background-size: contain;
-  opacity: 0.35;
-}

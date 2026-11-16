@@ -99,8 +99,10 @@ async function packageFiles(label, source) {
     'package.json', 'cordis.patch.yml', 'lib/host.js', 'lib/client.js',
     'lib/THIRD-PARTY-NOTICES.txt', 'docs/release-asset-notes.md', 'docs/release-assets.json',
   ])
-  // npm includes the root README even when it is absent from package.json.files.
-  if (existsSync(join(source, 'README.md'))) files.add('README.md')
+  // npm also includes localized root READMEs absent from package.json.files.
+  for (const readme of ['README.md', 'README.en.md']) {
+    if (existsSync(join(source, readme))) files.add(readme)
+  }
   const assets = readdirSync(join(source, 'lib/assets'))
   assert.equal(assets.length, 2)
   assert(assets.some(name => /^probe-[a-f0-9]{12}\.svg$/.test(name)))

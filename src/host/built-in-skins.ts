@@ -6,7 +6,7 @@ import { validateSkinCss } from './skin-css.js'
 
 export const builtInSkinDirectories = [
   'deep-ocean', 'aurora', 'obsidian-neon', 'paper-light', 'mist-pine', 'night-navigator',
-  'morning-observatory', 'jade-archive', 'rainline',
+  'jade-archive',
   'blue-arc', 'dawn-station', 'moonlit-horizon', 'crimson-rain',
 ] as const
 

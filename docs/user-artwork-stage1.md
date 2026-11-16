@@ -4,7 +4,7 @@
 
 ## 范围与操作
 
-支持 night-navigator、morning-observatory、jade-archive、rainline、blue-arc、dawn-station、moonlit-horizon、crimson-rain 八个人物预设。详情页选择 PNG/JPEG/WebP，调整适应/填充、焦点位置、缩放和透明度；沿用现有聊天预览、应用、放弃修改流程。恢复内置图片也是草稿，需应用才持久保存。纯特效皮肤、多图层、独立编辑器不在本阶段。
+支持 night-navigator、jade-archive、blue-arc、dawn-station、moonlit-horizon、crimson-rain 六个人物预设。详情页选择 PNG/JPEG/WebP，调整适应/填充、焦点位置、缩放和透明度；沿用现有聊天预览、应用、放弃修改流程。恢复内置图片也是草稿，需应用才持久保存。纯特效皮肤、多图层、独立编辑器不在本阶段。
 
 每张图片最多 5 MiB，边长最多 4096，总像素最多 8 Mi。当前 DSH 主机个人 profile 下独立存储，不写入内置包、不改变 skin ID、收藏和最近使用记录。远程访问 DSH 时“本地”指 DSH 主机，不是浏览器所在电脑。
 

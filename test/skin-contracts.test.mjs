@@ -48,12 +48,12 @@ test('the exact Host artifact reads and validates the packaged examples', async 
   assert.deepEqual(examples.map(example => example.manifest.id), [
     'com.dsh.skin.deep-ocean', 'com.dsh.skin.aurora', 'com.dsh.skin.obsidian-neon', 'com.dsh.skin.paper-light',
     'com.dsh.skin.mist-pine', 'com.dsh.skin.night-navigator',
-    'com.dsh.skin.morning-observatory', 'com.dsh.skin.jade-archive', 'com.dsh.skin.rainline',
+    'com.dsh.skin.jade-archive',
     'com.dsh.skin.blue-arc', 'com.dsh.skin.dawn-station', 'com.dsh.skin.moonlit-horizon', 'com.dsh.skin.crimson-rain',
   ])
-  assert.deepEqual(examples.map(example => example.effects.length), [5, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+  assert.deepEqual(examples.map(example => example.effects.length), [5, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0])
   assert.deepEqual(examples.map(example => example.manifest.colorScheme), [
-    'dark', 'dark', 'dark', 'light', 'light', 'dark', 'light', 'light', 'dark',
+    'dark', 'dark', 'dark', 'light', 'light', 'dark', 'light',
     'dark', 'light', 'dark', 'dark',
   ])
   assert.deepEqual(examples[3].manifest.preview, { light: 'preview/light.png' })

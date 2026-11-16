@@ -1,6 +1,7 @@
+import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
-import { posix } from 'node:path'
+import { copyFile, mkdir, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises'
+import { join, posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
 import { minVersion } from 'semver'
@@ -132,7 +133,17 @@ for (const key of inventory.keys()) {
   if (!seenAssets.has(key)) throw Error(`Release asset is no longer referenced: ${key}`)
 }
 await checkOutputFiles(fileURLToPath(new URL('lib/assets/', root)), [probe.file, placeholder.file])
-await checkOutputFiles(fileURLToPath(new URL('lib/skins/', root)), builtFiles)
+// This tree contains only build-generated skin folders.
+const skinOutput = await realpath(new URL('lib/skins/', root))
+assert.equal(skinOutput, join(await realpath(root), 'lib', 'skins'), 'Unexpected generated skin directory')
+const currentSkins = new Set(builtInSkinDirectories)
+for (const entry of await readdir(skinOutput, { withFileTypes: true })) {
+  if (!entry.isDirectory() || currentSkins.has(entry.name)) continue
+  const retired = join(skinOutput, entry.name)
+  assert.equal(await realpath(retired), retired, 'Unexpected retired output path')
+  await rm(retired, { recursive: true })
+}
+await checkOutputFiles(skinOutput, builtFiles)
 for (const { manifest, diagnostics } of await readBuiltInSkins()) {
   const problem = checkSkinCompatibility(manifest, minVersion(packageJson.engines.dsh)?.version) ?? diagnostics[0]
   if (problem) throw new Error(`${manifest.id}: ${problem.message}`)

@@ -3,7 +3,7 @@
 | 类别 | 源码 | 打包入口 |
 | --- | --- | --- |
 | 内置皮肤及对应 ZIP 样例 | [Deep Ocean](skins/deep-ocean/)、[Aurora](skins/aurora/)、[Obsidian Neon](skins/obsidian-neon/)、[纸白](skins/paper-light/)、[雾松](skins/mist-pine/)、[夜航员](skins/night-navigator/) | `npm run pack:samples -- <输出目录>` |
-| 内置人物系列及对应 ZIP 样例 | [晨光温室](skins/morning-observatory/)、[青玉书库](skins/jade-archive/)、[雨夜列车](skins/rainline/) | `npm run pack:samples -- <输出目录>` |
+| 内置人物系列及对应 ZIP 样例 | [青玉书库](skins/jade-archive/) | `npm run pack:samples -- <输出目录>` |
 | 内置人物续集及对应 ZIP 样例 | [蓝弧远航](skins/blue-arc/)、[曙光航站](skins/dawn-station/)、[月窗余晖](skins/moonlit-horizon/)、[绯雨霓虹](skins/crimson-rain/) | `npm run pack:samples -- <输出目录>` |
 | 独立 ZIP 样例 | [`skins/ink-focus`](skins/ink-focus/)、[`skins/warm-dusk`](skins/warm-dusk/) | `npm run pack:skin -- <源码目录> <输出目录>` |
 | 三档 SceneSpec 样例 | [夜航员](scenes/night-navigator/)、[晨光温室](scenes/morning-observatory/)、[绯雨霓虹](scenes/crimson-rain/) | [复建 ZIP 与验收](../../docs/scene-samples.md) |

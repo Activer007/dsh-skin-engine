@@ -64,7 +64,7 @@ NEXT-09 的「夜航员 · 轻量视差」沿用夜航员场景版的插画和�
 
 ## v1.3 人物系列
 
-三幅插画使用内置 imagegen，以夜航员的原画作为人物身份参考。生成的 PNG 转码为 WebP，分别保存在 [晨光温室](../skin-sources/examples/skins/morning-observatory/assets/portrait.webp)、[青玉书库](../skin-sources/examples/skins/jade-archive/assets/portrait.webp)和[雨夜列车](../skin-sources/examples/skins/rainline/assets/portrait.webp)的皮肤包内。画廊缩略图来自官方 DSH Web `0.2.2-rc.1` 的隔离空白会话，原始尺寸为 1280 × 820。
+三幅插画使用内置 imagegen，以夜航员的原画作为人物身份参考。生成的 PNG 转码为 WebP，分别保存在 晨光温室 (private archive)、[青玉书库](../skin-sources/examples/skins/jade-archive/assets/portrait.webp)和雨夜列车 (private archive)的皮肤包内。画廊缩略图来自官方 DSH Web `0.2.2-rc.1` 的隔离空白会话，原始尺寸为 1280 × 820。
 
 **晨光温室**
 

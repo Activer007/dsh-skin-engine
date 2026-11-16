@@ -17,8 +17,8 @@ const directory = await mkdtemp(join(output, 'desktop-'))
 console.log('Portrait artwork evidence: ' + directory)
 const run = { version: args['host-version'], stages: [], pageErrors: [], logs: [] }
 const dark = 'com.dsh.skin.night-navigator'
-const light = 'com.dsh.skin.morning-observatory'
-const portraits = [dark, light, ...['jade-archive', 'rainline', 'blue-arc', 'dawn-station', 'moonlit-horizon', 'crimson-rain']
+const light = 'com.dsh.skin.dawn-station'
+const portraits = [dark, light, ...['jade-archive', 'blue-arc', 'moonlit-horizon', 'crimson-rain']
   .map(id => 'com.dsh.skin.' + id)]
 let session
 async function close() {
@@ -103,7 +103,7 @@ try {
   run.stages.push({ upgrade: true, editingControls: portraits })
   const base = resolve('lib/skins')
   const horizontal = await sprite('landscape.png', 1200, 675, join(base, 'blue-arc/assets/portrait.webp'))
-  const vertical = await sprite('portrait.png', 675, 1000, join(base, 'morning-observatory/assets/portrait.webp'))
+  const vertical = await sprite('portrait.png', 675, 1000, join(base, 'dawn-station/assets/portrait.webp'))
   await choose(dark)
   await input().setInputFiles({ name: 'invalid.png', mimeType: 'image/png', buffer: Buffer.from('invalid') })
   await main().getByRole('alert').filter({ hasText: /valid PNG/ }).waitFor()

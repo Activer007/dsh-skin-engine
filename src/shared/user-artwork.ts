@@ -1,5 +1,5 @@
 /** Stage 1 deliberately supports only the existing static portrait presets. */
-export const portraitSkinIds = ['night-navigator', 'morning-observatory', 'jade-archive', 'rainline',
+export const portraitSkinIds = ['night-navigator', 'jade-archive',
   'blue-arc', 'dawn-station', 'moonlit-horizon', 'crimson-rain'].map(id => `com.dsh.skin.${id}`)
 export const USER_ARTWORK_PATH = 'api/dsh-skin-engine/user-artwork'
 export const USER_ARTWORK_IMAGE_PATH = USER_ARTWORK_PATH + '/image'
