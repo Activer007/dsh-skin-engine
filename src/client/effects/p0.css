@@ -6,6 +6,7 @@
   overflow: hidden;
   pointer-events: none;
   background: var(--dsw-alias-bg-base);
+  filter: var(--dsh-scene-brightness, none);
 }
 
 [data-dsh-skin-effect-scene][hidden], [data-dsh-skin-effect-layer][hidden] {
@@ -237,6 +238,21 @@ html[data-dsh-skin-id] [data-dsh-skin-effect-surface="glass-content"] {
   animation-direction: alternate-reverse;
 }
 
+[data-dsh-skin-effect-scene="dynamic"] [data-dsh-skin-aurora-curtain] {
+  --dsh-aurora-angle: var(--dsh-aurora-direction);
+  --dsh-aurora-alpha: var(--dsh-aurora-intensity);
+  animation-name: dsh-skin-aurora-curtain;
+}
+
+[data-dsh-skin-effect-scene="dynamic"] [data-dsh-skin-aurora-curtain] + [data-dsh-skin-aurora-curtain] {
+  --dsh-aurora-angle: calc(var(--dsh-aurora-direction) - 38deg);
+  --dsh-aurora-alpha: calc(var(--dsh-aurora-intensity) * 0.56);
+}
+
+[data-dsh-skin-effect-scene="dynamic"] [data-dsh-skin-aurora-curtain="still"] {
+  animation-name: none;
+}
+
 [data-dsh-skin-effect-scene="dynamic"] [data-dsh-skin-effect-layer="flow"] {
   animation: dsh-skin-flow-drift var(--dsh-flow-duration) ease-in-out infinite alternate;
 }
@@ -259,6 +275,14 @@ html[data-dsh-skin-id] [data-dsh-skin-effect-surface="glass-content"] {
 
 @keyframes dsh-skin-aurora-drift {
   to { transform: translate(6%, -4%) rotate(calc(var(--dsh-aurora-direction) - 22deg)) scale(1.16); }
+}
+
+@keyframes dsh-skin-aurora-curtain {
+  to {
+    transform: translate(var(--dsh-aurora-sweep), -4%) rotate(calc(var(--dsh-aurora-angle) + var(--dsh-aurora-turn)))
+      scale(1.12) scaleX(var(--dsh-aurora-scale));
+    opacity: calc(var(--dsh-aurora-alpha) * var(--dsh-aurora-pulse));
+  }
 }
 
 @keyframes dsh-skin-flow-drift {

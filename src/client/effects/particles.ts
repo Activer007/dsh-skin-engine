@@ -1,8 +1,8 @@
-export function createParticles(count: number) {
+export function createParticles(count: number, random = Math.random) {
   return Array.from({ length: count }, () => ({
-    x: Math.random(),
-    y: Math.random(),
-    depth: Math.random(),
-    phase: Math.random() * 2 * Math.PI,
+    x: random(),
+    y: random(),
+    depth: random(),
+    phase: random() * 2 * Math.PI,
   }))
 }

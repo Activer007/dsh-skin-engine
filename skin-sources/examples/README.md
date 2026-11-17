@@ -8,11 +8,16 @@
 | 独立 ZIP 样例 | [`skins/ink-focus`](skins/ink-focus/)、[`skins/warm-dusk`](skins/warm-dusk/) | `npm run pack:skin -- <源码目录> <输出目录>` |
 | 三档 SceneSpec 样例 | [夜航员](scenes/night-navigator/)、[晨光温室](scenes/morning-observatory/)、[绯雨霓虹](scenes/crimson-rain/) | [复建 ZIP 与验收](../../docs/scene-samples.md) |
 | 作者起步模板 | [`templates/starter`](templates/starter/) | 复制并修改后运行 `npm run pack:skin -- <源码目录> <输出目录>` |
+| 深海动效 ZIP 样例 | [浮光深境 VI](skins/living-light/) | `npm run pack:skin -- skin-sources/examples/skins/living-light <输出目录>` |
 | 人物场景作者模板 | [浅色](templates/portrait-light/)、[深色](templates/portrait-dark/)、[双明暗](templates/portrait-dual/) | [复制、打包和导入](../../docs/character-author-templates.md) |
 | 独立人物 ZIP | [青笺阅览室](characters/jade-reading-room/)、[末班车札记](characters/last-train-study/)、[晨昏观测](characters/twilight-shift/) | `npm run pack:skin -- <源码目录> <输出目录>` |
 
 内置皮肤由[引擎目录](../../src/host/built-in-skins.ts)显式登记。`pack:samples` 生成的内置示范包沿用 `.sample` ID。独立的 `pack:skin` 保留清单中的 ID，只将校验过的声明文件和资源写入 ZIP。使用该入口可交付额外的 ZIP 样例和自制皮肤。
 
 两种打包入口均将声明文件转换为 LF 换行，素材字节原样写入。Windows 的 CRLF 检出和 LF 检出可得到相同的 ZIP。
+
+浮光深境 VI 1.2.0 在「效果与性能」提供 50–150% 的背景整体亮度，深海光束仍可单独调节。底图沿用附件第 17 秒的光场及缩短 20% 的光束。与 1.0.0 相比，浮尘和气泡的默认数量翻倍，上限提高到原来的四倍。
+
+Aurora 1.1.0 可调极光亮度、变化幅度和速度。幅度设为 0 时保留静止的极光。繁星在固定位置微闪，支持独立开关和亮度控制。浮尘默认数量及上限均为原来的三倍。
 
 PR-20 复验中，三套既有样例 ZIP 与 v1.0.3 基线逐字节一致。原样打包 Starter 得到 `example.starter-light.dshskin.zip`，大小 1019 字节，SHA-256 为 `789726f341e3c1303c84a55498d3ca48737dadb01b2154e6ac13b1293d01973c`。自动测试通过生产 ZIP 导入路由读取该包，并验证越界 CSS 会使打包失败。

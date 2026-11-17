@@ -7,7 +7,12 @@ const SNAP = 0.05
 
 export function createStarfield(params: Starfield, accent: string) {
   const { starCount, brightness, parallax, twinkle, depthLayers } = params
-  const stars = createParticles(Math.min(starCount, effectQuality.high.stars))
+  // A fixed seed also keeps the stationary sky stable across reloads and toggles.
+  let seed = 0x2c7985ad
+  const stars = createParticles(Math.min(starCount, effectQuality.high.stars), parallax === 0 ? () => {
+    seed = (Math.imul(1664525, seed) + 1013904223) >>> 0
+    return seed / 2 ** 32
+  } : Math.random)
   let elapsed = 0
   let targetX = 0, targetY = 0
   let offsetX = 0, offsetY = 0

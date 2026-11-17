@@ -1,0 +1,58 @@
+{
+  "schema": "dsh.effects/v1",
+  "effects": [
+    {
+      "id": "scene.brightness",
+      "enabled": true,
+      "renderer": "css",
+      "params": { "level": 1 }
+    },
+    {
+      "id": "ambient.light",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "intensity": 0.176,
+        "illuminateArtwork": true
+      }
+    },
+    {
+      "id": "glass.liquid",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "blur": 12,
+        "tintAlpha": 0.2,
+        "saturation": 1.12,
+        "edgeLight": 0.25
+      }
+    },
+    {
+      "id": "particles.dust",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "density": 0.305,
+        "densityMultiplier": 4,
+        "speed": 0.25,
+        "sizeRange": [
+          0.5,
+          1.15
+        ],
+        "opacity": 0.31,
+        "drift": 0.44
+      }
+    },
+    {
+      "id": "particles.bubbles",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "density": 0.36,
+        "densityMultiplier": 4,
+        "speed": 0.58,
+        "opacity": 0.62
+      }
+    }
+  ]
+}

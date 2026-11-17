@@ -19,7 +19,10 @@ export const skinPreferencesSchema = z.strictObject({
   effects: z.optional(z.partialRecord(z.enum(editableEffects), z.strictObject({
     enabled: z.optional(z.boolean()),
     strength: z.optional(z.number().check(z.minimum(0), z.maximum(1))),
-  }))),
+    speed: z.optional(z.number().check(z.minimum(0.1), z.maximum(1))),
+    movement: z.optional(z.number().check(z.minimum(0), z.maximum(1))),
+  })).check(z.refine(effects => Object.entries(effects).every(([id, effect]) => id === 'ambient.aurora'
+    || (effect.speed === undefined && effect.movement === undefined))))),
   quality: z.optional(z.enum(qualityLevels)),
 })
 

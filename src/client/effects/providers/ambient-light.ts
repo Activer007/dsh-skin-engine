@@ -10,7 +10,20 @@ const budgets = {
 export const ambientLight = defineProvider(effectDefinitions.ambientLight, {
   api: EFFECT_PROVIDER_API,
   budget: quality => budgets[quality],
-  mount(context, { intensity, speed }) {
+  mount(context, { intensity, speed, illuminateArtwork }) {
+    if (illuminateArtwork) {
+      const property = '--dsh-skin-artwork-light'
+      const clear = () => context.scene.style.removeProperty(property)
+      const brightness = 2 * intensity / AMBIENT_LIGHT_MAX_INTENSITY
+      context.own(clear)
+      return {
+        layout(state) {
+          if (state.reducedTransparency) clear()
+          else context.scene.style.setProperty(property, String(brightness))
+          return !state.reducedTransparency
+        },
+      }
+    }
     if (intensity === 0) return
     const node = context.layer('ambient-light')
     node.style.setProperty('--dsh-ambient-accent', context.accent)

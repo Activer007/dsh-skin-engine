@@ -36,6 +36,10 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
   style.textContent = auditedSurfaceStyles.composer + auditedSurfaceStyles.composerBackdrop + CSS_EFFECTS_STYLES
   const scene = document.createElement('div')
   scene.setAttribute('aria-hidden', 'true')
+  if (artwork?.kind === 'legacy'
+    && effects.some(effect => effect.id === 'ambient.light' && effect.params.illuminateArtwork && !effect.enabled)) {
+    scene.style.setProperty('--dsh-skin-artwork-light', '0')
+  }
   if (preset) scene.setAttribute('data-dsh-skin-scene-preset', preset)
   scene.hidden = true
   const sidebarLayers = new Set<HTMLElement>()
