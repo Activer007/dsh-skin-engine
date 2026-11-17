@@ -8,9 +8,7 @@ Open **Appearance Center** from the sidebar to find a quiet background for writi
 
 [Download releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用) · [1.10.0 release notes (Chinese)](docs/release-v1.md#v1100-新版外观中心)
 
-[![A new chat with Living Light VI applied, showing bubbles rising through underwater light shafts](docs/images/showcase/living-light-vi.png)](docs/images/showcase/deep-ocean-effects.mp4)
-
-**Underwater effects in action.** The first three seconds show Living Light VI with underwater light shafts, rising bubbles, and sidebar effects. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed. [Watch the HD MP4](docs/images/showcase/deep-ocean-effects.mp4)
+**[Watch the underwater effects demo (HD MP4)](docs/images/showcase/deep-ocean-effects.mp4)** · The first three seconds show Living Light VI with underwater light shafts, rising bubbles, and sidebar effects. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed.
 
 ## Find a skin that suits you
 
@@ -22,6 +20,10 @@ Open **Appearance Center** from the sidebar to find a quiet background for writi
 - **A 30-second preview in chat.** See the skin on an actual conversation. Save it from the countdown panel or cancel to return to the same tab with your draft intact.
 - **Use your own artwork.** Six character skins let you replace the illustration and adjust its position, scale, and opacity. Collapsing Customize skin keeps your draft.
 - **Set the mood.** Adjust effect strength or restore the default DSH appearance. Import or export custom skins as ZIP files.
+
+![A new chat with Living Light VI applied, showing bubbles rising through underwater light shafts](docs/images/showcase/living-light-vi.png)
+
+**Living Light VI** shows light shafts from above, with floating dust and bubbles visible in the sidebar.
 
 ![Crimson Rain applied to a conversation, with a character against a rain-lit city on the right](docs/images/v1.10.0/crimson-rain-chat.png)
 
