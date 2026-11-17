@@ -10,7 +10,7 @@ Open **Appearance Center** from the sidebar to find a quiet background for writi
 
 [![A new chat with Living Light VI applied, showing bubbles rising through underwater light shafts](docs/images/showcase/living-light-vi.png)](docs/images/showcase/deep-ocean-effects.mp4)
 
-**Underwater effects in action.** Living Light VI opens with underwater light shafts and rising bubbles. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed. [Watch the HD MP4](docs/images/showcase/deep-ocean-effects.mp4)
+**Underwater effects in action.** The first three seconds show Living Light VI with underwater light shafts, rising bubbles, and sidebar effects. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed. [Watch the HD MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
 ## Find a skin that suits you
 
