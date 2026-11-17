@@ -8,7 +8,9 @@
 
 [下载已发布版本](https://github.com/Activer007/dsh-skin-engine/releases) · [安装与升级](docs/release-v1.md#安装与启用) · [1.10.0 版本说明](docs/release-v1.md#v1100-新版外观中心)
 
-**[观看深海动效演示（高清 MP4）](docs/images/showcase/deep-ocean-effects.mp4)** · 前 3 秒展示「浮光深境 VI」的深海光束、上浮气泡和侧栏动效，随后是 Deep Ocean 的 2 倍速浮尘和原速液态折射。
+https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
+
+**深海动效演示。** 前 3 秒展示「浮光深境 VI」的深海光束、上浮气泡和侧栏动效，随后是 Deep Ocean 的 2 倍速浮尘和原速液态折射。 [高清 MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
 ## 找到适合你的外观
 
