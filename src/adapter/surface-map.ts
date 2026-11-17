@@ -19,7 +19,8 @@ export const auditedSurfaceMap = {
 } as const
 
 const dockedChatComposer = `
-  html[data-dsh-skin-id] [data-slot="main"] > [data-slot="main.conversation"]
+  html[data-dsh-skin-id] body:has(> [data-dsh-skin-effect-scene]:not([data-dsh-skin-effect-scene="off"], [hidden]))
+  [data-slot="main"] > [data-slot="main.conversation"]
   > [data-phase="active"][data-dsh-skin-effect-surface="canvas"]
   > [data-conversation-content][data-conversation-region="chat"]
   [data-conversation-scroll]:not(:has([data-conversation-composer-overlay]))
