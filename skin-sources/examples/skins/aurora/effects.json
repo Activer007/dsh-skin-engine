@@ -17,8 +17,9 @@
       "enabled": true,
       "renderer": "css",
       "params": {
-        "speed": 0.3,
+        "speed": 0.52,
         "intensity": 0.65,
+        "movement": 0.7,
         "palette": "aurora"
       }
     },
@@ -28,8 +29,21 @@
       "renderer": "canvas2d",
       "params": {
         "density": 0.25,
+        "densityMultiplier": 3,
         "speed": 0.2,
         "opacity": 0.28
+      }
+    },
+    {
+      "id": "particles.starfield",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "starCount": 108,
+        "twinkle": 0.32,
+        "parallax": 0,
+        "depthLayers": 2,
+        "brightness": 0.34
       }
     }
   ]

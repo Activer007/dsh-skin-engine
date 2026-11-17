@@ -6,7 +6,7 @@ import { withFileLock } from '@deepseek-ai/dsh-atomic-write'
 import * as z from 'zod/mini'
 import { skinIdSchema } from '../core/manifest.js'
 import { SkinValidationError } from '../core/validation.js'
-import { editableEffects, preferencesFor, samePreferences } from '../shared/preferences.js'
+import { editableEffects, preferencesFor, sameEffectPreference, samePreferences } from '../shared/preferences.js'
 import { APPLY_SKIN_PATH, SELECTION_PATH, type SkinSelection } from '../shared/skins.js'
 import type { Register } from './catalogue-routes.js'
 import { checkedProfile, PackageFileError } from './package-files.js'
@@ -118,7 +118,7 @@ export function registerSelectionRoutes(
           const next = change.preferences?.effects?.[id]
           const before = previous?.effects?.[id]
           return next && !candidate.effects.some(effect => effect.id === id)
-            && (next.enabled !== before?.enabled || next.strength !== before?.strength)
+            && !sameEffectPreference(next, before)
         })) {
           throw new PackageFileError('undeclared-effect-preference', 400)
         }

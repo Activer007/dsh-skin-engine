@@ -11,6 +11,7 @@ const { outputFiles: [module] } = await build({
       export { createFrameScheduler } from './src/client/effects/frame-scheduler.ts';
       export { mountCanvas } from './src/client/effects/canvas.ts';
       export { createDust } from './src/client/effects/dust.ts';
+      export { createBubbles } from './src/client/effects/bubbles.ts';
       export { createStarfield } from './src/client/effects/starfield.ts';
       export { createRipples } from './src/client/effects/ripple.ts';
       export { createHolographic } from './src/client/effects/holographic.ts';
@@ -30,7 +31,7 @@ const { outputFiles: [module] } = await build({
   },
   write: false, bundle: true, format: 'esm',
 })
-const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createStarfield, createRipples, createHolographic, mountRefraction,
+const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createBubbles, createStarfield, createRipples, createHolographic, mountRefraction,
   createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork, limitArtworkTravel, mountArtworkMotion,
   effectiveScenePreset, sceneEffects, effectDefinitions, parseSkinEffects, EFFECT_PROVIDER_API, defineProvider, createProviderRegistry,
   createEffectsRuntime } = await import(
@@ -581,6 +582,21 @@ test('dust uses the quality particle budget and preserves positions on a zero-de
   assert.equal(context.globalAlpha, 1)
 })
 
+test('a skin can double dust and bubble counts within the current quality budget', () => {
+  let dustCount = 0
+  let bubbleRings = 0
+  const context = { beginPath() {}, arc() {}, fill() { dustCount++ }, stroke() { bubbleRings++ } }
+  const drawDust = createDust({ density: 1, densityMultiplier: 2, speed: 0.25, sizeRange: [0.75, 2.25], opacity: 0.35, drift: 0.3 }, '#6dc7ff')
+  const drawBubbles = createBubbles({ density: 1, densityMultiplier: 2, speed: 0.35, opacity: 0.55 }, '#6dc7ff')
+  for (const budget of [effectQuality.balanced, effectQuality.high]) {
+    dustCount = bubbleRings = 0
+    drawDust(context, 1280, 860, 0, budget)
+    drawBubbles(context, 1280, 860, 0, budget.bubbles)
+    assert.equal(dustCount, 2 * budget.dust)
+    assert.equal(bubbleRings, 2 * budget.bubbles * 2) // Each bubble draws its ring and highlight.
+  }
+})
+
 test('starfield honors quality limits and returns to an idle static view', () => {
   const stars = createStarfield({ starCount: 128, brightness: 0.65, twinkle: 0, parallax: 0.8, depthLayers: 3 }, '#aabbff')
   const arcs = []
@@ -603,6 +619,26 @@ test('starfield honors quality limits and returns to an idle static view', () =>
   assert.deepEqual(draw('high', true).slice(0, 72), first)
   assert.equal(draw('high', true).length, 120)
   assert.equal(context.globalAlpha, 1)
+})
+
+test('fixed stars keep the same coordinates across frames and remounts while alpha changes', () => {
+  const params = { starCount: 108, brightness: 0.34, twinkle: 0.32, parallax: 0, depthLayers: 2 }
+  const sky = createStarfield(params, '#66e0d0')
+  const remounted = createStarfield(params, '#66e0d0')
+  function frame(stars, delta) {
+    const points = []
+    const opacity = []
+    const ctx = { beginPath() {}, arc(x, y) { points.push([x, y]) }, fill() { opacity.push(this.globalAlpha) } }
+    stars.draw(ctx, 1280, 860, delta, effectQuality.high, true)
+    return { points, opacity }
+  }
+  const first = frame(sky, 0)
+  sky.point(1, -1)
+  const second = frame(sky, 0.5)
+  assert.equal(first.points.length, 108)
+  assert.deepEqual(second.points, first.points)
+  assert.deepEqual(frame(remounted, 0).points, first.points)
+  assert.notDeepEqual(second.opacity, first.opacity)
 })
 
 test('ripple keeps only the four newest clicks and drops expired rings by wall time', () => {

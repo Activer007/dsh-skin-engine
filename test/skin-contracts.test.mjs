@@ -51,7 +51,9 @@ test('the exact Host artifact reads and validates the packaged examples', async 
     'com.dsh.skin.jade-archive',
     'com.dsh.skin.blue-arc', 'com.dsh.skin.dawn-station', 'com.dsh.skin.moonlit-horizon', 'com.dsh.skin.crimson-rain',
   ])
-  assert.deepEqual(examples.map(example => example.effects.length), [5, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0])
+  assert.deepEqual(examples.map(example => example.effects.length), [5, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0])
+  assert.equal(examples[1].effects.find(effect => effect.id === 'particles.dust')?.params.densityMultiplier, 3)
+  assert.equal(examples[1].effects.find(effect => effect.id === 'particles.starfield')?.params.parallax, 0)
   assert.deepEqual(examples.map(example => example.manifest.colorScheme), [
     'dark', 'dark', 'dark', 'light', 'light', 'dark', 'light',
     'dark', 'light', 'dark', 'dark',
@@ -84,7 +86,9 @@ test('SceneSpec is opt-in and preserves the compatibility of API 1.0-only packag
   for (const engineApi of ['1.1.0', '1.2.0', '^1.2.0', '1.3.0']) {
     assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi }), dshVersion), undefined)
   }
-  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.5.0' }), dshVersion).code, 'incompatible-engine')
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.5.0' }), dshVersion), undefined)
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.6.0' }), dshVersion), undefined)
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.7.0' }), dshVersion).code, 'incompatible-engine')
   reject(() => parseSkinManifest({ ...sceneManifest, capabilities: manifest.capabilities }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: manifest.entry }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: { ...manifest.entry, scene: '../scene.json' } }), 'skin.json', 'entry.scene')
@@ -229,10 +233,11 @@ test('missing tokens retain native defaults and typed values reject CSS syntax',
   }
 })
 
-test('all eight effect definitions provide bounded defaults and skip unknown IDs', () => {
+test('effect definitions provide bounded defaults and skip unknown IDs', () => {
   const ids = [
     ['glass.liquid', 'css'], ['ambient.aurora', 'css'], ['particles.dust', 'canvas2d'], ['light.flow', 'css'],
     ['interaction.ripple', 'canvas2d'], ['particles.starfield', 'canvas2d'], ['glass.holographic', 'css'], ['glass.refraction', 'webgl'],
+    ['ambient.light', 'css'], ['particles.bubbles', 'canvas2d'], ['scene.brightness', 'css'],
   ]
   const entries = ids.map(([id, renderer]) => ({ id, renderer, enabled: true, params: {} }))
   entries.push({ id: 'future.effect', renderer: 'future', enabled: true, params: { ignored: true } })
@@ -241,7 +246,8 @@ test('all eight effect definitions provide bounded defaults and skip unknown IDs
   assert.equal(parsed.effects[0].params.blur, 16)
   assert.deepEqual(parsed.effects[2].params.sizeRange, [0.75, 2.25])
   assert.equal(parsed.effects[7].params.quality, 'balanced')
-  assert.deepEqual(parsed.diagnostics.map(({ code, path }) => [code, path]), [['unknown-effect', 'effects.8.id']])
+  assert.deepEqual(parsed.effects.find(({ id }) => id === 'particles.bubbles').params, { density: 0.6, speed: 0.35, opacity: 0.55 })
+  assert.deepEqual(parsed.diagnostics.map(({ code, path }) => [code, path]), [['unknown-effect', `effects.${ids.length}.id`]])
 })
 
 test('known effects reject invalid params, renderers, repeated IDs, and missing permissions', () => {
@@ -254,4 +260,6 @@ test('known effects reject invalid params, renderers, repeated IDs, and missing 
   reject(() => parseEffects([glass], { ...manifest, capabilities: ['tokens', 'css'] }), 'effects.json', 'effects.0.renderer', 'missing-capability')
   reject(() => parseEffects([{ ...glass, id: 'light.flow', params: { count: 3 } }]), 'effects.json', 'effects.0.params.count')
   reject(() => parseEffects([{ ...glass, id: 'particles.dust', renderer: 'canvas2d', params: { sizeRange: [4, 2] } }]), 'effects.json', 'effects.0.params.sizeRange')
+  reject(() => parseEffects([{ ...glass, id: 'particles.bubbles', renderer: 'canvas2d', params: { density: 1.2 } }]), 'effects.json', 'effects.0.params.density')
+  reject(() => parseEffects([{ ...glass, id: 'particles.dust', renderer: 'canvas2d', params: { densityMultiplier: 5 } }]), 'effects.json', 'effects.0.params.densityMultiplier')
 })

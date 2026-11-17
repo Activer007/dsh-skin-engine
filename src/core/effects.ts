@@ -43,13 +43,21 @@ export const effectDefinitions = {
     palette: z._default(z.enum(['ocean', 'aurora']), 'ocean'),
     blur: number(0, 96, 48),
     direction: number(0, 360, 35),
+    movement: z.optional(z.number().check(z.minimum(0), z.maximum(1))),
   })),
   dust: defineEffect('particles.dust', 'canvas2d', z.strictObject({
     density: number(0, 1, 0.35),
+    densityMultiplier: z.optional(z.int().check(z.minimum(1), z.maximum(4))),
     speed: number(0.1, 1, 0.25),
     sizeRange: z._default(sizeRange, (): [number, number] => [0.75, 2.25]),
     opacity: number(0, 1, 0.35),
     drift: number(0, 1, 0.3),
+  })),
+  bubbles: defineEffect('particles.bubbles', 'canvas2d', z.strictObject({
+    density: number(0, 1, 0.6),
+    densityMultiplier: z.optional(z.int().check(z.minimum(1), z.maximum(4))),
+    speed: number(0.1, 1, 0.35),
+    opacity: number(0, 1, 0.55),
   })),
   flow: defineEffect('light.flow', 'css', z.strictObject({
     speed: number(0.1, 1, 0.2),
@@ -89,6 +97,10 @@ export const effectDefinitions = {
   ambientLight: defineEffect('ambient.light', 'css', z.strictObject({
     intensity: number(0, AMBIENT_LIGHT_MAX_INTENSITY, 0.14),
     speed: number(0.1, 1, 0.3),
+    illuminateArtwork: z.optional(z.boolean()),
+  })),
+  brightness: defineEffect('scene.brightness', 'css', z.strictObject({
+    level: number(0.5, 1.5, 1),
   })),
 } as const
 

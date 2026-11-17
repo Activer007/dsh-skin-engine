@@ -5,7 +5,8 @@ import { effectQuality, type EffectBudget } from './quality.js'
 type Dust = Extract<SkinEffect, { id: 'particles.dust' }>['params']
 
 export function createDust(params: Dust, color: string) {
-  const { density, speed, sizeRange, opacity, drift } = params
+  const { density: baseDensity, densityMultiplier = 1, speed, sizeRange, opacity, drift } = params
+  const density = baseDensity * densityMultiplier
   const particles = createParticles(Math.round(effectQuality.high.dust * density))
   let elapsed = 0
 

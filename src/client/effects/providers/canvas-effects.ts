@@ -1,4 +1,5 @@
 import { effectDefinitions } from '../../../core/effects.js'
+import { createBubbles } from '../bubbles.js'
 import { createDust } from '../dust.js'
 import { createEffectInput } from '../interaction.js'
 import { effectQuality, type EffectBudget } from '../quality.js'
@@ -20,6 +21,25 @@ export const dust = defineProvider(effectDefinitions.dust, {
         visible: () => true,
         animated: () => dynamic,
         draw(ctx, width, height, delta) { draw(ctx, width, height, delta, budget) },
+      },
+    }
+  },
+})
+
+export const bubbles = defineProvider(effectDefinitions.bubbles, {
+  api: EFFECT_PROVIDER_API,
+  budget: quality => effectQuality[quality].bubbles,
+  mount(context, params) {
+    if (params.density === 0 || params.opacity === 0) return
+    const draw = createBubbles(params, context.accent)
+    let count: number = effectQuality.balanced.bubbles
+    let dynamic = false
+    return {
+      update(state, next) { count = next; dynamic = state.dynamic },
+      canvas: {
+        visible: () => true,
+        animated: () => dynamic,
+        draw(ctx, width, height, delta) { draw(ctx, width, height, delta, count) },
       },
     }
   },

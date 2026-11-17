@@ -1,0 +1,35 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.deep-ocean-living-light",
+  "name": "浮光深境 VI",
+  "nameEn": "Deep Ocean: Living Light VI",
+  "description": "银青光束从海面斜入深蓝，浮尘与气泡缓缓上升。",
+  "author": "DSH Skin Engine",
+  "version": "1.2.0",
+  "engineApi": "^1.6.0",
+  "dshCompatibility": ">=0.2.2-rc.1",
+  "colorScheme": "dark",
+  "tags": [
+    "dark",
+    "ocean",
+    "dynamic"
+  ],
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": {
+    "dark": "preview/dark.webp"
+  },
+  "assets": [
+    "assets/living-light.webp"
+  ],
+  "capabilities": [
+    "tokens",
+    "css",
+    "assets",
+    "effects:css",
+    "effects:canvas2d"
+  ]
+}

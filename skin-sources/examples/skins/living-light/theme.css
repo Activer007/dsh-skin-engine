@@ -1,0 +1,5 @@
+:root[data-dsh-skin-id="com.dsh.skin.deep-ocean-living-light"] [data-dsh-skin-package-art] {
+  background-image: url("assets/living-light.webp");
+  background-size: cover;
+  opacity: 0.35;
+}

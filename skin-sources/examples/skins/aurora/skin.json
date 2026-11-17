@@ -4,9 +4,9 @@
   "name": "Aurora",
   "nameEn": "Aurora",
   "author": "DSH Skin Engine",
-  "description": "以冷色极光和轻量透明面板为主的动态主题。",
-  "version": "1.0.0",
-  "engineApi": "^1.0.0",
+  "description": "青绿与靛紫极光缓慢舒展，浮尘掠过，背景繁星在原位微微闪耀。",
+  "version": "1.1.0",
+  "engineApi": "^1.6.0",
   "dshCompatibility": ">=0.2.0",
   "tags": [
     "dark",

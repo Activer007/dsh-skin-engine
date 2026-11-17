@@ -39,14 +39,24 @@ export const aurora = defineProvider(effectDefinitions.aurora, {
   api: EFFECT_PROVIDER_API,
   cssMotion: true,
   budget: quality => effectQuality[quality].auroraBlur,
-  mount(context, { palette, direction, intensity, speed, blur }) {
+  mount(context, { palette, direction, intensity, speed, blur, movement }) {
     const [near, far] = palette === 'aurora' ? ['#37e2a7', '#7867ff'] : ['#28cbe2', '#7361ee']
     const layers = [context.layer('aurora'), context.layer('aurora')]
+    if (movement !== undefined) {
+      const [front, back] = layers
+      for (const layer of layers) layer.setAttribute('data-dsh-skin-aurora-curtain', movement ? 'dynamic' : 'still')
+      setVariables(front, { 'aurora-sweep': `${movement * 11}%`, 'aurora-turn': `${movement * -32}deg` })
+      setVariables(back, { 'aurora-sweep': `${movement * -9}%`, 'aurora-turn': `${movement * 29}deg` })
+      setVariables(context.scene, {
+        'aurora-scale': 1 + 0.17 * movement,
+        'aurora-pulse': 1 - 0.32 * movement,
+      }, context)
+    }
     const paint = mountAuroraPaint(context.view, layers, near, far)
     if (paint) context.own(paint.dispose)
     setVariables(context.scene, {
       'aurora-near': near, 'aurora-far': far, 'aurora-direction': `${direction}deg`,
-      'aurora-intensity': intensity * 0.65, 'aurora-duration': `${20 / speed}s`,
+      'aurora-intensity': intensity * 0.65, 'aurora-duration': `${(movement === undefined ? 20 : 8) / speed}s`,
     }, context)
     context.own(() => context.scene.style.removeProperty('--dsh-aurora-blur'))
     return {
@@ -54,8 +64,18 @@ export const aurora = defineProvider(effectDefinitions.aurora, {
         context.scene.style.setProperty('--dsh-aurora-blur', `${Math.min(blur, maxBlur)}px`)
         return state.canvas
       },
-      update(state, maxBlur) { paint?.configure(state.dynamic ? Math.min(blur, maxBlur) : 0) },
+      update(state, maxBlur) { paint?.configure(state.dynamic && movement !== 0 ? Math.min(blur, maxBlur) : 0) },
     }
+  },
+})
+
+export const brightness = defineProvider(effectDefinitions.brightness, {
+  api: EFFECT_PROVIDER_API,
+  budget: () => undefined,
+  mount(context, { level }) {
+    if (level === 1) return
+    setVariables(context.scene, { 'scene-brightness': `brightness(${level})` }, context)
+    return {}
   },
 })
 

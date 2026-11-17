@@ -11,7 +11,7 @@ import { SkinEditorActions, type SkinEditor } from './skin-editor.js'
 const scenePresets = ['static', 'light', 'dynamic'] as const
 const windowModes = ['dynamic', 'static', 'economy', 'off'] as const
 const effectGroups = {
-  'group.environment': ['ambient.aurora', 'particles.dust', 'particles.starfield', 'light.flow', 'ambient.light'],
+  'group.environment': ['scene.brightness', 'ambient.aurora', 'particles.dust', 'particles.bubbles', 'particles.starfield', 'light.flow', 'ambient.light'],
   'group.materials': ['glass.liquid', 'glass.holographic', 'glass.refraction'],
   'group.interaction': ['interaction.ripple'],
 } as const satisfies Record<string, readonly EditableEffect[]>
@@ -123,11 +123,19 @@ export function SkinEffects({ t, choice, editor, displayName }: {
                 if (strength === undefined) return <li key={effect.id}>{effect.id} · {t('rendererPending')}</li>
                 const id = effect.id as EditableEffect
                 const override = values.effects?.[id]
-                const name = t(`effect.${id}`)
+                const artworkLight = effect.id === 'ambient.light' && effect.params.illuminateArtwork
+                const multiplier = effect.id === 'particles.dust' || effect.id === 'particles.bubbles'
+                  ? effect.params.densityMultiplier ?? 1 : artworkLight ? 2 : 1
+                const minimum = id === 'scene.brightness' ? 50 : 0
+                const span = 100 * multiplier
+                const maximum = minimum + span
+                const fixedStars = effect.id === 'particles.starfield' && effect.params.parallax === 0
+                const name = artworkLight ? t('effect.artworkLight') : fixedStars ? t('effect.fixedStars') : t(`effect.${id}`)
                 const enabled = override?.enabled ?? (id !== 'glass.refraction' && effect.enabled)
-                const value = Math.round((override?.strength ?? strength) * 100)
-                const measure = id === 'glass.liquid' ? 'blur' : id === 'particles.dust' ? 'density'
-                  : id === 'particles.starfield' ? 'brightness' : id === 'glass.refraction' ? 'distortion' : id === 'interaction.ripple' ? 'radius' : 'intensity'
+                const value = minimum + Math.round((override?.strength ?? strength) * span)
+                const measure = id === 'glass.liquid' ? 'blur' : id === 'particles.dust' || id === 'particles.bubbles' ? 'density'
+                  : id === 'particles.starfield' || artworkLight || id === 'scene.brightness' ? 'brightness'
+                  : id === 'glass.refraction' ? 'distortion' : id === 'interaction.ripple' ? 'radius' : 'intensity'
                 const magnitude = t(measure) + ' ' + value + '%'
                 function update(change: EffectPreference) {
                   edit({ ...values, effects: { ...values.effects, [id]: { ...override, ...change } } })
@@ -136,9 +144,20 @@ export function SkinEffects({ t, choice, editor, displayName }: {
                   <SettingsSwitch checked={enabled} label={name} onChange={enabled => update({ enabled })} />
                   <label>
                     {magnitude}
-                    <input type="range" aria-label={t('strength', { name })} aria-valuetext={magnitude} min={0} max={100} step={1} value={value}
-                      disabled={!enabled} onChange={event => update({ strength: event.currentTarget.valueAsNumber / 100 })} />
+                    <input type="range" aria-label={t('strength', { name })} aria-valuetext={magnitude} min={minimum} max={maximum} step={1} value={value}
+                      disabled={!enabled} onChange={event => update({ strength: (event.currentTarget.valueAsNumber - minimum) / span })} />
                   </label>
+                  {effect.id === 'ambient.aurora' && effect.params.movement !== undefined
+                    ? (['movement', 'speed'] as const).map(option => {
+                      const label = t(`aurora.${option}`)
+                      const percent = Math.round(100 * (override?.[option] ?? effect.params[option] ?? 0))
+                      return <label key={option}>
+                        {label} {percent}%
+                        <input type="range" aria-label={label} aria-valuetext={percent + '%'} min={option === 'speed' ? 10 : 0} max={100}
+                          step={1} value={percent} disabled={!enabled}
+                          onChange={event => update({ [option]: event.currentTarget.valueAsNumber / 100 })} />
+                      </label>
+                    }) : null}
                   {id === 'glass.refraction' ? <small>{t('optionalWebgl')}</small> : null}
                 </li>
               })}
