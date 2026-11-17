@@ -38,17 +38,22 @@ export function observeEffectSurfaces(document: Document, reconcile: () => void)
       && view.getComputedStyle(content).backgroundImage === 'none'
   }
 
-  function locate(wantsSidebar: boolean, sceneArtwork: boolean) {
+  function locate(wantsSidebar: boolean, sceneArtwork: boolean, extendSidebar = false) {
     observer.disconnect()
     const hosts = resolveEffectSurfaces(document)
     const { root, rootSlot, frame, center, conversation, sidebar, sidebarContent } = hosts
-    const canvas = !!(frame && center && conversation && hasNativeCanvas()
+    const chatCanvas = !!(frame && center && conversation && hasNativeCanvas()
       && [frame, center, conversation].every(element => canMark(element) && view.getComputedStyle(element).backgroundImage === 'none'))
+    // Global panels keep their own backgrounds. Only the audited frame and sidebar
+    // are opened to the existing scene; editors, dialogs and menus are untouched.
+    const sidebarCanvas = !!(extendSidebar && frame && center && hasNativeCanvas() && canMark(frame)
+      && view.getComputedStyle(frame).backgroundImage === 'none')
+    const canvas = chatCanvas || sidebarCanvas
     const sidebarGrid = !!(canvas && wantsSidebar && frame && root && rootSlot && sidebar && sidebarContent
-      && !frame.hasAttribute('data-sidebar-drawer') && !frame.hasAttribute('data-sidebar-collapsed')
+      && !frame.hasAttribute('data-sidebar-drawer') && (extendSidebar || !frame.hasAttribute('data-sidebar-collapsed'))
       && canPlaceSidebarLayers(root, rootSlot, frame, sidebar, sidebarContent))
     const composer = sceneArtwork ? resolveArtworkComposer(hosts.conversationContent) : undefined
-    return { ...hosts, canvas, sidebarGrid, composer }
+    return { ...hosts, canvas: chatCanvas || (sidebarCanvas && sidebarGrid), chatCanvas, sidebarGrid, composer }
   }
 
   function setMarks(next: Map<Element, string>) {
@@ -65,10 +70,12 @@ export function observeEffectSurfaces(document: Document, reconcile: () => void)
   function mark(hosts: ReturnType<typeof locate>, canvas: boolean, glass: boolean) {
     const { frame, center, conversation, sidebar, sidebarContent } = hosts
     const next = new Map<Element, string>()
-    if (canvas && frame && center && conversation) {
+    if (canvas && frame) {
       next.set(frame, 'canvas')
-      next.set(center, 'canvas')
-      next.set(conversation, 'canvas')
+      if (hosts.chatCanvas && center && conversation) {
+        next.set(center, 'canvas')
+        next.set(conversation, 'canvas')
+      }
     }
     if (glass && sidebar && sidebarContent) {
       next.set(sidebar, 'glass')

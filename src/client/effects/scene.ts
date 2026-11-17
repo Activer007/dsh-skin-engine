@@ -22,17 +22,18 @@ const INTERACTION_SETTLE_MS = 300
 
 export function mountEffectScene(document: Document, effects: readonly SkinEffect[], accent: string, initialMode: EffectMode,
   initialQuality: Quality, scheduler: ReturnType<typeof createFrameScheduler>, reportRefraction: (status: RefractionStatus) => void,
-  artwork?: PreparedArtwork, preset?: ScenePreset) {
+  artwork?: PreparedArtwork, preset?: ScenePreset, initialSidebarEffects = false) {
   if (!artwork && !effects.some(effect => effect.enabled)) return
   const view = document.defaultView!
   const transparency = view.matchMedia('(prefers-reduced-transparency: reduce)')
-  const forcedColors = artwork?.kind === 'scene' ? view.matchMedia('(forced-colors: active)') : undefined
+  const forcedColors = view.matchMedia('(forced-colors: active)')
+  const sceneArtwork = artwork?.kind === 'scene'
   const reducedMotion = view.matchMedia('(prefers-reduced-motion: reduce)')
   const filterSupported = view.CSS.supports('color', 'color-mix(in srgb, black, transparent)')
     && (view.CSS.supports('backdrop-filter', 'blur(1px)') || view.CSS.supports('-webkit-backdrop-filter', 'blur(1px)'))
   const style = document.createElement('style')
   style.setAttribute('data-dsh-skin-effects-style', '')
-  style.textContent = auditedSurfaceStyles.composer + CSS_EFFECTS_STYLES
+  style.textContent = auditedSurfaceStyles.composer + auditedSurfaceStyles.composerBackdrop + CSS_EFFECTS_STYLES
   const scene = document.createElement('div')
   scene.setAttribute('aria-hidden', 'true')
   if (preset) scene.setAttribute('data-dsh-skin-scene-preset', preset)
@@ -43,6 +44,8 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
   const glassClaims = new Set<{ material: boolean; visible: boolean }>()
   let mode = initialMode
   let quality = initialQuality
+  let sidebarEffects = initialSidebarEffects
+  let extensionGlass: ReturnType<typeof sidebarGlass> | undefined
   let layout: EffectLayout
   let art: ReturnType<typeof mountArtwork> | undefined
   let canvas: ReturnType<typeof mountCanvas>
@@ -153,7 +156,12 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
 
   function reconcile() {
     if (disposed) return
-    const hosts = surfaces.locate(mode !== 'off' && sidebarLayers.size > 0, !!forcedColors)
+    const extendSidebar = sidebarEffects && effects.some(effect => effect.enabled) && mode !== 'off' && mode !== 'economy'
+      && !transparency.matches && !forcedColors.matches
+      && view.CSS.supports('color', 'color-mix(in srgb, black, transparent)')
+    if (extendSidebar && !extensionGlass) extensionGlass = sidebarGlass(false)
+    if (!extendSidebar && extensionGlass) { extensionGlass.release(); extensionGlass = undefined }
+    const hosts = surfaces.locate(mode !== 'off' && sidebarLayers.size > 0, sceneArtwork, extendSidebar)
     const { frame, conversation, sidebar, conversationContent, composer, canvas: surface, sidebarGrid } = hosts
     layout = { mode, quality: mode === 'economy' ? 'low' : quality, canvas: mode !== 'off' && surface, sidebarGrid,
       filterSupported, reducedTransparency: transparency.matches }
@@ -172,9 +180,11 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
       canvas = undefined
     }
     const providerVisible = providers.map(provider => provider.layout(layout)).some(Boolean)
-    const showArtwork = art?.update(Boolean(surface && (!forcedColors || (!transparency.matches && !forcedColors.matches))),
+    const showArtwork = art?.update(Boolean(hosts.chatCanvas && (!sceneArtwork || (!transparency.matches && !forcedColors.matches))),
       conversationContent, composer)
     const showScene = Boolean(showArtwork || (layout.canvas && (providerVisible || canvas)))
+    extensionGlass?.show(sidebarGrid && showScene)
+    glassLayer?.node.toggleAttribute('data-dsh-skin-sidebar-effects', extendSidebar && sidebarGrid && showScene)
     const showGlass = sidebarGrid && !!glassLayer && !glassLayer.node.hidden
 
     surfaces.mark(hosts, showScene, showGlass)
@@ -188,7 +198,7 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     }
     playback()
 
-    if (mode !== 'off' || artwork) surfaces.watch(hosts, !!forcedColors)
+    if (mode !== 'off' || artwork) surfaces.watch(hosts, sceneArtwork)
   }
 
   const surfaces = observeEffectSurfaces(document, reconcile)
@@ -206,6 +216,7 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     scheduler.trackCss(false)
     canvas?.dispose()
     for (const provider of providers) provider.dispose()
+    extensionGlass?.release()
     art?.dispose()
     surfaces.clearMarks()
     scene.remove()
@@ -239,9 +250,10 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     throw error
   }
   return {
-    configure(nextMode: EffectMode, nextQuality: Quality) {
+    configure(nextMode: EffectMode, nextQuality: Quality, nextSidebarEffects = sidebarEffects) {
       mode = nextMode
       quality = nextQuality
+      sidebarEffects = nextSidebarEffects
       reconcile()
     },
     dispose,
