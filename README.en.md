@@ -8,9 +8,9 @@ Open **Appearance Center** from the sidebar to find a quiet background for writi
 
 [Download releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用) · [1.10.0 release notes (Chinese)](docs/release-v1.md#v1100-新版外观中心)
 
-https://github.com/user-attachments/assets/d6c27d84-83e1-4312-94fa-3eb256a44455
+[![A new chat with Living Light VI applied, showing bubbles rising through underwater light shafts](docs/images/showcase/living-light-vi.png)](docs/images/showcase/deep-ocean-effects.mp4)
 
-**Deep Ocean in action.** Floating dust at 2× speed, followed by liquid refraction at normal speed. [HD MP4](docs/images/v1.10.0/deep-ocean-showcase.mp4)
+**Underwater effects in action.** Living Light VI opens with underwater light shafts and rising bubbles. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed. [Watch the HD MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
 ## Find a skin that suits you
 
