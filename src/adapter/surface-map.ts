@@ -18,6 +18,13 @@ export const auditedSurfaceMap = {
   preserve: ['app.editor', 'app.dialog', 'app.menu', 'app.topbar', 'app.inspector'],
 } as const
 
+const dockedChatComposer = `
+  html[data-dsh-skin-id] [data-slot="main"] > [data-slot="main.conversation"]
+  > [data-phase="active"][data-dsh-skin-effect-surface="canvas"]
+  > [data-conversation-content][data-conversation-region="chat"]
+  [data-conversation-scroll]:not(:has([data-conversation-composer-overlay]))
+  > [data-composer-seat][data-conversation-region="composer"]:has([data-composer-card] [data-composer-input])`
+
 export const auditedSurfaceStyles = {
   // The native composer card owns the fill. The editor, attachments, and menus retain their styles.
   composer: `
@@ -27,6 +34,30 @@ export const auditedSurfaceStyles = {
     > [data-conversation-content][data-conversation-region="chat"]
     [data-composer-seat][data-conversation-region="composer"] [data-composer-card]:has([data-composer-input]) {
     background-color: color-mix(in srgb, var(--dsw-specific-input-major) 82%, transparent);
+  }
+}`,
+  // Soften transcript text under the sticky seat while letting the scene through the edges.
+  composerBackdrop: `
+@media (prefers-reduced-transparency: no-preference) and (forced-colors: none) {
+  @supports (backdrop-filter: blur(1px)) and (mask-image: linear-gradient(transparent, black)) {
+    ${dockedChatComposer} {
+      background: transparent;
+    }
+    ${dockedChatComposer}::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--dsw-alias-bg-base) 16%, transparent);
+      mask-image: linear-gradient(to bottom, transparent, black 60px);
+    }
+    ${dockedChatComposer} [data-composer-dock]:not(:empty) {
+      padding-inline: 8px;
+      border-radius: var(--dsw-radius-md);
+      background: color-mix(in srgb, var(--dsw-alias-bg-base) 68%, transparent);
+    }
   }
 }`,
 } as const

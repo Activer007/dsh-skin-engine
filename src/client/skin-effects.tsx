@@ -29,6 +29,8 @@ export function WindowEffects({ t, runtime, showing }: {
   showing?: string
 }) {
   const mode = useSyncExternalStore(runtime.subscribe, runtime.getMode)
+  const sidebarEffects = useSyncExternalStore(runtime.subscribe, runtime.getSidebarEffects)
+  const sidebarPersistent = useSyncExternalStore(runtime.subscribe, runtime.getSidebarEffectsPersistent)
   const scenePreset = useSyncExternalStore(runtime.subscribe, runtime.getScenePreset)
   const effectiveScene = useSyncExternalStore(runtime.subscribe, runtime.getEffectiveScenePreset)
   const quality = useSyncExternalStore(runtime.subscribe, runtime.getQuality)
@@ -61,6 +63,9 @@ export function WindowEffects({ t, runtime, showing }: {
         </select>
       </label> : null}
     </div>
+    <SettingsSwitch checked={sidebarEffects} label={t('sidebarEffects')} onChange={runtime.setSidebarEffects} />
+    <p className="dsh-skin-muted">{t('sidebarEffectsHelp')}</p>
+    {sidebarEffects && !sidebarPersistent ? <p className="dsh-skin-muted">{t('sidebarEffectsMemoryOnly')}</p> : null}
     {off ? <p>{t('windowEffectsOff')}</p> : null}
     {!off && !showing ? <p>{t('noActiveSkinEffects')}</p> : null}
     {!off && showing ? <>

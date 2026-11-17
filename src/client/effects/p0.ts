@@ -7,12 +7,22 @@ import { createAutoQuality } from './auto-quality.js'
 import { createFrameScheduler } from './frame-scheduler.js'
 import { mountEffectScene, type EffectMode, type RefractionStatus } from './scene.js'
 
+export const SIDEBAR_EFFECTS_KEY = 'dsh-skin-engine.sidebar-effects.v1'
+
 export type { EffectMode } from './scene.js'
 
 export function createEffectsRuntime(document: Document) {
   const scheduler = createFrameScheduler(document.defaultView!)
   const auto = createAutoQuality()
   let mode: EffectMode = 'dynamic'
+  let sidebarEffects = false
+  let sidebarEffectsPersistent = false
+  let storage: Storage | undefined
+  try {
+    storage = document.defaultView!.localStorage
+    sidebarEffects = storage?.getItem(SIDEBAR_EFFECTS_KEY) === 'true'
+    sidebarEffectsPersistent = !!storage
+  } catch { /* Privacy modes retain the setting only for this session. */ }
   let qualityOverride: QualityChoice | undefined
   let skinQuality: QualityChoice = 'balanced'
   let refraction: RefractionStatus = 'off'
@@ -48,13 +58,26 @@ export function createEffectsRuntime(document: Document) {
         const previous = auto.get()
         const next = auto.sample(intervalMs, workMs)
         if (next === previous) return
-        active?.configure(mode, next)
+        active?.configure(mode, next, sidebarEffects)
         notify()
       },
     } : undefined)
   }
   return {
     getMode: () => mode,
+    getSidebarEffects: () => sidebarEffects,
+    getSidebarEffectsPersistent: () => sidebarEffectsPersistent,
+    setSidebarEffects(next: boolean) {
+      if (sidebarEffects === next) return
+      sidebarEffects = next
+      try {
+        if (!storage) throw new Error('Storage unavailable')
+        storage.setItem(SIDEBAR_EFFECTS_KEY, String(next))
+        sidebarEffectsPersistent = true
+      } catch { sidebarEffectsPersistent = false }
+      active?.configure(mode, quality(), sidebarEffects)
+      notify()
+    },
     getScenePreset: () => skin?.preset() ? scenePreset : undefined,
     getEffectiveScenePreset: () => skin?.preset(),
     getQuality: () => qualityOverride,
@@ -77,7 +100,7 @@ export function createEffectsRuntime(document: Document) {
       if (qualityOverride === next) return
       qualityOverride = next
       resetAuto()
-      active?.configure(mode, quality())
+      active?.configure(mode, quality(), sidebarEffects)
       notify()
     },
     mount(effects: readonly SkinEffect[], accent = '#b9dcff', preferredQuality: QualityChoice = 'balanced', artwork?: PreparedArtwork,
@@ -91,7 +114,7 @@ export function createEffectsRuntime(document: Document) {
       function update() {
         const next = presets ? effectiveScenePreset(scenePreset, mode, !!reducedMotion?.matches) : undefined
         if (initialized && next === applied) {
-          active?.configure(mode, quality())
+          active?.configure(mode, quality(), sidebarEffects)
           return
         }
         active?.dispose()
@@ -100,7 +123,7 @@ export function createEffectsRuntime(document: Document) {
         reportRefraction('off')
         resetAuto()
         const selected = presets && next ? sceneEffects(effects, presets, next) : effects
-        active = mountEffectScene(document, selected, accent, mode, quality(), scheduler, reportRefraction, artwork, next)
+        active = mountEffectScene(document, selected, accent, mode, quality(), scheduler, reportRefraction, artwork, next, sidebarEffects)
         initialized = true
       }
       function onMotion() { update(); notify() }

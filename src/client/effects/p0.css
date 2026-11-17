@@ -268,3 +268,13 @@ html[data-dsh-skin-id] [data-dsh-skin-effect-surface="glass-content"] {
 @keyframes dsh-skin-edge-drift {
   to { transform: translateY(19%); opacity: calc(var(--dsh-flow-intensity) * 0.62); }
 }
+
+/* Opt-in: reuse the single scene behind a readable sidebar tint. Avoid blur
+   here so small dust/flow details remain visible instead of becoming a flat fill.
+   This also overrides the solid fallback for skins without liquid glass. */
+[data-dsh-skin-effect-layer="glass"][data-dsh-skin-sidebar-effects] {
+  background: color-mix(in srgb, var(--dsw-specific-sidebar-fill) 56%, transparent);
+  box-shadow: inset -1px 0 rgb(176 219 255 / 0.12);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
