@@ -8,9 +8,7 @@
 
 [下载已发布版本](https://github.com/Activer007/dsh-skin-engine/releases) · [安装与升级](docs/release-v1.md#安装与启用) · [1.10.0 版本说明](docs/release-v1.md#v1100-新版外观中心)
 
-[![浮光深境 VI 应用后的新会话，深海光束下有上浮的气泡](docs/images/showcase/living-light-vi.png)](docs/images/showcase/deep-ocean-effects.mp4)
-
-**深海动效实拍。** 前 3 秒展示「浮光深境 VI」的深海光束、上浮气泡和侧栏动效，随后是 Deep Ocean 的 2 倍速浮尘和原速液态折射。 [观看高清 MP4](docs/images/showcase/deep-ocean-effects.mp4)
+**[观看深海动效演示（高清 MP4）](docs/images/showcase/deep-ocean-effects.mp4)** · 前 3 秒展示「浮光深境 VI」的深海光束、上浮气泡和侧栏动效，随后是 Deep Ocean 的 2 倍速浮尘和原速液态折射。
 
 ## 找到适合你的外观
 
@@ -22,6 +20,10 @@
 - **在聊天里试用 30 秒。** 倒计时内可以直接保存。取消后回到原页签，刚才的改动还在。画廊显示静态缩略图，聊天预览能看到实际动态效果。
 - **换上自己的图片。** 六款人物皮肤支持替换插画，调整位置、缩放和透明度。展开「自定义皮肤」就能编辑，收起也会保留草稿。
 - **按需要调节氛围。** 可以调低特效或保持静态，也可以恢复 DSH 默认外观。自制皮肤可通过 ZIP 导入、导出和分享。
+
+![浮光深境 VI 应用后的新会话，深海光束下有上浮的气泡](docs/images/showcase/living-light-vi.png)
+
+**浮光深境 VI** · 深海光束从上方落下，浮尘和气泡也出现在侧栏。
 
 ![绯雨霓虹应用后的聊天界面，右侧是人物插画与雨夜霓虹](docs/images/v1.10.0/crimson-rain-chat.png)
 
