@@ -4,6 +4,12 @@ import test from 'node:test'
 import { apply as applyHost } from '../lib/host.js'
 
 const auditPath = '/api/dsh-skin-engine/audit'
+const expectedRoutes = [
+  'audit', 'audit/persist', 'audit/stream', 'audit/contracts',
+  'skins', 'skin', 'asset', 'selection', 'selection/apply',
+  'packages/import', 'packages/update', 'packages/rollback', 'packages/export', 'packages/remove',
+  'user-artwork', 'user-artwork/image', 'user-artwork/library', 'user-artwork/remove',
+].map(path => '/api/dsh-skin-engine/' + path).sort()
 
 function hostFixture(failOn) {
   const cleanup = []
@@ -47,7 +53,7 @@ test('Host releases every registered route and closes its domain across 100 acti
   const host = hostFixture()
   for (let index = 0; index < 100; index++) {
     applyHost(host.ctx)
-    assert.equal(host.routes.size, 16)
+    assert.deepEqual([...host.routes.keys()].sort(), expectedRoutes)
     await host.dispose()
     assert.equal(host.routes.size, 0)
   }
