@@ -12,6 +12,8 @@ https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
 **Underwater effects demo.** The first three seconds show Living Light VI with underwater light shafts, rising bubbles, and sidebar effects. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed. [HD MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
+Living Light VI 1.2.0 is a separate `.dshskin.zip` skin. When v1.10.3 is available, download the skin ZIP from GitHub Releases and import it under **Appearance Center → Skin gallery → Import ZIP**. You can also build it from source before release. [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Skin packaging guide (Chinese)](skin-sources/examples/README.md)
+
 ## Find a skin that suits you
 
 **Browse quickly.** Search, filters, and favorites update instantly. Static thumbnails load as you scroll.
@@ -43,10 +45,10 @@ Requires **DSH 0.2.2-rc.1 or later**. Download a .tgz from [GitHub Releases](htt
 
 Open **Appearance Center → Skin gallery**, choose a skin, then select **Preview in chat** or **Apply**. To try your own illustration, choose Dawn Station or Night Navigator and open **Customize skin**.
 
-[Portrait customization (Chinese)](docs/user-artwork-stage1.md) · [Skin authoring examples (Chinese)](skin-sources/examples/README.md) · [Project history](docs/history.md) · [Roadmap (Chinese)](docs/development-roadmap.md)
+[Portrait customization (Chinese)](docs/user-artwork-stage1.md) · [Skin authoring examples (Chinese)](skin-sources/examples/README.md) · [Project history](docs/history.md) · [Roadmap (Chinese)](docs/development-roadmap.md) · [R2 action plan (Chinese)](docs/r2-issue-action-plan-20261118.md)
 
 ## License and contact
 
-The Skin Engine source code is licensed under the [MIT License](LICENSE). Artwork, screenshots, videos, and third-party components have separate terms. See the [asset notes](docs/release-asset-notes.md) and applicable license notices.
+All character illustrations, wallpapers, and scene artwork used in Skin Engine's built-in skins and official examples were independently created by the project author, either directly or with generative tools. None of this artwork was copied from other projects. The Skin Engine source code is licensed under the [MIT License](LICENSE). DeepSeek Harness UI, names, and logos visible in screenshots or videos, as well as third-party dependencies, retain their respective ownership and license terms. See the [asset notes](docs/release-asset-notes.md).
 
 Contact [85155.00@gmail.com](mailto:85155.00@gmail.com).

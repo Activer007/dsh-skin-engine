@@ -10,7 +10,7 @@ NEXT-02 采用本地检查和 GitHub 提交状态。自动审查与本地检查�
 npm run verify:local -- trusted-commit <PR-head-SHA> .cache/local-verification
 ```
 
-脚本建立两份以 LF 检出的独立工作树，使用同一 Node 与 npm 版本，各自运行 `npm ci --ignore-scripts` 从锁文件安装依赖。第一份运行 `typecheck`、`lint` 和现有测试，打包时两份都执行构建。产物包括引擎 tarball、13 套内置样例、静墨、暖暮、三套场景、轻量视差、Starter、三套人物模板和三套独立人物 ZIP。脚本核对包内条目、素材字节和样例 ID，再比较两份产物的大小和 SHA-256，退出前移除临时工作树。需要核对历史字节时，使用对应提交的验证脚本、工具链和平台。
+脚本建立两份以 LF 检出的独立工作树，使用同一 Node 与 npm 版本，各自运行 `npm ci --ignore-scripts` 从锁文件安装依赖。第一份运行 `typecheck`、`lint` 和现有测试，打包时两份都执行构建。产物包括引擎 tarball、当前 11 款内置皮肤的 ZIP 样例、静墨、暖暮、三套场景、轻量视差、Starter、三套人物模板和三套独立人物 ZIP。脚本核对包内条目、素材字节和样例 ID，再比较两份产物的大小和 SHA-256，退出前移除临时工作树。需要核对历史字节时，使用对应提交的验证脚本、工具链和平台。
 
 若检出的提交含根目录 `README.md`，引擎归档清单也应包含该文件，npm 会在打包时自动收录。正式候选使用本流程生成的 LF 归档。在 Windows 工作树中直接运行 `npm pack` 时，CRLF 可能改变归档摘要，宿主测试记录应引用实际安装的摘要。
 

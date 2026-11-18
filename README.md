@@ -12,6 +12,8 @@ https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
 **深海动效演示。** 前 3 秒展示「浮光深境 VI」的深海光束、上浮气泡和侧栏动效，随后是 Deep Ocean 的 2 倍速浮尘和原速液态折射。 [高清 MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
+「浮光深境 VI」1.2.0 是独立的 `.dshskin.zip`。随 v1.10.3 发布后，从 GitHub Releases 下载皮肤 ZIP，再在 **外观中心 → 皮肤库 → 导入 ZIP** 中导入。发布前也可从源码打包。 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [皮肤打包说明](skin-sources/examples/README.md)
+
 ## 找到适合你的外观
 
 **浏览响应快。** 搜索、筛选和收藏即时更新，静态缩略图随滚动按需加载。
@@ -43,10 +45,10 @@ https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
 安装后，打开 **外观中心 → 皮肤库**，选择皮肤，点击「在聊天中预览」或「应用并保存」。试试「曙光航站」或「夜航员」的 **自定义皮肤 → 人物场景图片**，换成自己的插画。
 
-[人物换图说明](docs/user-artwork-stage1.md) · [皮肤作者入门](skin-sources/examples/README.md) · [项目沿革](docs/history.md) · [开发路线图](docs/development-roadmap.md)
+[人物换图说明](docs/user-artwork-stage1.md) · [皮肤作者入门](skin-sources/examples/README.md) · [项目沿革](docs/history.md) · [开发路线图](docs/development-roadmap.md) · [R2 修复任务书](docs/r2-issue-action-plan-20261118.md)
 
 ## 许可证与联系
 
-Skin Engine 源码采用 [MIT 许可证](LICENSE)。插画、截图、视频及第三方组件的授权分别以各自的[素材来源与授权说明](docs/release-asset-notes.md)和许可声明为准。
+Skin Engine 内置皮肤和官方样例中的人物插画、壁纸及场景美术素材均由项目作者自行创作或使用生成工具独立生成，没有直接复制其他项目的美术资源。Skin Engine 源码采用 [MIT 许可证](LICENSE)。演示截图或视频中的 DeepSeek Harness 界面、名称与标志，以及第三方依赖，仍遵循各自的权利归属和许可条款。详见[素材来源说明](docs/release-asset-notes.md)。
 
 联系邮箱：[85155.00@gmail.com](mailto:85155.00@gmail.com)。
