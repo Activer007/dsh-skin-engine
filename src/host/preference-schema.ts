@@ -1,8 +1,12 @@
 import { artworkAssetPattern } from '../shared/user-artwork.js'
 import * as z from 'zod/mini'
+import { describeEffect, effectDescriptors, type Bounds, type EditableEffect } from '../core/effect-descriptors.js'
 import { skinIdSchema } from '../core/manifest.js'
 import { hexColor } from '../core/tokens.js'
 import { editableColors, editableEffects, qualityLevels } from '../shared/preferences.js'
+
+const secondary = effectDescriptors['ambient.aurora'].secondary.controls
+const numericPreference = ([minimum, maximum]: Bounds) => z.optional(z.number().check(z.minimum(minimum), z.maximum(maximum)))
 
 export const artworkPreferenceSchema = z.strictObject({
   asset: z.string().check(z.regex(artworkAssetPattern)),
@@ -19,10 +23,11 @@ export const skinPreferencesSchema = z.strictObject({
   effects: z.optional(z.partialRecord(z.enum(editableEffects), z.strictObject({
     enabled: z.optional(z.boolean()),
     strength: z.optional(z.number().check(z.minimum(0), z.maximum(1))),
-    speed: z.optional(z.number().check(z.minimum(0.1), z.maximum(1))),
-    movement: z.optional(z.number().check(z.minimum(0), z.maximum(1))),
-  })).check(z.refine(effects => Object.entries(effects).every(([id, effect]) => id === 'ambient.aurora'
-    || (effect.speed === undefined && effect.movement === undefined))))),
+    speed: numericPreference(secondary.speed.bounds),
+    movement: numericPreference(secondary.movement.bounds),
+  })).check(z.refine(effects => Object.entries(effects).every(([id, effect]) =>
+    (effect.speed === undefined && effect.movement === undefined)
+      || (Object.hasOwn(effectDescriptors, id) && Boolean(describeEffect(id as EditableEffect).secondary)))))),
   quality: z.optional(z.enum(qualityLevels)),
 })
 
