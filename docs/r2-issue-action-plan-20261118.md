@@ -4,7 +4,7 @@
 >
 > 审查基线：`main@0dcd4462d7e16eaf66bfd8403bdca3c70b9b2986`，源码 `1.10.3`，公开 Release `v1.10.1`。
 >
-> 状态：**规划 / 待实现**。本文件不代表 R2 功能已经开发或验收。本文所列仓库代码位置均按上述基线核对。
+> 状态：**本轮任务已合入**。v1.10.3 已发布。合入后的个人图片管理、声明式换图与特效参数整理属于 1.11.0 开发线。下文问题及代码位置按原审查基线记录。
 >
 > 目标：先解决明确的发布、素材管理与兼容风险，不以大规模重构或增加皮肤数量作为本轮目标。
 
@@ -142,7 +142,7 @@
 - [x] R2-REL-01：候选 `b1abfc42a307ceb3038c14948e5370b1d334cda9` 及实测记录见 [PR #7](https://github.com/Activer007/dsh-skin-engine/pull/7)，已发布 [v1.10.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.10.3)。
 - [x] R2-ART-01：个人图片清单、配额和删除保护由 [PR #8](https://github.com/Activer007/dsh-skin-engine/pull/8) 合入 `f97afa7`。
 - [x] R2-ART-02：Engine API 1.7 的声明式单图替换由 [PR #9](https://github.com/Activer007/dsh-skin-engine/pull/9) 合入 `50be1e1`，含可导入浅色作者模板和旧 ZIP 实测。
-- [ ] R2-FX-01：尚未整合特效参数。
+- [x] R2-FX-01：共用特效参数描述由 [PR #10](https://github.com/Activer007/dsh-skin-engine/pull/10) 合入 `5ca5bec`。先验证玻璃模糊及点击波纹，再迁移其余特效。官方 Web 回读 v1.10.3 保存的 Aurora 旧值，在同一个隔离 Profile 验证编辑、预览取消、保存和重启。
 - [x] R2-PERF-01：官方 DSH 0.2.2-rc.3 双端完成代表性配对、300 秒后台暂停恢复与清理。性能范围和原始结果位置见 [PR #7 验收记录](https://github.com/Activer007/dsh-skin-engine/pull/7)。
 
 历史 `docs/development-roadmap.md`、`docs/acceptance.md`、`docs/navigation-release-guide.md` 保留原候选和原验收记录；R2 新结果以明确候选和对应 PR 新增，不倒填历史台账。
