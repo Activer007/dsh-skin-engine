@@ -74,10 +74,21 @@ async function prepareArtwork(data: SkinData, signal: AbortSignal, custom?: Artw
   if (custom && supportsUserArtwork(data)) {
     try {
       const image = await decodeArtwork(artworkUrl(custom.asset), AbortSignal.any([signal, AbortSignal.timeout(10_000)]))
-      if (data.scene) return { kind: 'scene', image, layout: { ...data.scene.layout,
-        artwork: { ...data.scene.layout.artwork, fit: custom.fit, scale: custom.scale, opacity: custom.opacity,
-          focalPoint: [custom.x / 100, custom.y / 100] },
-      } }
+      if (data.scene) {
+        const layout = data.scene.layout
+        const authored = layout.artwork
+        // Keep the authored breakpoint ratios while making the replacement controls effective at every width.
+        const breakpoints = data.manifest.customizable?.artwork ? layout.breakpoints?.map(rule => ({
+          ...rule,
+          artworkScale: Math.min(2, custom.scale * (rule.artworkScale / authored.scale)),
+          opacity: authored.opacity === 0 ? Math.min(custom.opacity, rule.opacity)
+            : Math.min(0.5, custom.opacity * (rule.opacity / authored.opacity)),
+        })) : layout.breakpoints
+        return { kind: 'scene', image, layout: { ...layout, ...(breakpoints && { breakpoints }),
+          artwork: { ...authored, fit: custom.fit, scale: custom.scale, opacity: custom.opacity,
+            focalPoint: [custom.x / 100, custom.y / 100] },
+        } }
+      }
       return { kind: 'legacy', image, style: { path: custom.asset, size: custom.fit, opacity: custom.opacity,
         position: [custom.x, custom.y], scale: custom.scale } }
     } catch { signal.throwIfAborted() } // Missing/corrupt personal image falls back to the original.

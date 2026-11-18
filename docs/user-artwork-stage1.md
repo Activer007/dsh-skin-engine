@@ -27,7 +27,7 @@ Engine API 1.7.0 新增可选的 `customizable.artwork` 声明。皮肤可将一
 }
 ```
 
-主图使用 SceneSpec 的 `layout.artwork`，或使用旧式受控 CSS 的 `[data-dsh-skin-package-art]` 槽。两种方式都要求图片出现在 Manifest 的 `assets` 中。替换沿用原有场景的锚点、阅读留白和断点。用户偏好可以调整适应方式、焦点、缩放和透明度。双明暗变体共用用户选择的一张图。
+主图使用 SceneSpec 的 `layout.artwork`，或使用旧式受控 CSS 的 `[data-dsh-skin-package-art]` 槽。两种方式都要求图片出现在 Manifest 的 `assets` 中。替换沿用原有场景的锚点、阅读留白和断点。用户偏好可以调整适应方式、焦点、缩放和透明度，缩放和透明度按原断点比例调节。双明暗变体共用用户选择的一张图。
 
 从源码打包下面的浅色模板后，在外观中心导入 ZIP，即可在详情的「自定义皮肤」中试用。
 
