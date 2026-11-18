@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url'
 import { buffer } from 'node:stream/consumers'
 import { minVersion } from 'semver'
 import { openPromise } from 'yauzl'
-import { assetPaths, examples, loadReleaseAssets, releaseSampleDirectories } from './release-assets.mjs'
+import { assetPaths, examples, loadReleaseAssets } from './release-assets.mjs'
 
 const [trust, commit, output = '.cache/local-verification', ...extra] = process.argv.slice(2)
 assert(trust === 'trusted-commit' && /^[0-9a-f]{40}$/.test(commit ?? '') && !extra.length,
@@ -30,7 +30,6 @@ const report = {
 }
 const checkouts = []
 const readJson = path => JSON.parse(readFileSync(path, 'utf8'))
-const samples = [...releaseSampleDirectories, 'templates/starter']
 
 function run(step, command, args, cwd) {
   const result = spawnSync(command, args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 16 * 1024 * 1024 })
@@ -136,6 +135,8 @@ async function packageFiles(label, source) {
   for (const [name, skin] of builtInManifests) {
     await checkZip(inventory, join(output, `${name}.dshskin.zip`), `skins/${name}`, skin, `${skin.id}.sample`)
   }
+  const { releaseSampleDirectories } = await import(pathToFileURL(join(source, 'scripts/release-assets.mjs')).href)
+  const samples = [...releaseSampleDirectories, 'templates/starter']
   for (const sample of samples) {
     const path = join(examples, sample)
     node(`${label}-${sample.split('/').at(-1)}`, ['scripts/pack-samples.mjs', '--source', path, output], source)
