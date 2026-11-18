@@ -1,15 +1,16 @@
 import { sameArtwork, type ArtworkPreference } from './user-artwork.js'
-import { AMBIENT_LIGHT_MAX_INTENSITY, type SkinEffect } from '../core/effects.js'
+import type { SkinEffect } from '../core/effects.js'
 import type { ColorScheme, parseSkinTokens } from '../core/tokens.js'
+import { describeEffect, editableEffects, expandEffectValue, normalizeEffectValue, type EditableEffect,
+  type SecondaryEffectControl, type SecondaryEffectPreference } from '../core/effect-descriptors.js'
+
+export { editableEffects, type EditableEffect }
 
 export const qualityLevels = ['low', 'balanced', 'high', 'auto'] as const
 export type QualityChoice = (typeof qualityLevels)[number]
 export type Quality = Exclude<QualityChoice, 'auto'>
 
 export const editableColors = ['canvas', 'surface', 'accent'] as const
-export const editableEffects = ['glass.liquid', 'ambient.aurora', 'light.flow', 'particles.dust', 'particles.bubbles',
-  'interaction.ripple', 'particles.starfield', 'glass.holographic', 'glass.refraction', 'ambient.light', 'scene.brightness'] as const
-export type EditableEffect = (typeof editableEffects)[number]
 export interface EffectPreference { enabled?: boolean; strength?: number; speed?: number; movement?: number }
 
 export interface SkinPreferences {
@@ -33,56 +34,59 @@ export function sameEffectPreference(a?: EffectPreference, b?: EffectPreference)
   return a?.enabled === b?.enabled && a?.strength === b?.strength && a?.speed === b?.speed && a?.movement === b?.movement
 }
 
-export function effectStrength(effect: SkinEffect): number | undefined {
-  switch (effect.id) {
-    case 'glass.liquid': return effect.params.blur / 24
-    case 'ambient.aurora':
-    case 'light.flow':
-    case 'glass.holographic': return effect.params.intensity
-    case 'ambient.light': return effect.params.intensity / AMBIENT_LIGHT_MAX_INTENSITY
-    case 'scene.brightness': return effect.params.level - 0.5
-    case 'particles.dust':
-    case 'particles.bubbles': return effect.params.density
-    case 'particles.starfield': return effect.params.brightness
-    case 'interaction.ripple': return (effect.params.maxRadius - 80) / 140
-    case 'glass.refraction': return effect.params.distortion
+function readEffectNumber(effect: SkinEffect, parameter: string, fallback: number) {
+  const value = (effect.params as Record<string, unknown>)[parameter]
+  return typeof value === 'number' ? value : fallback
+}
+
+function secondaryControls(effect: SkinEffect) {
+  const secondary = describeEffect(effect.id).secondary
+  if (!secondary || (effect.params as Record<string, unknown>)[secondary.whenDefined] === undefined) return []
+  return Object.entries(secondary.controls) as [SecondaryEffectPreference, SecondaryEffectControl][]
+}
+
+function effectEnabled(effect: SkinEffect, preference?: EffectPreference) {
+  return preference?.enabled ?? (!describeEffect(effect.id).optIn && effect.enabled)
+}
+
+export function effectControls(effect: SkinEffect, preference?: EffectPreference) {
+  const { strength, variant, hint } = describeEffect(effect.id)
+  const profile = variant && (effect.params as Record<string, unknown>)[variant.parameter] === variant.equals ? variant : undefined
+  const minimum = strength.percentMinimum ?? 0
+  const multiplier = strength.percentMultiplier ? readEffectNumber(effect, strength.percentMultiplier, 1) : 1
+  const span = profile?.percentMaximum ?? 100 * multiplier
+  const native = readEffectNumber(effect, strength.parameter, strength.bounds[2])
+  return {
+    label: profile?.label ?? `effect.${effect.id}` as const,
+    measure: profile?.measure ?? strength.measure,
+    enabled: effectEnabled(effect, preference),
+    minimum, maximum: minimum + span,
+    percentage: minimum + Math.round((preference?.strength ?? normalizeEffectValue(native, strength.bounds)) * span),
+    hint,
+    additional: secondaryControls(effect).map(([key, { parameter, bounds, label }]) => ({
+      key,
+      label,
+      minimum: 100 * bounds[0],
+      maximum: 100 * bounds[1],
+      percentage: Math.round(100 * (preference?.[key] ?? readEffectNumber(effect, parameter, bounds[2]))),
+    })),
   }
 }
 
-function overrideEffect(effect: SkinEffect, overrides: SkinPreferences['effects']): SkinEffect {
-  if (!hasEditableEffect(effect)) return effect
-  const value = overrides?.[effect.id]
-  if (effect.id === 'glass.refraction') {
-    return { ...effect, enabled: value?.enabled === true,
-      params: { ...effect.params, distortion: value?.strength ?? effect.params.distortion } }
+function overrideEffect<T extends SkinEffect>(effect: T, overrides: SkinPreferences['effects']): T {
+  const descriptor = describeEffect(effect.id)
+  const preference = overrides?.[effect.id]
+  if (!preference && !descriptor.optIn) return effect
+  const params: Record<string, number> = {}
+  if (preference?.strength !== undefined) {
+    const { parameter, bounds } = descriptor.strength
+    params[parameter] = expandEffectValue(preference.strength, bounds)
   }
-  if (!value) return effect
-  const next = { ...effect, enabled: value.enabled ?? effect.enabled }
-  const strength = value.strength
-  if (next.id === 'ambient.aurora') {
-    const params = { ...next.params, intensity: strength ?? next.params.intensity }
-    if (params.movement !== undefined) {
-      params.movement = value.movement ?? params.movement
-      params.speed = value.speed ?? params.speed
-    }
-    return { ...next, params }
+  for (const [key, control] of secondaryControls(effect)) {
+    const value = preference?.[key]
+    if (value !== undefined) params[control.parameter] = value
   }
-  if (strength === undefined) return next
-  switch (next.id) {
-    case 'glass.liquid': return { ...next, params: { ...next.params, blur: strength * 24 } }
-    case 'light.flow': return { ...next, params: { ...next.params, intensity: strength } }
-    case 'particles.dust': return { ...next, params: { ...next.params, density: strength } }
-    case 'particles.bubbles': return { ...next, params: { ...next.params, density: strength } }
-    case 'interaction.ripple': return { ...next, params: { ...next.params, maxRadius: 80 + strength * 140 } }
-    case 'particles.starfield': return { ...next, params: { ...next.params, brightness: strength } }
-    case 'glass.holographic': return { ...next, params: { ...next.params, intensity: strength } }
-    case 'ambient.light': return { ...next, params: { ...next.params, intensity: strength * AMBIENT_LIGHT_MAX_INTENSITY } }
-    case 'scene.brightness': return { ...next, params: { ...next.params, level: 0.5 + strength } }
-  }
-}
-
-function hasEditableEffect(effect: SkinEffect): effect is Extract<SkinEffect, { id: EditableEffect }> {
-  return (editableEffects as readonly string[]).includes(effect.id)
+  return { ...effect, enabled: effectEnabled(effect, preference), params: { ...effect.params, ...params } }
 }
 
 export function resolveSkinColors(tokens: ReturnType<typeof parseSkinTokens>, scheme?: ColorScheme) {
@@ -94,7 +98,7 @@ export function applyPreferences<T extends { tokens: ReturnType<typeof parseSkin
   data: T, preferences: SkinPreferences | undefined, scheme?: ColorScheme,
 ): T {
   const colors = resolveSkinColors(data.tokens, scheme)
-  if (colors === data.tokens.colors && !preferences && !data.effects.some(effect => effect.id === 'glass.refraction' && effect.enabled)) return data
+  if (colors === data.tokens.colors && !preferences && !data.effects.some(effect => describeEffect(effect.id).optIn && effect.enabled)) return data
   return {
     ...data,
     tokens: { ...data.tokens, colors: { ...colors, ...preferences?.colors } },

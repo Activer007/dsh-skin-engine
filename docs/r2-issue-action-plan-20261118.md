@@ -141,7 +141,7 @@
 - [x] R2-DOC-01：原创声明、11 款内置及浮光深境 VI 的独立 ZIP 指引由 [PR #6](https://github.com/Activer007/dsh-skin-engine/pull/6) 合入 `e055fcd`。
 - [x] R2-REL-01：候选 `b1abfc42a307ceb3038c14948e5370b1d334cda9` 及实测记录见 [PR #7](https://github.com/Activer007/dsh-skin-engine/pull/7)，已发布 [v1.10.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.10.3)。
 - [x] R2-ART-01：个人图片清单、配额和删除保护由 [PR #8](https://github.com/Activer007/dsh-skin-engine/pull/8) 合入 `f97afa7`。
-- [ ] R2-ART-02：尚未修改 Manifest 换图契约。
+- [x] R2-ART-02：Engine API 1.7 的声明式单图替换由 [PR #9](https://github.com/Activer007/dsh-skin-engine/pull/9) 合入 `50be1e1`，含可导入浅色作者模板和旧 ZIP 实测。
 - [ ] R2-FX-01：尚未整合特效参数。
 - [x] R2-PERF-01：官方 DSH 0.2.2-rc.3 双端完成代表性配对、300 秒后台暂停恢复与清理。性能范围和原始结果位置见 [PR #7 验收记录](https://github.com/Activer007/dsh-skin-engine/pull/7)。
 

@@ -2,12 +2,21 @@ import * as z from 'zod/mini'
 import { hexColor } from './tokens.js'
 import { invalid, parseFile, type SkinDiagnostic } from './validation.js'
 import type { SkinManifest } from './manifest.js'
+import { effectDescriptors, type Bounds } from './effect-descriptors.js'
 
 export type EffectRenderer = 'css' | 'canvas2d' | 'webgl'
-export const AMBIENT_LIGHT_MAX_INTENSITY = 0.22
+export const AMBIENT_LIGHT_MAX_INTENSITY = effectDescriptors['ambient.light'].strength.bounds[1]
 
-function number(min: number, max: number, initial: number) {
-  return z._default(z.number().check(z.minimum(min), z.maximum(max)), initial)
+function boundedNumber(minimum: number, maximum: number) {
+  return z.number().check(z.minimum(minimum), z.maximum(maximum))
+}
+
+function number(minimum: number, maximum: number, initial: number) {
+  return z._default(boundedNumber(minimum, maximum), initial)
+}
+
+function optionalNumber([minimum, maximum]: Bounds) {
+  return z.optional(boundedNumber(minimum, maximum))
 }
 
 function integer(min: number, max: number, initial: number) {
@@ -28,25 +37,26 @@ const particleSize = z.number().check(z.minimum(0.25), z.maximum(6))
 const sizeRange = z.tuple([particleSize, particleSize]).check(z.refine(
   ([min, max]) => min <= max, 'Expected sizes in ascending order',
 ))
+const auroraControls = effectDescriptors['ambient.aurora'].secondary.controls
 
 export const effectDefinitions = {
   glass: defineEffect('glass.liquid', 'css', z.strictObject({
-    blur: number(0, 24, 16),
+    [effectDescriptors['glass.liquid'].strength.parameter]: number(...effectDescriptors['glass.liquid'].strength.bounds),
     tintAlpha: number(0.08, 0.30, 0.18),
     saturation: number(1, 1.5, 1.25),
     edgeLight: number(0, 1, 0.3),
     frost: number(0, 1, 0.25),
   })),
   aurora: defineEffect('ambient.aurora', 'css', z.strictObject({
-    speed: number(0.1, 1, 0.25),
-    intensity: number(0, 1, 0.45),
+    [auroraControls.speed.parameter]: number(...auroraControls.speed.bounds),
+    [effectDescriptors['ambient.aurora'].strength.parameter]: number(...effectDescriptors['ambient.aurora'].strength.bounds),
     palette: z._default(z.enum(['ocean', 'aurora']), 'ocean'),
     blur: number(0, 96, 48),
     direction: number(0, 360, 35),
-    movement: z.optional(z.number().check(z.minimum(0), z.maximum(1))),
+    [auroraControls.movement.parameter]: optionalNumber(auroraControls.movement.bounds),
   })),
   dust: defineEffect('particles.dust', 'canvas2d', z.strictObject({
-    density: number(0, 1, 0.35),
+    [effectDescriptors['particles.dust'].strength.parameter]: number(...effectDescriptors['particles.dust'].strength.bounds),
     densityMultiplier: z.optional(z.int().check(z.minimum(1), z.maximum(4))),
     speed: number(0.1, 1, 0.25),
     sizeRange: z._default(sizeRange, (): [number, number] => [0.75, 2.25]),
@@ -54,14 +64,14 @@ export const effectDefinitions = {
     drift: number(0, 1, 0.3),
   })),
   bubbles: defineEffect('particles.bubbles', 'canvas2d', z.strictObject({
-    density: number(0, 1, 0.6),
+    [effectDescriptors['particles.bubbles'].strength.parameter]: number(...effectDescriptors['particles.bubbles'].strength.bounds),
     densityMultiplier: z.optional(z.int().check(z.minimum(1), z.maximum(4))),
     speed: number(0.1, 1, 0.35),
     opacity: number(0, 1, 0.55),
   })),
   flow: defineEffect('light.flow', 'css', z.strictObject({
     speed: number(0.1, 1, 0.2),
-    intensity: number(0, 1, 0.22),
+    [effectDescriptors['light.flow'].strength.parameter]: number(...effectDescriptors['light.flow'].strength.bounds),
     width: number(1, 48, 8),
     colorStops: z._default(z.array(hexColor).check(z.minLength(2), z.maxLength(5)), () => ['#6dc7ff00', '#6dc7ff']),
     route: z._default(z.enum(['background', 'edge']), 'background'),
@@ -69,7 +79,7 @@ export const effectDefinitions = {
   })),
   ripple: defineEffect('interaction.ripple', 'canvas2d', z.strictObject({
     durationMs: integer(300, 800, 450),
-    maxRadius: number(80, 220, 120),
+    [effectDescriptors['interaction.ripple'].strength.parameter]: number(...effectDescriptors['interaction.ripple'].strength.bounds),
     ringCount: integer(1, 3, 1),
     color: z._default(hexColor, '#6dc7ff'),
   })),
@@ -78,29 +88,29 @@ export const effectDefinitions = {
     twinkle: number(0, 1, 0.22),
     parallax: number(0, 1, 0.12),
     depthLayers: integer(1, 3, 2),
-    brightness: number(0, 1, 0.5),
+    [effectDescriptors['particles.starfield'].strength.parameter]: number(...effectDescriptors['particles.starfield'].strength.bounds),
   })),
   holographic: defineEffect('glass.holographic', 'css', z.strictObject({
     iridescence: number(0, 1, 0.28),
     edgeWidth: number(0, 4, 1),
     pointerInfluence: number(0, 1, 0.2),
     spectrum: z._default(z.enum(['prism', 'cool', 'warm']), 'prism'),
-    intensity: number(0, 1, 0.4),
+    [effectDescriptors['glass.holographic'].strength.parameter]: number(...effectDescriptors['glass.holographic'].strength.bounds),
   })),
   refraction: defineEffect('glass.refraction', 'webgl', z.strictObject({
-    distortion: number(0, 1, 0.2),
+    [effectDescriptors['glass.refraction'].strength.parameter]: number(...effectDescriptors['glass.refraction'].strength.bounds),
     dispersion: number(0, 1, 0.08),
     flowSpeed: number(0.1, 1, 0.25),
     refractionScale: number(0.25, 1, 0.5),
     quality: z._default(z.enum(['low', 'balanced', 'high']), 'balanced'),
   })),
   ambientLight: defineEffect('ambient.light', 'css', z.strictObject({
-    intensity: number(0, AMBIENT_LIGHT_MAX_INTENSITY, 0.14),
+    [effectDescriptors['ambient.light'].strength.parameter]: number(...effectDescriptors['ambient.light'].strength.bounds),
     speed: number(0.1, 1, 0.3),
     illuminateArtwork: z.optional(z.boolean()),
   })),
   brightness: defineEffect('scene.brightness', 'css', z.strictObject({
-    level: number(0.5, 1.5, 1),
+    [effectDescriptors['scene.brightness'].strength.parameter]: number(...effectDescriptors['scene.brightness'].strength.bounds),
   })),
 } as const
 
