@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 const root = new URL('../', import.meta.url)
 export const examples = 'skin-sources/examples'
 export const releaseSampleDirectories = [
-  'skins/ink-focus', 'skins/warm-dusk',
+  'skins/ink-focus', 'skins/warm-dusk', 'skins/living-light',
   'scenes/night-navigator', 'scenes/morning-observatory', 'scenes/crimson-rain', 'scenes/night-navigator-motion',
   'templates/portrait-light', 'templates/portrait-dark', 'templates/portrait-dual',
   'characters/jade-reading-room', 'characters/last-train-study', 'characters/twilight-shift',

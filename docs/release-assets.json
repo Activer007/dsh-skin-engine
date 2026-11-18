@@ -41,9 +41,17 @@
       "author": "项目采集；原画见对应的素材条目，DSH 界面和标志归相应权利人",
       "authorization": "项目自行采集的场景截图；DSH 界面与标志仍归相应权利人",
       "conversion": "将实际 PNG 原样写入样例 ZIP，无裁切、缩放或转码。"
+    },
+    "living-light": {
+      "source": "项目提供的 deep_ocean_living_light_v6 场景参考，经项目适配为浮光深境 VI 的底图和画廊预览",
+      "author": "DSH Skin Engine 项目",
+      "authorization": "项目自制场景美术，用于独立皮肤样例",
+      "conversion": "使用仓库登记的 WebP 字节打包。精确原始编码参数未核实。"
     }
   },
   "files": [
+    {"path":"skin-sources/examples/skins/living-light/assets/living-light.webp","format":"webp","width":1561,"height":878,"bytes":13900,"sha256":"61c86d5e582f685934af33b7b1e1ccf73d7ef0ba9c0aa1351cbaee867fe86410","provenance":"living-light"},
+    {"path":"skin-sources/examples/skins/living-light/preview/dark.webp","format":"webp","width":960,"height":540,"bytes":5582,"sha256":"9d871feb4cc8e56b41537999aa1114a1b20ee7457e66f7434e13c567270b40f7","provenance":"living-light"},
     {"path":"skin-sources/examples/scenes/crimson-rain/assets/portrait.webp","format":"webp","width":1672,"height":941,"bytes":52988,"sha256":"bb083c08c1892735b22624a242d8e4a42c334d6ecb54d377e274185648ddea4f","provenance":"user-attachment","original":{"source":"用户附件 4 · codex-clipboard-be79cb4e-582c-4e3e-85d1-fba1f7321864.png","format":"png","width":1672,"height":941,"bytes":1720451,"sha256":"54896a22fd1b2823ee1e223598edbef2db58cf76ae692096bc1e3411109f503a"}},
     {"path":"skin-sources/examples/scenes/crimson-rain/preview/scene.webp","format":"webp","width":640,"height":410,"bytes":9010,"sha256":"c950854e24eba44326a0cc4215ef0d8114363a856ead7395dd51d308ac1b8379","provenance":"scene-preview"},
     {"path":"skin-sources/examples/scenes/morning-observatory/assets/portrait.webp","format":"webp","width":1672,"height":941,"bytes":78882,"sha256":"7fae5b2d67dd978577648756779ce85f59ff2af4f602b01b4a404fea7ccee085","provenance":"imagegen"},

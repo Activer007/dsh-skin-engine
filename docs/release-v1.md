@@ -1,5 +1,13 @@
 # DSH Skin Engine v1 安装与验收
 
+## v1.10.3 侧栏与深海动效
+
+- **动效可延伸到侧栏。** 在 DSH 的「设置 → 皮肤引擎 → 窗口特效」打开侧栏动态效果。已有会话的输入框底部与皮肤背景自然衔接。
+- **Aurora 1.1.0。** 极光亮度、变化幅度和速度可以独立调整，固定星光轻微闪烁，并可单独关闭。
+- **浮光深境 VI 1.2.0。** 独立 ZIP 提供整体亮度、深海光束、浮尘和气泡调节。README 的实拍先展示浮光深境 VI，再展示 Deep Ocean 的高密度粒子与液态折射。 [实拍演示](../README.md)
+
+从 GitHub Releases 下载 `dsh-plugin-skin-engine-1.10.3.tgz` 和 `SHA256SUMS.txt`，校验后安装引擎。引擎包含 11 款内置皮肤，使用 Engine API 1.6.0，需要 DSH 0.2.2-rc.1 或更新版本。要启用浮光深境 VI，下载同页的 `com.dsh.skin.deep-ocean-living-light.dshskin.zip`，在「外观中心 → 皮肤库 → 导入 ZIP」导入。 [下载与校验文件](https://github.com/Activer007/dsh-skin-engine/releases) · [安装与启用](#安装与启用)
+
 ## v1.10.1 公开仓库首版
 
 保留 v1.10.0 的外观中心、11 款内置皮肤、人物换图和聊天预览。公开仓库保留 30 项里程碑，源码使用 MIT 许可证。本版本重新构建了安装包，请使用本版的 SHA-256 校验文件。
