@@ -6,13 +6,13 @@
 
 Open **Appearance Center** from the sidebar to find a quiet background for writing, a dark theme with drifting auroras, or a workspace with an illustrated character on the right.
 
-[Download stable v1.10.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.10.3) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用) · [1.11.0 development on main (Chinese)](docs/release-v1.md#v1110-开发版)
+[Download v1.11.0](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.0) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用) · [Release notes (Chinese)](docs/release-v1.md#v1110-个人图片与特效参数)
 
 https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
 **Underwater effects demo.** The first three seconds show Living Light VI with underwater light shafts, rising bubbles, and sidebar effects. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed. [HD MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
-Living Light VI 1.2.0 is a separate skin. Download `com.dsh.skin.deep-ocean-living-light.dshskin.zip` from the v1.10.3 release and import it under **Appearance Center → Skin gallery → Import ZIP**. [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Skin packaging guide (Chinese)](skin-sources/examples/README.md)
+Living Light VI 1.2.0 is a separate skin. Download `com.dsh.skin.deep-ocean-living-light.dshskin.zip` and import it under **Appearance Center → Skin gallery → Import ZIP**. [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Skin packaging guide (Chinese)](skin-sources/examples/README.md)
 
 ## Find a skin that suits you
 
