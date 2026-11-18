@@ -1,5 +1,6 @@
 # License and Asset Notes
 
+- 本项目内置皮肤与官方样例中的插画、壁纸、场景图及相关美术资源，均由项目作者自行创作或使用生成工具独立生成，未直接复制其他项目美术资源（2026-11-18 作者确认）。
 - 本资料包内 Markdown、JSON、CSS 示例和原创 SVG / PNG 示意图为本次开发规划专用参考内容。
 - 未复制 `Small-tailqwq/dsh-deep-whale` 仓库的角色插画、皮肤截图或壁纸素材。其 README 将代码与美术资源分别授权；美术资源为 CC BY-NC-SA 4.0，禁止商业使用。
 - 未复制 `elysia395/dsh-wallpaper-engine` 的壁纸或其他美术资源。
