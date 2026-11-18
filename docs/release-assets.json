@@ -3,43 +3,43 @@
     "engine-svg": {
       "source": "src/client 下的项目原生 SVG",
       "author": "DSH Skin Engine 项目",
-      "authorization": "项目自有图形，仓库未单独标注对外许可",
+      "authorization": "项目自制图形；作者身份与原创来源已确认",
       "conversion": "构建将行尾归一化为 LF，再按内容哈希命名；无图像转码。"
     },
     "web-png": {
       "source": "官方 DSH Web 0.2.2-rc.1，Chrome 隔离空白会话",
       "author": "项目采集；DSH 界面及标志归相应权利人",
-      "authorization": "采集来源已登记；截图及标志的对外使用范围待确认",
+      "authorization": "项目自行采集的实际界面截图；其中 DSH 界面与标志仍归相应权利人",
       "conversion": "原始 PNG 直接随包复制。"
     },
     "web-webp": {
       "source": "官方 DSH Web 0.2.2-rc.1 隔离空白会话",
       "author": "项目采集；DSH 界面及标志归相应权利人",
-      "authorization": "采集来源已登记；截图及标志的对外使用范围待确认",
+      "authorization": "项目自行采集的实际界面截图；其中 DSH 界面与标志仍归相应权利人",
       "conversion": "1280×820 截图 PNG 转 WebP，保留尺寸；原编码工具版本及参数未核实。"
     },
     "scene-preview": {
       "source": "官方 DSH Web 0.2.2-rc.1 场景样例的标准动效实拍",
       "author": "项目采集；插画出处见对应插画条目，界面及标志归相应权利人",
-      "authorization": "截图、标志及插画各自的对外使用范围待确认",
+      "authorization": "场景插画由项目自行创作或生成；实拍截图中的 DSH 界面与标志仍归相应权利人",
       "conversion": "实拍缩至宽 640 像素后编码为 WebP；精确编码参数未核实。轻量视差直接复制夜航员场景预览。"
     },
     "imagegen": {
       "source": "内置 imagegen 生成，见 release-asset-notes.md 的夜航员与 v1.3 提示词",
       "author": "DSH Skin Engine 项目使用 imagegen 生成；续集三张以夜航员为人物参考",
-      "authorization": "生成方式已登记；生成原 PNG、原始生成记录及对外使用范围待确认",
+      "authorization": "项目作者使用生成工具独立创作，未直接复制其他项目美术资源；用于本项目皮肤与样例",
       "conversion": "生成 PNG 转 WebP，场景包复用 WebP；原编码工具版本及参数未核实。"
     },
     "user-attachment": {
-      "source": "用户提供的四张附件，顺序见 release-asset-notes.md v1.4",
-      "author": "由用户提供，原作者及生成方式待确认",
-      "authorization": "来源与原始字节已核对；权利人及再分发授权待确认",
+      "source": "项目作者独立创作或生成后提供的四张附件，顺序见 release-asset-notes.md v1.4",
+      "author": "项目作者自行创作或借助生成工具独立生成（2026-11-18 作者确认）",
+      "authorization": "项目作者确认原创且未直接复制外部美术资源；用于本项目皮肤与样例",
       "conversion": "PNG 按原尺寸及构图转 WebP，场景包复用 WebP；原编码工具版本及参数未核实。"
     },
     "character-preview": {
       "source": "官方 DSH Web 0.2.2-rc.1，在 1280×820 的隔离会话中应用对应样例后实拍",
       "author": "项目采集；原画见对应的素材条目，DSH 界面和标志归相应权利人",
-      "authorization": "采集来源已核对；截图和标志的对外使用范围待确认",
+      "authorization": "项目自行采集的场景截图；DSH 界面与标志仍归相应权利人",
       "conversion": "将实际 PNG 原样写入样例 ZIP，无裁切、缩放或转码。"
     }
   },
