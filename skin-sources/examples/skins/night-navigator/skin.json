@@ -13,7 +13,8 @@
   ],
   "author": "DSH Skin Engine",
   "version": "1.0.0",
-  "engineApi": "^1.0.0",
+  "engineApi": "^1.7.0",
+  "customizable": { "artwork": { "slot": "primary" } },
   "dshCompatibility": ">=0.2.0",
   "entry": {
     "tokens": "tokens.json",

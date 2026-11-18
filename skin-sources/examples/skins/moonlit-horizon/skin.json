@@ -6,7 +6,8 @@
   "author": "DSH Skin Engine",
   "description": "深靛色舷窗旁，月轮与云海地平线映着领航员制服的金边。",
   "version": "1.0.0",
-  "engineApi": "^1.0.0",
+  "engineApi": "^1.7.0",
+  "customizable": { "artwork": { "slot": "primary" } },
   "dshCompatibility": ">=0.2.0",
   "tags": [
     "dark",

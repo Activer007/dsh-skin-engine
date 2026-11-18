@@ -6,7 +6,8 @@
   "author": "DSH Skin Engine",
   "description": "梅红车厢里，窗外霓虹和雨滴映出领航员的侧脸。",
   "version": "1.0.0",
-  "engineApi": "^1.0.0",
+  "engineApi": "^1.7.0",
+  "customizable": { "artwork": { "slot": "primary" } },
   "dshCompatibility": ">=0.2.0",
   "tags": [
     "dark",

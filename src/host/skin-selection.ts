@@ -1,4 +1,4 @@
-import { portraitSkinIds } from '../shared/user-artwork.js'
+import { sameArtwork, supportsUserArtwork } from '../shared/user-artwork.js'
 import { readUserArtwork } from './user-artwork.js'
 import { createHash } from 'node:crypto'
 import { join } from 'node:path'
@@ -110,10 +110,13 @@ export function registerSelectionRoutes(
       }
       const id = change.skinId
       const previous = id ? preferencesFor(current.preferences, id) : undefined
+      const artwork = change.preferences?.artwork
       if (change.skinId && change.packageRevision) {
         const candidate = await registry.load(change.skinId, change.packageRevision, signal)
-        if (change.preferences?.artwork && candidate.source !== 'built-in') throw new PackageFileError('unsupported-artwork-skin', 400)
         if (candidate.source !== 'built-in' && !candidate.managed) throw new PackageFileError('skin-unavailable', 409)
+        if (artwork && !sameArtwork(artwork, previous?.artwork) && !supportsUserArtwork(candidate)) {
+          throw new PackageFileError('unsupported-artwork-skin', 400)
+        }
         if (editableEffects.some(id => {
           const next = change.preferences?.effects?.[id]
           const before = previous?.effects?.[id]
@@ -123,11 +126,7 @@ export function registerSelectionRoutes(
           throw new PackageFileError('undeclared-effect-preference', 400)
         }
       }
-      const artwork = change.preferences?.artwork
-      if (artwork) {
-        if (!id || !portraitSkinIds.includes(id)) throw new PackageFileError('unsupported-artwork-skin', 400)
-        if (artwork.asset !== previous?.artwork?.asset) await readUserArtwork(profileDirectory, artwork.asset, signal)
-      }
+      if (artwork && artwork.asset !== previous?.artwork?.asset) await readUserArtwork(profileDirectory, artwork.asset, signal)
       const preferencesChanged = change.preferences !== undefined && !samePreferences(previous, change.preferences)
       if (id === current.skinId && !preferencesChanged) return Response.json(current, { headers })
       if (current.revision === Number.MAX_SAFE_INTEGER) throw new PackageFileError('revision-exhausted', 409)

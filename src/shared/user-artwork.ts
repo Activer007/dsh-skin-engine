@@ -1,6 +1,16 @@
-/** Stage 1 deliberately supports only the existing static portrait presets. */
-export const portraitSkinIds = ['night-navigator', 'jade-archive',
+import type { SkinManifest } from '../core/manifest.js'
+
+const legacyPortraitSkinIds = ['night-navigator', 'jade-archive',
   'blue-arc', 'dawn-station', 'moonlit-horizon', 'crimson-rain'].map(id => `com.dsh.skin.${id}`)
+
+export function supportsUserArtwork({ manifest, source, managed }: {
+  manifest: Pick<SkinManifest, 'id' | 'customizable'>
+  source: 'built-in' | 'local'
+  managed?: boolean
+}): boolean {
+  if (source === 'built-in' && legacyPortraitSkinIds.includes(manifest.id)) return true
+  return (source === 'built-in' || managed === true) && manifest.customizable?.artwork.slot === 'primary'
+}
 export const USER_ARTWORK_PATH = 'api/dsh-skin-engine/user-artwork'
 export const USER_ARTWORK_IMAGE_PATH = USER_ARTWORK_PATH + '/image'
 export const USER_ARTWORK_LIBRARY_PATH = USER_ARTWORK_PATH + '/library'

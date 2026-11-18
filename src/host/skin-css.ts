@@ -66,5 +66,8 @@ export function validateSkinCss(source: string, manifest: SkinManifest) {
     }
     if (selector === root) publicRules.push(generate(rule))
   }
+  if (manifest.customizable?.artwork && !manifest.entry.scene && !art.path) {
+    throw new PackageFileError('missing-primary-artwork', 422)
+  }
   return { colors, art: art.path ? art : undefined, publicCss: publicRules.join('\n') }
 }

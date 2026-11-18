@@ -168,6 +168,7 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
     const dark = manifest.preview?.dark
     output.set('skin.json', jsonBytes({
       ...manifest, entry: includeAssets ? manifest.entry : entries,
+      customizable: includeAssets ? manifest.customizable : undefined,
       capabilities: !includeAssets && scene ? manifest.capabilities.filter(capability => capability !== 'scene') : manifest.capabilities,
       assets: manifest.assets?.filter(path => included.has(path)),
       preview: { light: light && included.has(light) ? light : undefined, dark: dark && included.has(dark) ? dark : undefined },

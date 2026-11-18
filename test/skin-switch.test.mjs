@@ -485,3 +485,30 @@ test('custom portrait keeps scene safety layout, updates same-skin artwork and f
   assert.equal(await controller.apply(id, { value: {}, revision: 3, packageRevision: 'a' }), true)
   assert.match(rendered.image.src, /original.png$/)
 })
+
+test('declared replacement scales scene breakpoints with user controls, including zero opacity', async t => {
+  const portrait = { ...choices[0], source: 'local', managed: true,
+    manifest: { ...choices[0].manifest, customizable: { artwork: { slot: 'primary' } } } }
+  const layout = { artwork: { scale: 1, opacity: 0.3 }, safeArea: { contentLeftFraction: 0.7 },
+    breakpoints: [{ maxWidth: 760, artworkScale: 0.75, opacity: 0.15 }] }
+  let rendered
+  class Image { removeAttribute() {} async decode() {} }
+  const { controller } = await switchFixture({
+    catalogue: () => [portrait],
+    globals: { Image, document: { baseURI: 'http://skin.test/' } },
+    prepare: choice => ({ ...dataFor(choice), source: choice.source, managed: true, scene: { layout }, sceneArtworkUrl: '/original.png' }),
+    onMount(_id, _data, _preferences, artwork) { rendered = artwork },
+  })
+  t.after(() => controller.dispose())
+  const artwork = { asset: `${'a'.repeat(64)}.png`, fit: 'contain', x: 50, y: 50, scale: 2, opacity: 0.4 }
+  const id = portrait.manifest.id
+  const draft = (revision, opacity) => ({ value: { artwork: { ...artwork, opacity } }, revision, packageRevision: portrait.revision })
+  assert.equal(await controller.apply(id, draft(0, 0.4)), true)
+  assert.equal(rendered.layout.breakpoints[0].maxWidth, 760)
+  assert.equal(rendered.layout.breakpoints[0].artworkScale, 1.5)
+  assert.equal(rendered.layout.breakpoints[0].opacity, 0.2)
+  assert.equal(rendered.layout.safeArea, layout.safeArea)
+  assert.equal(await controller.apply(id, draft(1, 0)), true)
+  assert.equal(rendered.layout.breakpoints[0].opacity, 0)
+  assert.equal(layout.breakpoints[0].opacity, 0.15)
+})
