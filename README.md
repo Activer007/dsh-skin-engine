@@ -12,6 +12,8 @@ https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
 **深海动效演示。** 前 3 秒展示「浮光深境 VI」的深海光束、上浮气泡和侧栏动效，随后是 Deep Ocean 的 2 倍速浮尘和原速液态折射。 [高清 MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
+「浮光深境 VI」1.2.0 是独立的 `.dshskin.zip`。随 v1.10.3 发布后，从 GitHub Releases 下载皮肤 ZIP，再在 **外观中心 → 皮肤库 → 导入 ZIP** 中导入。发布前也可从源码打包。 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [皮肤打包说明](skin-sources/examples/README.md)
+
 ## 找到适合你的外观
 
 **浏览响应快。** 搜索、筛选和收藏即时更新，静态缩略图随滚动按需加载。

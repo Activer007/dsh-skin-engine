@@ -12,6 +12,8 @@ https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
 **Underwater effects demo.** The first three seconds show Living Light VI with underwater light shafts, rising bubbles, and sidebar effects. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed. [HD MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
+Living Light VI 1.2.0 is a separate `.dshskin.zip` skin. When v1.10.3 is available, download the skin ZIP from GitHub Releases and import it under **Appearance Center → Skin gallery → Import ZIP**. You can also build it from source before release. [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Skin packaging guide (Chinese)](skin-sources/examples/README.md)
+
 ## Find a skin that suits you
 
 **Browse quickly.** Search, filters, and favorites update instantly. Static thumbnails load as you scroll.
