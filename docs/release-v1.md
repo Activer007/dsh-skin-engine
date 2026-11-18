@@ -1,5 +1,11 @@
 # DSH Skin Engine v1 安装与验收
 
+## v1.11.3 发行与兼容
+
+Engine API 仍为 **1.7.0**，最低支持 **DSH 0.2.2-rc.1**。安装前从发行页下载引擎和 `SHA256SUMS.txt` 并核对 SHA-256。皮肤 ZIP 在外观中心导入。 [下载 v1.11.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.3) · [安装与启用](#安装与启用)
+
+原地升级前完全退出目标 DSH，备份对应 Profile 的插件配置、皮肤包、`skin-engine-user-artwork/` 以及选择和偏好文件。需要回退时，使用校验过的 v1.11.0 安装包，必要时还原同一 Profile 的升级前快照。 [备份与回滚](#回滚) · [v1.11.0 下载](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.0)
+
 ## v1.11.0 个人图片与特效参数
 
 本版使用 **Engine API 1.7.0**，支持 **DSH 0.2.2-rc.1 或更新版本**。下载 `dsh-plugin-skin-engine-1.11.0.tgz` 和 `SHA256SUMS.txt`，校验后安装。升级前请退出 DSH 并备份配置。 [v1.11.0 下载](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.0) · [安装与启用](#安装与启用)
