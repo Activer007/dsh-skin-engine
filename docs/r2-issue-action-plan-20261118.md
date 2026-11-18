@@ -139,10 +139,10 @@
 ## 六、完成状态管理
 
 - [x] R2-DOC-01：原创声明、11 款内置及浮光深境 VI 的独立 ZIP 指引由 [PR #6](https://github.com/Activer007/dsh-skin-engine/pull/6) 合入 `e055fcd`。
-- [ ] R2-REL-01：尚未在本任务中生成新版 Release。
+- [x] R2-REL-01：候选 `b1abfc42a307ceb3038c14948e5370b1d334cda9` 及实测记录见 [PR #7](https://github.com/Activer007/dsh-skin-engine/pull/7)，已发布 [v1.10.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.10.3)。
 - [ ] R2-ART-01：尚未实现素材删除/列表接口。
 - [ ] R2-ART-02：尚未修改 Manifest 换图契约。
 - [ ] R2-FX-01：尚未整合特效参数。
-- [ ] R2-PERF-01：本任务尚未运行新版本真实宿主性能基线。
+- [x] R2-PERF-01：官方 DSH 0.2.2-rc.3 双端完成代表性配对、300 秒后台暂停恢复与清理。性能范围和原始结果位置见 [PR #7 验收记录](https://github.com/Activer007/dsh-skin-engine/pull/7)。
 
 历史 `docs/development-roadmap.md`、`docs/acceptance.md`、`docs/navigation-release-guide.md` 保留原候选和原验收记录；R2 新结果以明确候选和对应 PR 新增，不倒填历史台账。

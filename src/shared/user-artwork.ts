@@ -3,8 +3,18 @@ export const portraitSkinIds = ['night-navigator', 'jade-archive',
   'blue-arc', 'dawn-station', 'moonlit-horizon', 'crimson-rain'].map(id => `com.dsh.skin.${id}`)
 export const USER_ARTWORK_PATH = 'api/dsh-skin-engine/user-artwork'
 export const USER_ARTWORK_IMAGE_PATH = USER_ARTWORK_PATH + '/image'
+export const USER_ARTWORK_LIBRARY_PATH = USER_ARTWORK_PATH + '/library'
+export const USER_ARTWORK_REMOVE_PATH = USER_ARTWORK_PATH + '/remove'
 export const USER_ARTWORK_LIMIT = 5 * 1024 * 1024
+export const USER_ARTWORK_COUNT_LIMIT = 32
 export const artworkAssetPattern = /^[a-f0-9]{64}\.(png|jpg|webp)$/
+
+export interface UserArtworkLibrary {
+  count: number
+  bytes: number
+  limit: number
+  images: { asset: string; bytes: number; references: string[] }[]
+}
 export interface ArtworkPreference {
   asset: string
   fit: 'contain' | 'cover'

@@ -149,9 +149,9 @@ export function apply(ctx: HostContext): void {
     },
   })
   const register = (route: Route) => routes.register(route)
-  drainArtwork = registerUserArtworkRoutes(register, ctx.profileContext.dir, lifetime.signal)
   const registry = registerCatalogueRoutes(register, ctx.profileContext.dir, lifetime.signal)
   const transact = createSelectionStore(ctx.profileContext.dir, storage)
+  drainArtwork = registerUserArtworkRoutes(register, ctx.profileContext.dir, lifetime.signal, transact)
   drainSelection = registerSelectionRoutes(register, ctx.profileContext.dir, storage, registry, lifetime.signal, transact)
   drainPackages = registerPackageRoutes(register, ctx.profileContext.dir, registry, transact, lifetime.signal)
 }

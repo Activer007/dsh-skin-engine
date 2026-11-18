@@ -277,6 +277,29 @@
   background: var(--dsw-alias-bg-layer-2, Canvas);
 }
 [data-dsh-skin-workspace] .dsh-skin-user-artwork-preview img { display: block; width: 100%; height: 100%; }
+
+[data-dsh-skin-workspace] .dsh-skin-artwork-library-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: grid;
+  gap: 8px;
+}
+[data-dsh-skin-workspace] .dsh-skin-artwork-library-list > li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+[data-dsh-skin-workspace] .dsh-skin-artwork-library-list img {
+  width: 64px;
+  height: 48px;
+  object-fit: contain;
+  border: 1px solid var(--dsw-alias-border-default, currentColor);
+  border-radius: var(--dsw-radius-sm, 4px);
+}
+[data-dsh-skin-workspace] .dsh-skin-artwork-confirm { grid-column: 1 / -1; }
 [data-dsh-skin-workspace] .dsh-skin-disclosure[open] > summary { margin-block-end: 8px; }
 [data-dsh-skin-workspace] .dsh-skin-disclosure > :is(.dsh-skin-actions, .dsh-skin-muted) { margin-block-start: 8px; }
 [data-dsh-skin-workspace] .dsh-skin-utilities > details {

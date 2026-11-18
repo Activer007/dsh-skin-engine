@@ -11,6 +11,7 @@ import type { ChatPreview } from './chat-preview.js'
 import { SkinDetail } from './skin-detail.js'
 import { SkinPreviewImage } from './skin-preview-image.js'
 import { RestoreDefault } from './restore-default.js'
+import { ArtworkLibrary } from './artwork-library.js'
 import type { createSkinSwitch } from './skin-switch.js'
 
 declare const MANAGER_STYLES: string
@@ -311,6 +312,7 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
         </section>
         {managedChoice ? <PackageActions key={managedChoice.manifest.id} t={t} choice={managedChoice}
           displayName={displayName(managedChoice.manifest)} operations={operations} disabled={busy} /> : null}
+        {activePage === 'managePage' ? <ArtworkLibrary session={settingsSession} busy={busy || previewing} t={t} name={name} /> : null}
         <details className="dsh-skin-disclosure">
           <summary>{t('catalogueMaintenance')}
             {state.catalogue?.issues.length ? <> ({state.catalogue.issues.length})</> : null}

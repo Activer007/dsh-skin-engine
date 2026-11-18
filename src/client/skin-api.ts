@@ -2,6 +2,7 @@ import type { SkinManifest } from '../core/manifest.js'
 import type { parseSkinPackage } from '../core/skin-package.js'
 import type { ColorScheme } from '../core/tokens.js'
 import type { SkinPreferences } from '../shared/preferences.js'
+import { USER_ARTWORK_LIBRARY_PATH, USER_ARTWORK_REMOVE_PATH, type UserArtworkLibrary } from '../shared/user-artwork.js'
 import { APPLY_SKIN_PATH, EXPORT_SKIN_PATH, IMPORT_SKIN_PATH, REMOVE_SKIN_PATH, ROLLBACK_SKIN_PATH, SELECTION_PATH,
   SKINS_PATH, UPDATE_SKIN_PATH, UPLOAD_CHUNK_BYTES, ZIP_BYTES,
   type PackageTarget, type PackageVersionResult, type SkinArtwork, type SkinSelection } from '../shared/skins.js'
@@ -101,6 +102,10 @@ async function uploadSkin<T extends { skinId: string }>(file: File, signal: Abor
 }
 
 export const skinApi = {
+  artworkLibrary(signal: AbortSignal) { return request<UserArtworkLibrary>(USER_ARTWORK_LIBRARY_PATH, signal) },
+  removeArtwork(asset: string, signal: AbortSignal) {
+    return request<UserArtworkLibrary>(USER_ARTWORK_REMOVE_PATH, signal, { asset })
+  },
   catalogue(signal: AbortSignal, force = false) {
     return request<SkinCatalogue>(force ? `${SKINS_PATH}?refresh=1` : SKINS_PATH, signal)
   },

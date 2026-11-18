@@ -55,3 +55,17 @@ test('plugin dispose clear drops drafts and view once, without persisting prefer
   assert.equal(session.view.activePage, 'gallery')
   assert.equal(session.view.compatibleOnly, false)
 })
+
+test('a personal image used by any current-window draft is protected until the draft clears', () => {
+  const session = createAppearanceSession()
+  const asset = 'a'.repeat(64) + '.png'
+  session.setDraft('portrait', { revision: 1, packageRevision: 'p', value: {
+    artwork: { asset, fit: 'contain', x: 50, y: 50, scale: 1, opacity: .35 },
+  } })
+  session.select('other')
+  session.setView({ activePage: 'managePage' })
+  assert.equal(session.usesArtwork(asset), true)
+  assert.equal(session.usesArtwork('other.png'), false)
+  session.setDraft('portrait', undefined)
+  assert.equal(session.usesArtwork(asset), false)
+})
