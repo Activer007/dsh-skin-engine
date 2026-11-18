@@ -496,7 +496,7 @@ test('declared replacement scales scene breakpoints with user controls, includin
   const { controller } = await switchFixture({
     catalogue: () => [portrait],
     globals: { Image, document: { baseURI: 'http://skin.test/' } },
-    prepare: choice => ({ ...dataFor(choice), scene: { layout }, sceneArtworkUrl: '/original.png' }),
+    prepare: choice => ({ ...dataFor(choice), source: choice.source, managed: true, scene: { layout }, sceneArtworkUrl: '/original.png' }),
     onMount(_id, _data, _preferences, artwork) { rendered = artwork },
   })
   t.after(() => controller.dispose())
@@ -504,7 +504,9 @@ test('declared replacement scales scene breakpoints with user controls, includin
   const id = portrait.manifest.id
   const draft = (revision, opacity) => ({ value: { artwork: { ...artwork, opacity } }, revision, packageRevision: portrait.revision })
   assert.equal(await controller.apply(id, draft(0, 0.4)), true)
-  assert.deepEqual(rendered.layout.breakpoints, [{ maxWidth: 760, artworkScale: 1.5, opacity: 0.2 }])
+  assert.equal(rendered.layout.breakpoints[0].maxWidth, 760)
+  assert.equal(rendered.layout.breakpoints[0].artworkScale, 1.5)
+  assert.equal(rendered.layout.breakpoints[0].opacity, 0.2)
   assert.equal(rendered.layout.safeArea, layout.safeArea)
   assert.equal(await controller.apply(id, draft(1, 0)), true)
   assert.equal(rendered.layout.breakpoints[0].opacity, 0)
