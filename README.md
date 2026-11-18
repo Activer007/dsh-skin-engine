@@ -6,7 +6,7 @@
 
 从左侧打开「外观中心」，挑一款喜欢的皮肤。想要安静的写作背景、带极光的深色界面，或右侧带人物插画的工作空间，都可以先看看实际效果。
 
-[下载 v1.11.0](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.0) · [安装与升级](docs/release-v1.md#安装与启用) · [版本说明](docs/release-v1.md#v1110-个人图片与特效参数)
+[下载 v1.11.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.3) · [安装与升级](docs/release-v1.md#安装与启用) · [版本说明](docs/release-v1.md#v1113-发行与兼容)
 
 https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
