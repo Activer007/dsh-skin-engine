@@ -59,6 +59,9 @@ export function createAppearanceSession() {
       publish()
     },
     getDraft(id: string) { return drafts.get(id) },
+    usesArtwork(asset: string) {
+      return [...drafts.values()].some(draft => draft.value?.artwork?.asset === asset)
+    },
     setDraft(id: string, value: SettingsDraft | undefined) {
       if (value) drafts.set(id, value)
       else drafts.delete(id)
