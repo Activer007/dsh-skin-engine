@@ -1,6 +1,7 @@
 import { sameArtwork, type ArtworkPreference } from './user-artwork.js'
 import { AMBIENT_LIGHT_MAX_INTENSITY, type SkinEffect } from '../core/effects.js'
 import type { ColorScheme, parseSkinTokens } from '../core/tokens.js'
+import { describeEffect, expandEffectValue, normalizeEffectValue } from '../core/effect-descriptors.js'
 
 export const qualityLevels = ['low', 'balanced', 'high', 'auto'] as const
 export type QualityChoice = (typeof qualityLevels)[number]
@@ -34,8 +35,12 @@ export function sameEffectPreference(a?: EffectPreference, b?: EffectPreference)
 }
 
 export function effectStrength(effect: SkinEffect): number | undefined {
+  const strength = describeEffect(effect.id)?.strength
+  if (strength) {
+    const value = (effect.params as Record<string, unknown>)[strength.parameter]
+    return normalizeEffectValue(typeof value === 'number' ? value : strength.bounds[2], strength.bounds)
+  }
   switch (effect.id) {
-    case 'glass.liquid': return effect.params.blur / 24
     case 'ambient.aurora':
     case 'light.flow':
     case 'glass.holographic': return effect.params.intensity
@@ -44,7 +49,6 @@ export function effectStrength(effect: SkinEffect): number | undefined {
     case 'particles.dust':
     case 'particles.bubbles': return effect.params.density
     case 'particles.starfield': return effect.params.brightness
-    case 'interaction.ripple': return (effect.params.maxRadius - 80) / 140
     case 'glass.refraction': return effect.params.distortion
   }
 }
@@ -68,17 +72,24 @@ function overrideEffect(effect: SkinEffect, overrides: SkinPreferences['effects'
     return { ...next, params }
   }
   if (strength === undefined) return next
+  const descriptor = describeEffect(next.id)?.strength
+  if (descriptor) return setEffectParameters(next, {
+    [descriptor.parameter]: expandEffectValue(strength, descriptor.bounds),
+  })
   switch (next.id) {
-    case 'glass.liquid': return { ...next, params: { ...next.params, blur: strength * 24 } }
     case 'light.flow': return { ...next, params: { ...next.params, intensity: strength } }
     case 'particles.dust': return { ...next, params: { ...next.params, density: strength } }
     case 'particles.bubbles': return { ...next, params: { ...next.params, density: strength } }
-    case 'interaction.ripple': return { ...next, params: { ...next.params, maxRadius: 80 + strength * 140 } }
     case 'particles.starfield': return { ...next, params: { ...next.params, brightness: strength } }
     case 'glass.holographic': return { ...next, params: { ...next.params, intensity: strength } }
     case 'ambient.light': return { ...next, params: { ...next.params, intensity: strength * AMBIENT_LIGHT_MAX_INTENSITY } }
     case 'scene.brightness': return { ...next, params: { ...next.params, level: 0.5 + strength } }
+    default: return next
   }
+}
+
+function setEffectParameters<T extends SkinEffect>(effect: T, values: Record<string, number>): T {
+  return { ...effect, params: { ...effect.params, ...values } }
 }
 
 function hasEditableEffect(effect: SkinEffect): effect is Extract<SkinEffect, { id: EditableEffect }> {

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
+import { describeEffect } from '../core/effect-descriptors.js'
 import { effectStrength, qualityLevels, type EditableEffect, type QualityChoice, type EffectPreference } from '../shared/preferences.js'
 import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
 import type { ScenePreset } from './scene/presets.js'
@@ -113,7 +114,10 @@ export function SkinEffects({ t, choice, editor, displayName }: {
         {effects.length === 0 ? <p>{t('noDeclaredEffects')}</p> : null}
         {(Object.keys(effectGroups) as (keyof typeof effectGroups)[]).map(group => {
           const ids: readonly EditableEffect[] = effectGroups[group]
-          const declared = effects.filter(effect => (ids as readonly string[]).includes(effect.id))
+          const declared = effects.filter(effect => {
+            const descriptor = describeEffect(effect.id)
+            return descriptor ? descriptor.group === group : (ids as readonly string[]).includes(effect.id)
+          })
           if (!declared.length) return null
           return <fieldset key={group}>
             <legend>{t(group)}</legend>
@@ -133,9 +137,9 @@ export function SkinEffects({ t, choice, editor, displayName }: {
                 const name = artworkLight ? t('effect.artworkLight') : fixedStars ? t('effect.fixedStars') : t(`effect.${id}`)
                 const enabled = override?.enabled ?? (id !== 'glass.refraction' && effect.enabled)
                 const value = minimum + Math.round((override?.strength ?? strength) * span)
-                const measure = id === 'glass.liquid' ? 'blur' : id === 'particles.dust' || id === 'particles.bubbles' ? 'density'
+                const measure = describeEffect(id)?.strength.measure ?? (id === 'particles.dust' || id === 'particles.bubbles' ? 'density'
                   : id === 'particles.starfield' || artworkLight || id === 'scene.brightness' ? 'brightness'
-                  : id === 'glass.refraction' ? 'distortion' : id === 'interaction.ripple' ? 'radius' : 'intensity'
+                  : id === 'glass.refraction' ? 'distortion' : 'intensity')
                 const magnitude = t(measure) + ' ' + value + '%'
                 function update(change: EffectPreference) {
                   edit({ ...values, effects: { ...values.effects, [id]: { ...override, ...change } } })

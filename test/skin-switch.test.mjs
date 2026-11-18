@@ -125,6 +125,29 @@ test('environment light maps normalized draft values into renderer intensity wit
   assert.deepEqual(disk(), { skinId: 'a', revision: 0 })
 })
 
+test('glass and ripple preferences keep their native units across preview and save', async t => {
+  let rendered
+  const effects = [
+    { id: 'glass.liquid', enabled: true, renderer: 'css', params: { blur: 16 } },
+    { id: 'interaction.ripple', enabled: true, renderer: 'canvas2d', params: { maxRadius: 120 } },
+  ]
+  const { controller, disk } = await switchFixture({
+    initial: 'a',
+    prepare: choice => ({ ...dataFor(choice), effects }),
+    onMount(_id, data) { rendered = data.effects.map(effect => [effect.params.blur, effect.params.maxRadius]) },
+  })
+  t.after(() => controller.dispose())
+  const values = { effects: { 'glass.liquid': { strength: 0.5 }, 'interaction.ripple': { strength: 1 } } }
+  assert.deepEqual(rendered, [[16, undefined], [undefined, 120]])
+  await controller.preview('a', { value: values, revision: 0 })
+  assert.deepEqual(rendered, [[12, undefined], [undefined, 220]])
+  await controller.cancelPreview()
+  assert.deepEqual(rendered, [[16, undefined], [undefined, 120]])
+  assert.equal(await controller.apply('a', { value: values, revision: 0 }), true)
+  assert.deepEqual(disk().preferences.a, values)
+  assert.deepEqual(rendered, [[12, undefined], [undefined, 220]])
+})
+
 test('catalogue refresh preserves the mounted revision and adopts a real package update', async t => {
   let revision = 'a'
   let loads = 0

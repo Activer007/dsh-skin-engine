@@ -2,6 +2,7 @@ import * as z from 'zod/mini'
 import { hexColor } from './tokens.js'
 import { invalid, parseFile, type SkinDiagnostic } from './validation.js'
 import type { SkinManifest } from './manifest.js'
+import { effectDescriptors } from './effect-descriptors.js'
 
 export type EffectRenderer = 'css' | 'canvas2d' | 'webgl'
 export const AMBIENT_LIGHT_MAX_INTENSITY = 0.22
@@ -31,7 +32,7 @@ const sizeRange = z.tuple([particleSize, particleSize]).check(z.refine(
 
 export const effectDefinitions = {
   glass: defineEffect('glass.liquid', 'css', z.strictObject({
-    blur: number(0, 24, 16),
+    [effectDescriptors['glass.liquid'].strength.parameter]: number(...effectDescriptors['glass.liquid'].strength.bounds),
     tintAlpha: number(0.08, 0.30, 0.18),
     saturation: number(1, 1.5, 1.25),
     edgeLight: number(0, 1, 0.3),
@@ -69,7 +70,7 @@ export const effectDefinitions = {
   })),
   ripple: defineEffect('interaction.ripple', 'canvas2d', z.strictObject({
     durationMs: integer(300, 800, 450),
-    maxRadius: number(80, 220, 120),
+    [effectDescriptors['interaction.ripple'].strength.parameter]: number(...effectDescriptors['interaction.ripple'].strength.bounds),
     ringCount: integer(1, 3, 1),
     color: z._default(hexColor, '#6dc7ff'),
   })),
