@@ -1,5 +1,13 @@
 # DSH Skin Engine v1 安装与验收
 
+## v1.11.0 开发版
+
+`main` 源码版本为 **1.11.0**，使用 **Engine API 1.7.0**，支持 **DSH 0.2.2-rc.1 或更新版本**。当前正式安装包见 [v1.10.3 下载](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.10.3)。
+
+- **个人图片管理。** 在「外观中心 → 皮肤管理」查看图片容量、缩略图和保存引用，经确认后删除可移除的图片。 [PR #8](https://github.com/Activer007/dsh-skin-engine/pull/8)
+- **声明式人物换图。** 作者可在 Manifest 开启单张主图替换。旧 ZIP 和六款内置人物皮肤的已保存偏好继续可读。 [作者指南](user-artwork-stage1.md#为新皮肤开放单图替换) · [PR #9](https://github.com/Activer007/dsh-skin-engine/pull/9)
+- **统一特效参数。** 校验、偏好和设置控件共用描述，保留旧特效文件与已保存的范围、单位和数值。 [PR #10](https://github.com/Activer007/dsh-skin-engine/pull/10)
+
 ## v1.10.3 侧栏与深海动效
 
 - **动效可延伸到侧栏。** 在 DSH 的「设置 → 皮肤引擎 → 窗口特效」打开侧栏动态效果。已有会话的输入框底部与皮肤背景自然衔接。

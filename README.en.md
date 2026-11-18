@@ -6,7 +6,7 @@
 
 Open **Appearance Center** from the sidebar to find a quiet background for writing, a dark theme with drifting auroras, or a workspace with an illustrated character on the right.
 
-[Download releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用) · [1.10.3 release notes (Chinese)](docs/release-v1.md#v1103-侧栏与深海动效)
+[Download stable v1.10.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.10.3) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用) · [1.11.0 development on main (Chinese)](docs/release-v1.md#v1110-开发版)
 
 https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
