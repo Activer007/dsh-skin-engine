@@ -4,7 +4,8 @@
   "name": "浅色人物场景模板",
   "author": "DSH Skin Engine",
   "version": "1.0.0",
-  "engineApi": "^1.2.0",
+  "engineApi": "^1.7.0",
+  "customizable": { "artwork": { "slot": "primary" } },
   "dshCompatibility": ">=0.2.2-rc.1",
   "colorScheme": "light",
   "tags": [

@@ -108,6 +108,22 @@
         }
       }
     },
+    "customizable": {
+      "$comment": "The Host requires Engine API 1.7.0 or later, a package image, and a usable primary artwork slot.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artwork"],
+      "properties": {
+        "artwork": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["slot"],
+          "properties": {
+            "slot": { "const": "primary" }
+          }
+        }
+      }
+    },
     "capabilities": {
       "type": "array",
       "uniqueItems": true,

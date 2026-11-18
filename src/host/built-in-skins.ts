@@ -17,10 +17,8 @@ export async function readBuiltInSkins() {
     const location: PackageLocation = { anchor, segments: [directory], source: 'built-in' }
     const manifest = parseSkinManifest(parseJson(await readPackageFile(location, 'skin.json', MANIFEST_LIMIT, signal)))
     const { parsed, files } = await readSkinData(location, manifest, signal)
-    if (parsed.scene) {
-      validateSkinCss(utf8(files.css), manifest)
-      await validateSceneArtwork(location, parsed.scene, signal)
-    }
+    if (parsed.scene || manifest.customizable?.artwork) validateSkinCss(utf8(files.css), manifest)
+    if (parsed.scene) await validateSceneArtwork(location, parsed.scene, signal)
     return parsed
   }))
 }

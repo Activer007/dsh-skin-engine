@@ -6,7 +6,8 @@
   "author": "DSH Skin Engine",
   "description": "浅灰青底色，配青色版画笔触和立领亚麻衣。",
   "version": "1.0.0",
-  "engineApi": "^1.0.0",
+  "engineApi": "^1.7.0",
+  "customizable": { "artwork": { "slot": "primary" } },
   "dshCompatibility": ">=0.2.0",
   "tags": [
     "light",

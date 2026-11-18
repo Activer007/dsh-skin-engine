@@ -16,6 +16,27 @@
 
 在支持 R2-ART-01 的版本中，打开「外观中心 → 皮肤管理 → 个人图片」，查看当前 Profile 已存图片的数量、容量、缩略图和保存位置。要移除一张图片，点击「删除」并确认。已保存的皮肤仍在使用时，请先在人物详情恢复内置图片并应用。当前窗口的未保存草稿也会保护图片，其他窗口的未保存草稿可能在删除后失去图片。
 
+### 为新皮肤开放单图替换
+
+Engine API 1.7.0 新增可选的 `customizable.artwork` 声明。皮肤可将一张随包主图开放为替换入口，原有插画仍随 ZIP 交付。
+
+```json
+{
+  "engineApi": "^1.7.0",
+  "customizable": { "artwork": { "slot": "primary" } }
+}
+```
+
+主图使用 SceneSpec 的 `layout.artwork`，或使用旧式受控 CSS 的 `[data-dsh-skin-package-art]` 槽。两种方式都要求图片出现在 Manifest 的 `assets` 中。替换沿用原有场景的锚点、阅读留白和断点。用户偏好可以调整适应方式、焦点、缩放和透明度。双明暗变体共用用户选择的一张图。
+
+从源码打包下面的浅色模板后，在外观中心导入 ZIP，即可在详情的「自定义皮肤」中试用。
+
+```powershell
+npm run pack:skin -- skin-sources/examples/templates/portrait-light .cache/artwork-sample
+```
+
+旧 ZIP 可继续导入。旧人物皮肤的已保存偏好按原 ID 读取，包回滚时也会保留偏好。私人图片及其引用仍留在当前 Profile。 [浅色模板源码](../skin-sources/examples/templates/portrait-light/skin.json)
+
 ## 开发拆分
 
 1. 独立图片存储与读取，流式大小限制、类型/尺寸检查、哈希校验、路径与符号链接防护。

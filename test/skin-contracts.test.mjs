@@ -88,12 +88,29 @@ test('SceneSpec is opt-in and preserves the compatibility of API 1.0-only packag
   }
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.5.0' }), dshVersion), undefined)
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.6.0' }), dshVersion), undefined)
-  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.7.0' }), dshVersion).code, 'incompatible-engine')
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '1.6.0' }), dshVersion), undefined)
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.7.0' }), dshVersion), undefined)
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.8.0' }), dshVersion).code, 'incompatible-engine')
   reject(() => parseSkinManifest({ ...sceneManifest, capabilities: manifest.capabilities }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: manifest.entry }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: { ...manifest.entry, scene: '../scene.json' } }), 'skin.json', 'entry.scene')
   reject(() => parseSkinPackage({ ...sceneFiles, scene: undefined }), 'scene.json', '')
   reject(() => parseSkinPackage({ ...files, scene }), 'scene.json', '', 'undeclared-scene')
+})
+
+test('primary artwork customization is optional and requires one slot, a package image, and API 1.7', () => {
+  const customizable = { artwork: { slot: 'primary' } }
+  const declared = { ...sceneManifest, engineApi: '^1.7.0', customizable }
+  assert.deepEqual(parseSkinPackage({ ...sceneFiles, manifest: declared }).manifest.customizable, customizable)
+  assert.equal(parseSkinPackage(sceneFiles).manifest.customizable, undefined)
+  reject(() => parseSkinManifest({ ...declared, engineApi: '^1.6.0 || ^1.7.0' }),
+    'skin.json', 'engineApi', 'customizable-artwork-engine-api')
+  reject(() => parseSkinManifest({ ...declared, assets: ['assets/ui.woff2'] }),
+    'skin.json', 'customizable.artwork', 'missing-primary-artwork')
+  reject(() => parseSkinManifest({ ...declared, customizable: { artwork: { slot: 'secondary' } } }),
+    'skin.json', 'customizable.artwork.slot')
+  reject(() => parseSkinManifest({ ...declared, customizable: { artwork: [{ slot: 'primary' }] } }),
+    'skin.json', 'customizable.artwork')
 })
 
 test('dual appearance keeps the v1 base, gates variants on API 1.3, and validates both assets', () => {

@@ -14,6 +14,7 @@ async function fixture(t) {
   t.after(() => rm(profile, { recursive: true, force: true }))
   let selection = { skinId: null, revision: 0 }
   let beforeWrite
+  let localDeclaration = false
   const storage = {
     async open() {
       return {
@@ -35,7 +36,11 @@ async function fixture(t) {
     const transact = createSelectionStore(profile, storage)
     const drain = registerUserArtworkRoutes(register, profile, controller.signal, transact)
     const drainSelection = registerSelectionRoutes(register, profile, storage, {
-      async load() { return { source: 'built-in', effects: [] } },
+      async load(id) {
+        if (id === 'example.author-portrait') return { source: 'local', managed: true, effects: [],
+          manifest: { id, ...(localDeclaration && { customizable: { artwork: { slot: 'primary' } } }) } }
+        return { source: 'built-in', effects: [], manifest: { id } }
+      },
     }, controller.signal, transact)
     assert.equal(routes.get(path).requestBody, 'streaming')
     assert.equal(routes.get(path + '/image').requestBody, 'buffered')
@@ -48,13 +53,14 @@ async function fixture(t) {
       read: asset => routes.get(path + '/image').fetch(new Request(`http://localhost${path}/image?asset=${encodeURIComponent(asset)}`)),
       library: () => send(path + '/library'),
       remove: asset => send(path + '/remove', { asset }),
-      apply: (skinId, expectedRevision, asset) => send(selectionPath, {
+      apply: (skinId, expectedRevision, asset, quality) => send(selectionPath, {
         skinId, packageRevision: 'a'.repeat(64), expectedRevision,
-        preferences: asset ? { artwork: { asset, fit: 'contain', x: 50, y: 50, scale: 1, opacity: .35 } } : null,
+        preferences: asset ? { artwork: { asset, fit: 'contain', x: 50, y: 50, scale: 1, opacity: .35 }, quality } : null,
       }),
     }
   }
-  return { profile, host, beforeWrite(callback) { beforeWrite = callback } }
+  return { profile, host, beforeWrite(callback) { beforeWrite = callback },
+    declareArtwork(value) { localDeclaration = value } }
 }
 test('personal artwork persists across host recreation, deduplicates and is served safely', async t => {
   const { profile, host } = await fixture(t)
@@ -149,4 +155,18 @@ test('removal waits for an in-progress preference commit and protects the new re
   assert.equal((await saving).status, 200)
   assert.equal((await removing).status, 409)
   assert.equal((await api.read(asset)).status, 200)
+})
+
+test('managed packages need a declared slot to change their private artwork', async t => {
+  const store = await fixture(t)
+  const api = store.host()
+  const target = 'example.author-portrait'
+  const { asset } = await (await api.upload()).json()
+  assert.equal((await api.apply(target, 0, asset)).status, 400)
+  store.declareArtwork(true)
+  assert.equal((await api.apply(target, 0, asset)).status, 200)
+  store.declareArtwork(false)
+  // A downgraded package can still update unrelated preferences without dropping the saved artwork.
+  assert.equal((await api.apply(target, 1, asset, 'low')).status, 200)
+  assert.equal((await api.remove(asset)).status, 409)
 })

@@ -6,7 +6,8 @@
   "author": "DSH Skin Engine",
   "description": "银灰舱内的领航员穿着浅色制服，金色晨光照亮窗外的轨道站。",
   "version": "1.0.0",
-  "engineApi": "^1.0.0",
+  "engineApi": "^1.7.0",
+  "customizable": { "artwork": { "slot": "primary" } },
   "dshCompatibility": ">=0.2.0",
   "tags": [
     "light",

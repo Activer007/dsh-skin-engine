@@ -1,4 +1,5 @@
 import { ArtworkEditor } from './artwork-editor.js'
+import { supportsUserArtwork } from '../shared/user-artwork.js'
 import { useState } from 'react'
 import type { ColorScheme } from '../core/tokens.js'
 import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
@@ -64,7 +65,7 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
       {result?.data ? (
         <details className="dsh-skin-disclosure" data-skin-customization>
           <summary>{t('customize')}</summary>
-          {artworkEditorVisible && choice.source === 'built-in' ? <ArtworkEditor id={manifest.id} editor={editor} t={t} /> : null}
+          {artworkEditorVisible && supportsUserArtwork(choice) ? <ArtworkEditor id={manifest.id} editor={editor} t={t} /> : null}
           <fieldset disabled={disabled || packageChanged}>
             <legend>{t('preferences')}</legend>
             <div className="dsh-skin-fields">

@@ -9,7 +9,9 @@ const SCENE_PRESET_API_VERSION = '1.2.0'
 export const DUAL_APPEARANCE_API_VERSION = '1.3.0'
 export const ARTWORK_MOTION_API_VERSION = '1.4.0'
 const ARTWORK_LIGHT_API_VERSION = '1.5.0'
-export const ENGINE_API_VERSION = '1.6.0'
+const EFFECT_TUNING_API_VERSION = '1.6.0'
+export const ENGINE_API_VERSION = '1.7.0'
+const PRIMARY_ARTWORK_API_VERSION = '1.7.0'
 
 const capabilities = ['tokens', 'css', 'assets', 'effects:css', 'effects:canvas2d', 'effects:webgl', 'scene'] as const
 const segment = /^[a-z0-9_-][a-z0-9_.-]*$/i
@@ -55,6 +57,7 @@ const manifestSchema = z.strictObject({
     scene: z.optional(z.literal('scene.json')),
   }),
   preview: z.optional(z.strictObject({ light: z.optional(previewPath), dark: z.optional(previewPath) })),
+  customizable: z.optional(z.strictObject({ artwork: z.strictObject({ slot: z.literal('primary') }) })),
   capabilities: z.array(z.enum(capabilities)).check(z.maxLength(capabilities.length)),
   assets: z.optional(z.array(z.string().check(z.maxLength(180), z.refine(
     value => resourcePath(value, 'assets'),
@@ -81,6 +84,15 @@ export function parseSkinManifest(value: unknown): SkinManifest {
   if ((assets.length > 0 || light || dark) && !manifest.capabilities.includes('assets')) {
     invalid('skin.json', 'capabilities', 'missing-capability', 'Resources require the assets capability')
   }
+  if (manifest.customizable?.artwork) {
+    const minimum = minVersion(manifest.engineApi)
+    if (!minimum || !gte(minimum, PRIMARY_ARTWORK_API_VERSION)) {
+      invalid('skin.json', 'engineApi', 'customizable-artwork-engine-api', `Replaceable artwork requires Engine API ${PRIMARY_ARTWORK_API_VERSION} or later`)
+    }
+    if (!assets.some(isPackageImage)) {
+      invalid('skin.json', 'customizable.artwork', 'missing-primary-artwork', 'Replaceable artwork requires a declared package image')
+    }
+  }
   if (Boolean(manifest.entry.scene) !== manifest.capabilities.includes('scene')) {
     invalid('skin.json', 'capabilities', 'scene-capability-mismatch', 'entry.scene and the scene capability must be declared together')
   }
@@ -104,6 +116,7 @@ export function checkSkinCompatibility(manifest: SkinManifest, dshVersion: strin
     }
   }
   const compatible = satisfies(ENGINE_API_VERSION, manifest.engineApi)
+    || satisfies(EFFECT_TUNING_API_VERSION, manifest.engineApi)
     || satisfies(ARTWORK_LIGHT_API_VERSION, manifest.engineApi)
     || satisfies(ARTWORK_MOTION_API_VERSION, manifest.engineApi)
     || satisfies(DUAL_APPEARANCE_API_VERSION, manifest.engineApi)

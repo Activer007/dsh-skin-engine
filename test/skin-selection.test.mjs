@@ -48,7 +48,7 @@ async function storageFixture(t, initial = { skinId: null, revision: 0 }) {
         signal.throwIfAborted()
         const effects = [{ id: 'particles.dust' }]
         if (id === 'ambient') effects.push({ id: 'ambient.light' })
-        return { source: id === 'local' ? 'local' : 'built-in', effects }
+        return { manifest: { id }, source: id === 'local' ? 'local' : 'built-in', effects }
       },
     }, controller.signal)
     t.after(async () => { controller.abort(); await drain() })

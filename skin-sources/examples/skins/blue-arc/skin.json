@@ -6,7 +6,8 @@
   "author": "DSH Skin Engine",
   "description": "冷蓝舷窗旁的领航员，窗外是行星的蓝色弧光。",
   "version": "1.0.0",
-  "engineApi": "^1.0.0",
+  "engineApi": "^1.7.0",
+  "customizable": { "artwork": { "slot": "primary" } },
   "dshCompatibility": ">=0.2.0",
   "tags": [
     "dark",

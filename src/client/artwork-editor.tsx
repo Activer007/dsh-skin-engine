@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { artworkAssetPattern, artworkDefaults, artworkUrl, portraitSkinIds, USER_ARTWORK_LIMIT, USER_ARTWORK_PATH } from '../shared/user-artwork.js'
+import { artworkAssetPattern, artworkDefaults, artworkUrl, USER_ARTWORK_LIMIT, USER_ARTWORK_PATH } from '../shared/user-artwork.js'
 import { samePreferences } from '../shared/preferences.js'
 import type { SkinEditor } from './skin-editor.js'
 import type { TranslateSettings } from './settings-copy.js'
@@ -15,7 +15,6 @@ export function ArtworkEditor({ id, editor, t }: { id: string; editor: SkinEdito
   latest.current = editor
   const operation = useRef<AbortController | undefined>(undefined)
   useLayoutEffect(() => () => { operation.current?.abort() }, [id])
-  if (!portraitSkinIds.includes(id)) return null
   const current = editor.values.artwork
   async function choose(file: File | undefined) {
     if (!file) return
