@@ -3,9 +3,9 @@
   "cliVersion": "0.2.2-rc.5",
   "artifact": {
     "version": "1.12.0-beta.1",
-    "sha256": "fbb22a9ba3169878d17981ff9281f76572516732d901265e2c854c0985f0a670",
+    "sha256": "a71df13f1687835ba3962cc4b3b72e85bfe03c3e57303c03296f05c22b0f94b9",
     "hostSha256": "7012265056e746a84f3e6a0f46124b250f3cd3826b0d26d3a06b861a78ea8c82",
-    "clientSha256": "9c73d4fa0c642ac80d798c964874232dac36f56179c173d561573f402020f30a"
+    "clientSha256": "bcf9236051f75a17fd9c9a244ed46ae0e178d7a05e36ecaddc05f6e8d8d4a819"
   },
   "steps": {
     "reduced": "Showing · Deep Ocean V2\n\nEffects in this window · Dynamic · Effective quality · balanced\n\nEffect renderers · CSS + Canvas 2D\n\nThe system’s reduced motion setting limits animations.",

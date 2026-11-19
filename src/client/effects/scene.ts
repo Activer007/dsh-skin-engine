@@ -122,9 +122,32 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     queueMicrotask(() => { reconcileQueued = false; reconcile() })
   }
 
+  let sharedCanvasVisible = false
+  function publishDiagnostic() {
+    if (disposed || !layout) return
+    const reason = mode === 'off' ? 'windowEffectsOff'
+      : document.visibilityState !== 'visible' ? 'backgroundReason'
+        : !layout.canvas && !artworkVisible ? 'surfaceReason'
+          : reducedMotion.matches ? 'reducedMotionReason'
+            : mode === 'static' ? 'staticReason' : mode === 'economy' ? 'economyReason'
+              : layout.quality === 'low' ? 'lowQualityReason'
+                : transparency.matches ? 'transparencyReason' : undefined
+    report?.({
+      css: document.visibilityState === 'visible' && mode !== 'off' && (artworkVisible
+        || !!(glassLayer && !glassLayer.node.hidden) || providers.some(provider => provider.layerRenderer === 'css')),
+      canvas2d: visible && (providers.some(provider => provider.layerRenderer === 'canvas2d')
+        || sharedCanvasVisible),
+      reason, failure,
+    })
+  }
+
   function syncCanvas() {
-    canvas?.configure(effectQuality[layout.quality], visible && providers.some(provider => provider.drawsCanvas()),
-      dynamic && providers.some(provider => provider.animatesCanvas()))
+    const show = !!canvas && visible && providers.some(provider => provider.drawsCanvas())
+    canvas?.configure(effectQuality[layout.quality], show, dynamic && providers.some(provider => provider.animatesCanvas()))
+    if (sharedCanvasVisible !== show) {
+      sharedCanvasVisible = show
+      publishDiagnostic()
+    }
   }
 
   function updateCssPlayback() {
@@ -165,20 +188,7 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     const redraw = providers.map(provider => provider.update(state)).some(Boolean)
     art?.configureMotion?.(p1Motion && preset !== 'static' ? conversationSurface : undefined, preset === 'dynamic')
     syncCanvas()
-    const reason = mode === 'off' ? 'windowEffectsOff'
-      : document.visibilityState !== 'visible' ? 'backgroundReason'
-        : !layout.canvas && !artworkVisible ? 'surfaceReason'
-          : reducedMotion.matches ? 'reducedMotionReason'
-            : mode === 'static' ? 'staticReason' : mode === 'economy' ? 'economyReason'
-              : layout.quality === 'low' ? 'lowQualityReason'
-                : transparency.matches ? 'transparencyReason' : undefined
-    report?.({
-      css: document.visibilityState === 'visible' && mode !== 'off' && (artworkVisible
-        || !!(glassLayer && !glassLayer.node.hidden) || providers.some(provider => provider.layerRenderer === 'css')),
-      canvas2d: visible && (providers.some(provider => provider.layerRenderer === 'canvas2d')
-        || !!canvas && providers.some(provider => provider.drawsCanvas())),
-      reason, failure,
-    })
+    publishDiagnostic()
     if (wasVisible && visible && (wasMotion !== p1Motion || redraw)) canvas?.redraw()
   }
 
