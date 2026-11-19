@@ -38,6 +38,7 @@ const sizeRange = z.tuple([particleSize, particleSize]).check(z.refine(
   ([min, max]) => min <= max, 'Expected sizes in ascending order',
 ))
 const auroraControls = effectDescriptors['ambient.aurora'].secondary.controls
+const ocean = effectDescriptors['ambient.ocean-lightfield']
 const curtain = effectDescriptors['ambient.aurora-curtain']
 
 export const effectDefinitions = {
@@ -55,6 +56,13 @@ export const effectDefinitions = {
     blur: number(0, 96, 48),
     direction: number(0, 360, 35),
     [auroraControls.movement.parameter]: optionalNumber(auroraControls.movement.bounds),
+  })),
+  oceanLightfield: defineEffect('ambient.ocean-lightfield', 'canvas2d', z.strictObject({
+    intensity: number(...ocean.strength.bounds),
+    beamLength: number(...ocean.secondary.controls.length.bounds),
+    drift: number(...ocean.secondary.controls.movement.bounds),
+    scatter: number(0.1, 0.8, 0.42),
+    beamCount: integer(2, 5, 4),
   })),
   auroraCurtain: defineEffect('ambient.aurora-curtain', 'css', z.strictObject({
     [curtain.strength.parameter]: number(...curtain.strength.bounds),

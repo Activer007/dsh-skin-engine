@@ -1,6 +1,6 @@
 import { gte, minVersion } from 'semver'
 import { parseSkinEffects } from './effects.js'
-import { AURORA_CURTAIN_API_VERSION, DUAL_APPEARANCE_API_VERSION, parseSkinManifest } from './manifest.js'
+import { AURORA_CURTAIN_API_VERSION, DUAL_APPEARANCE_API_VERSION, OCEAN_LIGHTFIELD_API_VERSION, parseSkinManifest } from './manifest.js'
 import { parseScene } from './scene.js'
 import { parseSkinTokens } from './tokens.js'
 import { invalid } from './validation.js'
@@ -14,6 +14,12 @@ export function parseSkinPackage(files: { manifest: unknown; tokens: unknown; ef
   }
   const tokens = parseSkinTokens(files.tokens)
   const effects = parseSkinEffects(files.effects, manifest.capabilities)
+  if (effects.effects.some(effect => effect.id === 'ambient.ocean-lightfield')) {
+    const minimum = minVersion(manifest.engineApi)
+    if (!minimum || !gte(minimum, OCEAN_LIGHTFIELD_API_VERSION)) {
+      invalid('skin.json', 'engineApi', 'ocean-lightfield-engine-api', 'Ocean lightfield requires Engine API 1.9.0 or later')
+    }
+  }
   if (effects.effects.some(effect => effect.id === 'ambient.aurora-curtain')) {
     const minimum = minVersion(manifest.engineApi)
     if (!minimum || !gte(minimum, AURORA_CURTAIN_API_VERSION)) {

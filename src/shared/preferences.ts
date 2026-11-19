@@ -11,7 +11,7 @@ export type QualityChoice = (typeof qualityLevels)[number]
 export type Quality = Exclude<QualityChoice, 'auto'>
 
 export const editableColors = ['canvas', 'surface', 'accent'] as const
-export interface EffectPreference { enabled?: boolean; strength?: number; speed?: number; movement?: number }
+export interface EffectPreference { enabled?: boolean; strength?: number; speed?: number; movement?: number; length?: number }
 
 export interface SkinPreferences {
   artwork?: ArtworkPreference
@@ -43,7 +43,7 @@ export function defaultComposerTransparency(skinId: string) {
 }
 
 export function sameEffectPreference(a?: EffectPreference, b?: EffectPreference) {
-  return a?.enabled === b?.enabled && a?.strength === b?.strength && a?.speed === b?.speed && a?.movement === b?.movement
+  return a?.enabled === b?.enabled && a?.strength === b?.strength && a?.speed === b?.speed && a?.movement === b?.movement && a?.length === b?.length
 }
 
 function readEffectNumber(effect: SkinEffect, parameter: string, fallback: number) {
