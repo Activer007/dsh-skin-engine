@@ -1,3 +1,4 @@
+import { packageLabel } from './skin-package-label.js'
 import { orderGallery, type GalleryPreferenceStore, type GallerySort } from './gallery-preferences.js'
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { ImportSkin, PackageActions, PackageOperationStatus } from './package-controls.js'
@@ -225,7 +226,7 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
               const status = item.compatibility ? 'incompatible'
                 : state.preview === manifest.id ? 'previewing'
                   : state.saved?.skinId === manifest.id ? (state.rendered === manifest.id ? 'applied' : 'saved')
-                    : item.managed ? 'installed' : item.source === 'local' ? 'local' : 'builtin'
+                    : undefined
               return (
                 <li key={manifest.id}>
                   <button ref={choice === item ? card : undefined} type="button" data-skin-card={manifest.id}
@@ -239,7 +240,8 @@ export function SkinWorkspace({ galleryPreferences, controller, getColorScheme, 
                       placeholder={placeholder} />
                     <span className="dsh-skin-card-caption">
                       <strong>{displayName(manifest)}</strong>
-                      <small className="dsh-skin-badge" data-status={status}>{t(status)}</small>
+                      <small className="dsh-skin-muted">{packageLabel(item, t)} · v{manifest.version}</small>
+                      {status ? <small className="dsh-skin-badge" data-status={status}>{t(status)}</small> : null}
                     </span>
                   </button>
                   <button type="button" className="dsh-skin-favorite" data-skin-favorite={manifest.id}

@@ -1,3 +1,4 @@
+import { packageLabel } from './skin-package-label.js'
 import { ArtworkEditor } from './artwork-editor.js'
 import { supportsUserArtwork } from '../shared/user-artwork.js'
 import { useState } from 'react'
@@ -54,6 +55,7 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
       </div>
       <header>
         <h3>{displayName}</h3>
+        <p className="dsh-skin-muted">{packageLabel(choice, t)} · {t('skinVersion', { version: manifest.version })} · {t('requiresEngineApi', { range: manifest.engineApi })}</p>
         {manifest.description ? <p>{manifest.description}</p> : null}
       </header>
       <div className="dsh-skin-primary-actions"><SkinEditorActions t={t} editor={editor} appearance={appearance} canDiscard /></div>
@@ -103,8 +105,8 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
       </div>
       <details className="dsh-skin-disclosure" data-skin-technical>
         <summary>{t('packageInformation')}</summary>
-        <p className="dsh-skin-muted">{t('skinVersion', { version: manifest.version })} · {manifest.author ?? t('unknownAuthor')} · {t('appearance', { scheme: appearance })} · {t(choice.source === 'built-in' ? 'builtin' : 'local')}</p>
-        <p className="dsh-skin-muted">{t('engineApi')} {manifest.engineApi}{manifest.dshCompatibility ? ` · DSH ${manifest.dshCompatibility}` : ''}</p>
+        <p className="dsh-skin-muted">{manifest.author ?? t('unknownAuthor')} · {t('appearance', { scheme: appearance })}</p>
+        {manifest.dshCompatibility ? <p className="dsh-skin-muted">DSH {manifest.dshCompatibility}</p> : null}
         <div className="dsh-skin-actions">
           <button type="button" onClick={onOpenManagement}>{t('openManagement')}</button>
         </div>
