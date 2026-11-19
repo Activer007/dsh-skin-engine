@@ -2,16 +2,16 @@
   "schema": "dsh.effects/v1",
   "effects": [
     {
-      "id": "ambient.aurora",
+      "id": "ambient.aurora-curtain",
       "enabled": true,
       "renderer": "css",
       "params": {
-        "palette": "aurora",
-        "speed": 0.24,
-        "intensity": 0.23,
-        "movement": 0.28,
-        "blur": 64,
-        "direction": 14
+        "intensity": 0.78,
+        "flowSpeed": 0.24,
+        "foldAmplitude": 0.52,
+        "curtainWidth": 0.9,
+        "depth": 0.58,
+        "glow": 0.52
       }
     },
     {

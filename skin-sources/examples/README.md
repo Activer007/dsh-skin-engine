@@ -10,7 +10,7 @@
 | 作者起步模板 | [`templates/starter`](templates/starter/) | 复制并修改后运行 `npm run pack:skin -- <源码目录> <输出目录>` |
 | 深海动效 ZIP 样例 | [浮光深境 VI](skins/living-light/) | `npm run pack:skin -- skin-sources/examples/skins/living-light <输出目录>` |
 | 深海动效 Alpha ZIP | [Deep Ocean V2](skins/deep-ocean-v2/) | [打包与同场景实拍](../../docs/deep-ocean-v2-alpha.md) |
-| 极光动效 Alpha ZIP | [Aurora V2](skins/aurora-v2/) | [打包与同场景实拍](../../docs/aurora-v2-alpha.md) |
+| 极光光幕 ZIP | [Aurora V2](skins/aurora-v2/) | [打包与同场景实拍](../../docs/aurora-v2-curtain.md) |
 | 人物场景作者模板 | [浅色](templates/portrait-light/)、[深色](templates/portrait-dark/)、[双明暗](templates/portrait-dual/) | [复制、打包和导入](../../docs/character-author-templates.md) |
 | 独立人物 ZIP | [青笺阅览室](characters/jade-reading-room/)、[末班车札记](characters/last-train-study/)、[晨昏观测](characters/twilight-shift/) | `npm run pack:skin -- <源码目录> <输出目录>` |
 

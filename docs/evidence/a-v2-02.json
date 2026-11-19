@@ -1,0 +1,131 @@
+{
+  "baseCommit": "41a132909ec2eafbeeb4b8bb4708dca375332e66",
+  "candidateCommit": "5d2d4cef826a8dde6ba69d551443f9e28a230242",
+  "hostVersion": "0.2.2-rc.5",
+  "artifact": {
+    "version": "1.12.0",
+    "sha256": "c86a1e8bd96a54d8ce199bfe43beaf93dadb4db3cc6e0b6499e6dbb507bae4bb",
+    "hostSha256": "022ea2bf8987bc6a1d05fe5ba596e3ce643ffa9eb804763a2c5b7cc7c2c87ac2",
+    "clientSha256": "0d70e6e6d2a6f80cf058ea40737dbd2d757b79a36f48f1adafcf5fdf1bb058cf"
+  },
+  "zip": {
+    "id": "com.dsh.skin.aurora-v2",
+    "version": "0.2.0",
+    "sha256": "407c79693780557c5a2de90b041e338b6e877fe5269f7d321593aa8446a81108"
+  },
+  "platforms": [
+    {
+      "platform": "desktop",
+      "installedArtifactVerified": true,
+      "viewport": {
+        "width": 1280,
+        "height": 860,
+        "dpr": 1
+      },
+      "steps": {
+        "thumbnail": {
+          "width": 640,
+          "height": 430
+        },
+        "original": true,
+        "narrow": 760,
+        "staticFallbacks": [
+          "low",
+          "static",
+          "reduced-motion"
+        ],
+        "controls": {
+          "speed": 0.25,
+          "foldAmplitude": 0.51,
+          "zeroHidesCurtainKeepsStars": true
+        },
+        "switchBack": true
+      },
+      "frames": [
+        {
+          "name": "aurora-v2-phase-1",
+          "ms": 203,
+          "width": 392,
+          "height": 156,
+          "pixels": "1aa85b98e091e1406e53a3470ff4e74bcac84d453ae5372edce05f226802177d"
+        },
+        {
+          "name": "aurora-v2-phase-2",
+          "ms": 2796,
+          "width": 392,
+          "height": 156,
+          "pixels": "07418d155d49aeef72b3822feed95db3024172f4900f5845825500c3f5a79cdc"
+        },
+        {
+          "name": "aurora-v2-phase-3",
+          "ms": 5390,
+          "width": 392,
+          "height": 156,
+          "pixels": "32a6a2fb68f0f1dd71a0fb4b8494455a548cf074e095cc8336a9d2deda8ba582"
+        }
+      ],
+      "pageErrors": [],
+      "closed": true,
+      "passed": true
+    },
+    {
+      "platform": "web",
+      "installedArtifactVerified": true,
+      "viewport": {
+        "width": 1280,
+        "height": 860,
+        "dpr": 2
+      },
+      "steps": {
+        "upgradedAlphaWithPreferences": {
+          "inheritedDisabled": true,
+          "inheritedStrength": 0.24,
+          "reenabled": true,
+          "retainedRollbackSetting": true
+        },
+        "thumbnail": {
+          "width": 640,
+          "height": 430
+        },
+        "original": true,
+        "staticFallbacks": [
+          "low",
+          "static",
+          "reduced-motion"
+        ],
+        "controls": {
+          "speed": 0.25,
+          "foldAmplitude": 0.51,
+          "zeroHidesCurtainKeepsStars": true
+        },
+        "switchBack": true
+      },
+      "frames": [
+        {
+          "name": "aurora-v2-phase-1",
+          "ms": 98,
+          "width": 392,
+          "height": 156,
+          "pixels": "1aa85b98e091e1406e53a3470ff4e74bcac84d453ae5372edce05f226802177d"
+        },
+        {
+          "name": "aurora-v2-phase-2",
+          "ms": 2598,
+          "width": 392,
+          "height": 156,
+          "pixels": "3e09c6c592bd05aecd7daef4fac743aac48d5f2f8d64339bc2fee7a7f99b4811"
+        },
+        {
+          "name": "aurora-v2-phase-3",
+          "ms": 5090,
+          "width": 392,
+          "height": 156,
+          "pixels": "e525d5c096296d6edfe9bd813217fd8611f675a23f74f07f59cafa35fac9e0bf"
+        }
+      ],
+      "pageErrors": [],
+      "closed": true,
+      "passed": true
+    }
+  ]
+}

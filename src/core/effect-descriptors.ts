@@ -6,7 +6,7 @@ export type SecondaryEffectPreference = 'movement' | 'speed'
 export interface SecondaryEffectControl {
   parameter: string
   bounds: Bounds
-  label: `aurora.${SecondaryEffectPreference}`
+  label: `${'aurora' | 'curtain'}.${SecondaryEffectPreference}`
 }
 
 interface EffectDescriptor {
@@ -50,6 +50,17 @@ export const effectDescriptors = {
       controls: {
         movement: { parameter: 'movement', bounds: [0, 1, 0], label: 'aurora.movement' },
         speed: { parameter: 'speed', bounds: [0.1, 1, 0.25], label: 'aurora.speed' },
+      },
+    },
+  },
+  'ambient.aurora-curtain': {
+    group: 'group.environment',
+    strength: { parameter: 'intensity', bounds: [0, 1, 0.65], measure: 'intensity' },
+    secondary: {
+      whenDefined: 'foldAmplitude',
+      controls: {
+        movement: { parameter: 'foldAmplitude', bounds: [0, 1, 0.45], label: 'curtain.movement' },
+        speed: { parameter: 'flowSpeed', bounds: [0.1, 1, 0.24], label: 'curtain.speed' },
       },
     },
   },

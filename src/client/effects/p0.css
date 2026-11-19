@@ -185,6 +185,28 @@ html[data-dsh-skin-id] [data-dsh-skin-effect-surface="glass-content"] {
   opacity: calc(var(--dsh-aurora-intensity) * 0.68);
 }
 
+[data-dsh-skin-effect-layer="aurora-curtain"] {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+[data-dsh-skin-effect-layer="aurora-curtain"] > canvas {
+  display: block;
+  width: 100%;
+  height: 49%;
+}
+
+[data-dsh-skin-effect-layer="aurora-curtain"][data-dsh-skin-curtain-fallback] {
+  background:
+    radial-gradient(ellipse 55% 28% at 68% 17%, #5e86db4d, transparent),
+    radial-gradient(ellipse 68% 29% at 46% 28%, #50dcb25c, transparent);
+}
+
+@media (forced-colors: active) {
+  [data-dsh-skin-effect-layer="aurora-curtain"] { display: none; }
+}
+
 [data-dsh-skin-effect-layer="flow"] {
   position: absolute;
   inset: var(--dsh-flow-y) auto auto -6%;

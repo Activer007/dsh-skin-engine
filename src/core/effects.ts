@@ -38,6 +38,7 @@ const sizeRange = z.tuple([particleSize, particleSize]).check(z.refine(
   ([min, max]) => min <= max, 'Expected sizes in ascending order',
 ))
 const auroraControls = effectDescriptors['ambient.aurora'].secondary.controls
+const curtain = effectDescriptors['ambient.aurora-curtain']
 
 export const effectDefinitions = {
   glass: defineEffect('glass.liquid', 'css', z.strictObject({
@@ -54,6 +55,14 @@ export const effectDefinitions = {
     blur: number(0, 96, 48),
     direction: number(0, 360, 35),
     [auroraControls.movement.parameter]: optionalNumber(auroraControls.movement.bounds),
+  })),
+  auroraCurtain: defineEffect('ambient.aurora-curtain', 'css', z.strictObject({
+    [curtain.strength.parameter]: number(...curtain.strength.bounds),
+    [curtain.secondary.controls.speed.parameter]: number(...curtain.secondary.controls.speed.bounds),
+    [curtain.secondary.controls.movement.parameter]: number(...curtain.secondary.controls.movement.bounds),
+    curtainWidth: number(0.2, 1, 0.86),
+    depth: number(0, 1, 0.45),
+    glow: number(0, 1, 0.48),
   })),
   dust: defineEffect('particles.dust', 'canvas2d', z.strictObject({
     [effectDescriptors['particles.dust'].strength.parameter]: number(...effectDescriptors['particles.dust'].strength.bounds),

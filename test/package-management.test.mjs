@@ -548,6 +548,29 @@ test('imported skin cannot reference private profile artwork', async t => {
   assert.deepEqual(await host.staging(), [])
 })
 
+test('exporting Aurora V2 preferences carries the Alpha curtain setting under the current effect key', async t => {
+  const host = await fixture(t)
+  const id = 'com.dsh.skin.aurora-v2'
+  const files = new Map([
+    ['skin.json', json({ schema: 'dsh.skin/v1', id, name: 'Aurora V2', version: '0.2.0', engineApi: '^1.8.0',
+      colorScheme: 'dark', capabilities: ['tokens', 'css', 'effects:css'],
+      entry: { tokens: 'tokens.json', styles: 'theme.css', effects: 'effects.json' } })],
+    ['theme.css', Buffer.from(`:root[data-dsh-skin-id="${id}"]{--dsh-skin-canvas:#182431}`)],
+    ['tokens.json', json({ schema: 'dsh.tokens/v1' })],
+    ['effects.json', json({ schema: 'dsh.effects/v1', effects: [{ id: 'ambient.aurora-curtain', renderer: 'css', enabled: true, params: {} }] })],
+  ])
+  const uploaded = await host.upload(await zip(files))
+  assert.equal(uploaded.status, 201, await uploaded.text())
+  const skin = (await host.registry.catalogue(host.signal)).skins.find(skin => skin.manifest.id === id)
+  const legacy = { enabled: false, strength: 0.24 }
+  host.seedSelection({ skinId: id, revision: 1, preferences: { [id]: { effects: { 'ambient.aurora': legacy } } } })
+  const query = new URLSearchParams({ id, revision: skin.revision, preferences: '1' })
+  const response = await host.request(root + '/packages/export?' + query)
+  assert.equal(response.status, 200)
+  const contents = await unzip(Buffer.from(await response.arrayBuffer()))
+  assert.deepEqual(JSON.parse(contents.get('preferences.json')).preferences.effects, { 'ambient.aurora-curtain': legacy })
+})
+
 test('exporting built-in portrait preferences and assets omits all private image data', async t => {
   const host = await fixture(t)
   const id = 'com.dsh.skin.night-navigator'

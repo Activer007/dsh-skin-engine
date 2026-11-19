@@ -113,7 +113,9 @@ test('SceneSpec is opt-in and preserves the compatibility of API 1.0-only packag
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.6.0' }), dshVersion), undefined)
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '1.6.0' }), dshVersion), undefined)
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.7.0' }), dshVersion), undefined)
-  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.8.0' }), dshVersion).code, 'incompatible-engine')
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '1.7.0' }), dshVersion), undefined)
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.8.0' }), dshVersion), undefined)
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.9.0' }), dshVersion).code, 'incompatible-engine')
   reject(() => parseSkinManifest({ ...sceneManifest, capabilities: manifest.capabilities }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: manifest.entry }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: { ...manifest.entry, scene: '../scene.json' } }), 'skin.json', 'entry.scene')
@@ -302,4 +304,25 @@ test('known effects reject invalid params, renderers, repeated IDs, and missing 
   reject(() => parseEffects([{ ...glass, id: 'particles.dust', renderer: 'canvas2d', params: { sizeRange: [4, 2] } }]), 'effects.json', 'effects.0.params.sizeRange')
   reject(() => parseEffects([{ ...glass, id: 'particles.bubbles', renderer: 'canvas2d', params: { density: 1.2 } }]), 'effects.json', 'effects.0.params.density')
   reject(() => parseEffects([{ ...glass, id: 'particles.dust', renderer: 'canvas2d', params: { densityMultiplier: 5 } }]), 'effects.json', 'effects.0.params.densityMultiplier')
+})
+
+test('an Aurora curtain requires Engine API 1.8 and bounded parameters', () => {
+  const curtain = { id: 'ambient.aurora-curtain', enabled: true, renderer: 'css', params: {} }
+  const pack = {
+    ...files,
+    manifest: { ...manifest, engineApi: '^1.8.0' },
+    effects: { ...effects, effects: [curtain] },
+  }
+  const { effects: [effect], diagnostics } = parseSkinPackage(pack)
+  assert.deepEqual(diagnostics, [])
+  assert.deepEqual(effect.params, {
+    intensity: 0.65, flowSpeed: 0.24, foldAmplitude: 0.45, curtainWidth: 0.86, depth: 0.45, glow: 0.48,
+  })
+  for (const engineApi of ['^1.7.0', '^1.7.0 || ^1.8.0']) {
+    reject(() => parseSkinPackage({ ...pack, manifest: { ...pack.manifest, engineApi } }),
+      'skin.json', 'engineApi', 'aurora-curtain-engine-api')
+  }
+  reject(() => parseSkinPackage({
+    ...pack, effects: { ...effects, effects: [{ ...curtain, params: { foldAmplitude: 1.01 } }] },
+  }), 'effects.json', 'effects.0.params.foldAmplitude')
 })
