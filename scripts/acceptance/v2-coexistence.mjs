@@ -3,12 +3,15 @@ import { createHash } from 'node:crypto'
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
-import { settings } from './browser.mjs'
+import { captureBeta, cycleBeta, measureBeta } from './v2-beta.mjs'
+import { seedSurfaceHistory } from './surfaces.mjs'
+import { resources, settings } from './browser.mjs'
 import { identify, prepareHost, redact } from './hosts.mjs'
 import { packagePanel, zipJson } from './packages.mjs'
 
 const { values: options } = parseArgs({ options: {
   platform: { type: 'string' },
+  'beta-check': { type: 'string' },
   'host-version': { type: 'string' },
   archive: { type: 'string' },
   'zip-dir': { type: 'string' },
@@ -18,13 +21,16 @@ const { values: options } = parseArgs({ options: {
   chrome: { type: 'string' },
 } })
 const { platform } = options
+const beta = options['beta-check']
+assert(!beta || ['visual', 'performance', 'lifecycle'].includes(beta), 'Unknown Beta check')
 assert(['desktop', 'web'].includes(platform), 'Choose --platform web or desktop')
 const desktop = platform === 'desktop'
 for (const flag of ['archive', 'host-version', 'zip-dir', ...(desktop ? ['desktop-exe'] : ['web-cli', 'chrome'])]) {
   assert(options[flag], 'Missing --' + flag)
 }
 options.archive = resolve(options.archive)
-options.suite = 'v2-coexistence'
+options.isolatePluginFiles = Boolean(beta)
+options.suite = ['performance', 'lifecycle'].includes(beta) ? 'settings-beta' : 'v2-coexistence'
 
 const ocean = { id: 'com.dsh.skin.deep-ocean', name: 'Deep Ocean', source: 'built-in' }
 const aurora = { id: 'com.dsh.skin.aurora', name: 'Aurora', source: 'built-in' }
@@ -64,7 +70,7 @@ async function close() {
 }
 
 async function open(initialAppearance) {
-  session = await fixture.open()
+  session = await fixture.open(beta === 'lifecycle')
   const { page } = session
   const current = { closed: false }
   report.sessions.push(current)
@@ -103,8 +109,12 @@ async function open(initialAppearance) {
   async function verifyRendered(skin) {
     await ui.waitForSkin(skin.id)
     const scene = page.locator('[data-dsh-skin-effect-scene="dynamic"]')
-    await scene.locator('canvas').waitFor()
-    if (skin.source === 'local') {
+    await scene.locator('canvas[data-dsh-skin-effect-layer="canvas"]').waitFor()
+    const imported = imports.find(entry => entry.skin.id === skin.id)
+    if (imported?.version === '0.2.0' && skin.id === auroraV2.id) {
+      await scene.locator('[data-dsh-skin-effect-layer="aurora-curtain"] > canvas').waitFor()
+    }
+    if (imported && (skin.id === livingLight.id || imported.version === '0.1.0')) {
       const artwork = scene.locator('[data-dsh-skin-effect-layer="artwork"] > img')
       assert(await artwork.evaluate(async image => { await image.decode(); return image.naturalWidth > 1000 }))
     }
@@ -151,24 +161,7 @@ function identity(catalogue, skins) {
   })
 }
 
-try {
-  fixture = await prepareHost(options, directory, report.artifact, report)
-  let host = await open('dark')
-  await host.center()
-  const initial = await host.packages.getCatalogue()
-  assert.equal(initial.skins.length, 11)
-  const originals = identity(initial, [ocean, aurora])
-  for (const sample of imports) await host.packages.install(sample.name, sample.bytes)
-  const installed = await host.packages.getCatalogue()
-  assert.equal(installed.skins.length, initial.skins.length + imports.length)
-  const entries = identity(installed, all)
-  assert.deepEqual(identity(installed, [ocean, aurora]), originals)
-  for (const sample of imports) {
-    assert.equal(entries.find(entry => entry.id === sample.skin.id).version, sample.version)
-    await host.packages.loadPreview(sample.skin)
-  }
-  record('catalogue', entries)
-
+async function verifyCoexistence(host, initial, installed, entries) {
   const duplicate = imports[0]
   await host.packages.showManagement()
   const importer = host.panel.getByRole('region', { name: 'Import skin package' })
@@ -187,6 +180,11 @@ try {
   for (const skin of all) await host.apply(skin, skin !== livingLight)
   record('appliedAndRendered', all.map(skin => skin.id))
   await host.take('living-light-vi')
+
+  if (beta === 'visual') {
+    await captureBeta(host, session, oceanV2, auroraV2)
+    record('readingAndPhases')
+  }
 
   await host.center()
   await host.showGallery()
@@ -277,9 +275,49 @@ try {
   await host.activate('Back to chat')
   await host.verifyRendered(livingLight)
   record('uninstalledIndependently', { removed: [oceanV2.id, auroraV2.id], finalActive: livingLight.id })
+}
+
+try {
+  fixture = await prepareHost(options, directory, report.artifact, report)
+  if (beta === 'visual') await seedSurfaceHistory(directory, fixture.profileDir, { bilingual: true, secondTurn: true, longResponse: true })
+  let host = await open('dark')
+  await host.center()
+  const initial = await host.packages.getCatalogue()
+  assert.equal(initial.skins.length, 11)
+  const originals = identity(initial, [ocean, aurora])
+  for (const sample of imports) await host.packages.install(sample.name, sample.bytes)
+  const installed = await host.packages.getCatalogue()
+  assert.equal(installed.skins.length, initial.skins.length + imports.length)
+  const entries = identity(installed, all)
+  assert.deepEqual(identity(installed, [ocean, aurora]), originals)
+  for (const sample of imports) {
+    assert.equal(entries.find(entry => entry.id === sample.skin.id).version, sample.version)
+    await host.packages.loadPreview(sample.skin)
+  }
+  record('catalogue', entries)
+
+  if (beta === 'performance') {
+    record('performance', await measureBeta(host, session, all, report.steps))
+  } else if (beta === 'lifecycle') {
+    await cycleBeta(host, session, all, desktop, report.steps)
+    await close()
+    await fixture.uninstall()
+    session = await fixture.open()
+    report.sessions.push({ closed: false })
+    await session.page.getByRole('button', { name: /Account menu|账号菜单/ }).waitFor()
+    assert.equal(await session.page.locator(resources).count(), 0)
+    record('uninstalledAndClean')
+  } else {
+    await verifyCoexistence(host, initial, installed, entries)
+  }
   assert.deepEqual(report.pageErrors, [])
   report.passed = true
 } catch (error) {
+  if (session?.page && !session.page.isClosed()) {
+    await session.page.screenshot({ path: join(directory, 'failure.png'), timeout: 3000 }).catch(() => {})
+    report.lastPanel = await session.page.locator('[data-dsh-skin-appearance]').innerText({ timeout: 1500 })
+      .then(value => value.slice(0, 2800), () => undefined)
+  }
   report.failure = redact(error.stack ?? String(error))
   console.error(report.failure)
   process.exitCode = 1

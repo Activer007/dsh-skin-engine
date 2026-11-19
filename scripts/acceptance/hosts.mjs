@@ -2,9 +2,9 @@ import assert from 'node:assert/strict'
 import { spawn, execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { once } from 'node:events'
-import { access, mkdir, readFile, realpath } from 'node:fs/promises'
+import { access, appendFile, copyFile, mkdir, readFile, realpath, rename, stat, unlink } from 'node:fs/promises'
 import { createServer } from 'node:net'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { chromium } from 'playwright-core'
 import { satisfies } from 'semver'
@@ -205,6 +205,11 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     command(executable, [...cli, '--profile', profile, '--from-default-profile', 'web', '--dump-config'], cliEnv)
     if (diagnostics) diagnostics.profileInitialized = true
   }
+  if (options.isolatePluginFiles) {
+    // A shared pnpm hardlink changes ctime when another profile installs the same archive.
+    // Official Web HMR interprets that as a rebuild even when the file hash is unchanged.
+    await appendFile(join(profileDir, '.npmrc'), '\npackage-import-method=copy\n')
+  }
   function installLocalBundle(path) {
     const spec = `file:${path.replaceAll('\\', '/')}`
     command(executable, [...cli, 'plugin', '--profile', profile, 'add', ...(desktop ? [] : ['-w']), spec], cliEnv)
@@ -216,7 +221,18 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     assert(profileManifest.dsh.profile.bundles.includes(packageName), 'Bundle is not enabled')
     assert.equal(JSON.parse(await readFile(join(installed, 'package.json'), 'utf8')).version, expected.version)
     for (const side of ['host', 'client']) {
-      assert.equal(hash(await readFile(join(installed, 'lib', `${side}.js`))), expected[`${side}Sha256`], `Installed ${side} differs from the archive`)
+      const file = join(installed, 'lib', `${side}.js`)
+      if (options.isolatePluginFiles && (await stat(file)).nlink > 1) {
+        // Some Desktop installations override the profile's import method.
+        const actual = await realpath(file)
+        const local = relative(await realpath(profileDir), actual)
+        assert(local && local !== '..' && !local.startsWith('..' + sep) && !isAbsolute(local), 'Expected a profile-local plugin')
+        const copy = actual + '.acceptance-copy'
+        await copyFile(actual, copy)
+        try { await rename(copy, actual) } finally { await unlink(copy).catch(error => { if (error.code !== 'ENOENT') throw error }) }
+      }
+      if (options.isolatePluginFiles) assert.equal((await stat(file)).nlink, 1, `Expected isolated ${side} bundle`)
+      assert.equal(hash(await readFile(file)), expected[`${side}Sha256`], `Installed ${side} differs from the archive`)
     }
   }
   async function uninstall() {

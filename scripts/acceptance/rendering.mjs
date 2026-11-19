@@ -6,9 +6,9 @@ import { showMode } from './browser.mjs'
 const sidebarName = /^(收起(?:左)?侧边栏|展开(?:左)?侧边栏|打开(?:左)?侧边栏|Collapse sidebar|Expand sidebar|Open sidebar)$/
 const p95 = values => Math.round([...values].sort((a, b) => a - b)[Math.ceil(values.length * 0.95) - 1] * 10) / 10
 
-async function sample(ui, mode, foreground) {
+export async function sample(ui, mode, foreground, prepare = () => showMode(ui, mode, foreground)) {
   const { page } = ui
-  await showMode(ui, mode, foreground)
+  await prepare()
   await delay(600)
   const viewport = await page.evaluate(() => ({
     width: innerWidth, height: innerHeight, dpr: devicePixelRatio,

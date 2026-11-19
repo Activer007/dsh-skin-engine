@@ -1,0 +1,1606 @@
+{
+  "candidate": "4f44bc76f349ee61c6d451047fb29064a486de32",
+  "inputs": {
+    "com.dsh.skin.aurora-v2.dshskin.zip": "407c79693780557c5a2de90b041e338b6e877fe5269f7d321593aa8446a81108",
+    "com.dsh.skin.deep-ocean-living-light.dshskin.zip": "2586d48187aa8a3219d6de588835600f37fc1cbe729a9843c01179e342d8f091",
+    "com.dsh.skin.deep-ocean-v2.dshskin.zip": "12c0e5a2c8f2311bcca3d72b4abea5bef12e93ad890092dd4baad1fa287612ac",
+    "dsh-plugin-skin-engine-1.12.0-beta.1.tgz": "a71df13f1687835ba3962cc4b3b72e85bfe03c3e57303c03296f05c22b0f94b9"
+  },
+  "hosts": {
+    "desktop": {
+      "visual": {
+        "evidence": "desktop-9WqZ3M",
+        "rawSha256": "b784f234a97d5e0b9014122d425bbf5409d56f68ef1d94f1e2dda1054668ed4d",
+        "hostVersion": "0.2.2-rc.5",
+        "closed": true,
+        "pageErrors": [],
+        "steps": {
+          "catalogue": [
+            {
+              "id": "com.dsh.skin.deep-ocean",
+              "source": "built-in",
+              "version": "1.0.0",
+              "revision": "2328b99d996c787b4ad57c924b7eb45b30d116eaa0dd7ade92064f4d35aa4c6f"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "c3aa1b772fca0d3036c80e743190f3a4bcf5b76b41beaed042a57fa49ab72ab0"
+            },
+            {
+              "id": "com.dsh.skin.aurora",
+              "source": "built-in",
+              "version": "1.1.0",
+              "revision": "ac45400fd351d087783ced6d0baf23d77f10a2ae2c27062db942258204701fa6"
+            },
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "691c1981c0318e13f066ffa65188a5b41dc4f798bdd43112c814c6133d97fc9a"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "source": "local",
+              "version": "1.2.0",
+              "revision": "6dab56c21a5de4b3c31efea05930da92f52e7f8068002f2423267ca362d74b0b"
+            }
+          ],
+          "duplicateRejected": "com.dsh.skin.deep-ocean-v2",
+          "appliedAndRendered": [
+            "com.dsh.skin.deep-ocean",
+            "com.dsh.skin.deep-ocean-v2",
+            "com.dsh.skin.aurora",
+            "com.dsh.skin.aurora-v2",
+            "com.dsh.skin.deep-ocean-living-light"
+          ],
+          "readingAndPhases": true,
+          "favoritesIndependent": true,
+          "previewCancelled": {
+            "restored": "com.dsh.skin.deep-ocean",
+            "preview": "com.dsh.skin.deep-ocean-v2"
+          },
+          "previewExpired": {
+            "restored": "com.dsh.skin.aurora",
+            "preview": "com.dsh.skin.aurora-v2",
+            "elapsedMs": 30596,
+            "countdown": "Preview ends in 30s"
+          },
+          "restartPreserved": {
+            "active": "com.dsh.skin.deep-ocean-v2",
+            "favorites": [
+              "com.dsh.skin.deep-ocean",
+              "com.dsh.skin.deep-ocean-v2",
+              "com.dsh.skin.aurora",
+              "com.dsh.skin.aurora-v2",
+              "com.dsh.skin.deep-ocean-living-light"
+            ],
+            "transparency": {
+              "com.dsh.skin.deep-ocean": 19,
+              "com.dsh.skin.deep-ocean-v2": 1,
+              "com.dsh.skin.aurora": 1,
+              "com.dsh.skin.aurora-v2": 1
+            }
+          },
+          "uninstalledIndependently": {
+            "removed": [
+              "com.dsh.skin.deep-ocean-v2",
+              "com.dsh.skin.aurora-v2"
+            ],
+            "finalActive": "com.dsh.skin.deep-ocean-living-light"
+          }
+        }
+      },
+      "performance": {
+        "evidence": "desktop-I3OW4w",
+        "rawSha256": "36c9261fbf91f51a94a9d1bdc1958d2dbc76b30878cf1ad01567720890610d80",
+        "hostVersion": "0.2.2-rc.5",
+        "closed": true,
+        "pageErrors": [],
+        "steps": {
+          "catalogue": [
+            {
+              "id": "com.dsh.skin.deep-ocean",
+              "source": "built-in",
+              "version": "1.0.0",
+              "revision": "a89b5a0b9f787b71a67ff655251d1388c89b7b4f17f4574bd3b8906add2dad7e"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "616791b7c9a7fd3314fea09a23472b1f77ae5a075dcb79398219d4025fed48ef"
+            },
+            {
+              "id": "com.dsh.skin.aurora",
+              "source": "built-in",
+              "version": "1.1.0",
+              "revision": "2e95cda53db565c5953583738c0eb77f02be695810d89a898f34317bc81a6c6f"
+            },
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "39116c55dba5b5d734edb3baeb9216bebcf18b14f2d8e7e9ee609381605f9a6b"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "source": "local",
+              "version": "1.2.0",
+              "revision": "299df570b178b90607ebbe76c90fb8c980519663a02a8d4f876c629d08806ce3"
+            }
+          ],
+          "performance": {
+            "samples": [
+              {
+                "skin": "default",
+                "mode": "default",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 1,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 0,
+                "draws": 0,
+                "canvas": null,
+                "effectNodes": 0,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 8.2,
+                  "sidebar": 17.9
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              },
+              {
+                "skin": "com.dsh.skin.deep-ocean",
+                "mode": "p0",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 1,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 30.000300003000017,
+                "draws": 296,
+                "canvas": [
+                  1280,
+                  860
+                ],
+                "effectNodes": 5,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 18.6,
+                  "sidebar": 17.6
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              },
+              {
+                "skin": "com.dsh.skin.deep-ocean-v2",
+                "mode": "p0",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 1,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 29.50243643716647,
+                "draws": 300,
+                "canvas": [
+                  1280,
+                  860
+                ],
+                "effectNodes": 5,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 17.7,
+                  "sidebar": 17.2
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              },
+              {
+                "skin": "com.dsh.skin.aurora",
+                "mode": "p0",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 1,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 29.83293556085916,
+                "draws": 296,
+                "canvas": [
+                  1280,
+                  860
+                ],
+                "effectNodes": 4,
+                "p95": {
+                  "frames": 17,
+                  "input": 17.3,
+                  "sidebar": 17.2
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              },
+              {
+                "skin": "com.dsh.skin.aurora-v2",
+                "mode": "p0",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 1,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 29.999000033332162,
+                "draws": 301,
+                "canvas": [
+                  1280,
+                  860
+                ],
+                "effectNodes": 3,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 16.5,
+                  "sidebar": 18.6
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              }
+            ],
+            "initial": []
+          }
+        }
+      },
+      "lifecycle": {
+        "evidence": "desktop-KGQbhm",
+        "rawSha256": "a698389edc50d746211ce5dd19d5987c3d713f641ea40d0be0dc72f6fc7f54c0",
+        "hostVersion": "0.2.2-rc.5",
+        "closed": true,
+        "pageErrors": [],
+        "steps": {
+          "catalogue": [
+            {
+              "id": "com.dsh.skin.deep-ocean",
+              "source": "built-in",
+              "version": "1.0.0",
+              "revision": "3638b53a382b2c309859da68493c97bb1bd980915b09c25f88937cc67588cd6d"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "c9f2e80f3628a31b275573941346de512d6bd311ac3a98e87cca1aef4b569448"
+            },
+            {
+              "id": "com.dsh.skin.aurora",
+              "source": "built-in",
+              "version": "1.1.0",
+              "revision": "d5789e66553097388a57096792603324c4ef4005765291409740334b11c5137c"
+            },
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "2826041da272592ee452807b5e6aca8a611413ffb7a3662e765c8d2654f266fd"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "source": "local",
+              "version": "1.2.0",
+              "revision": "827ae4916c93c812ef475aac7559963987220d2050a4010a06611e077679916b"
+            }
+          ],
+          "switching": {
+            "attempt": 100,
+            "id": "com.dsh.skin.aurora"
+          },
+          "switches": {
+            "total": 100,
+            "snapshots": [
+              {
+                "switch": 1,
+                "id": "com.dsh.skin.deep-ocean-v2",
+                "scenes": 1,
+                "layers": 5,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 4,
+                  "nodes": 2757,
+                  "jsEventListeners": 553
+                }
+              },
+              {
+                "switch": 2,
+                "id": "com.dsh.skin.aurora-v2",
+                "scenes": 1,
+                "layers": 3,
+                "canvases": 2,
+                "images": 0,
+                "counters": {
+                  "documents": 4,
+                  "nodes": 2909,
+                  "jsEventListeners": 560
+                }
+              },
+              {
+                "switch": 3,
+                "id": "com.dsh.skin.deep-ocean",
+                "scenes": 1,
+                "layers": 5,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 4,
+                  "nodes": 2912,
+                  "jsEventListeners": 562
+                }
+              },
+              {
+                "switch": 4,
+                "id": "com.dsh.skin.aurora",
+                "scenes": 1,
+                "layers": 4,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2957,
+                  "jsEventListeners": 562
+                }
+              },
+              {
+                "switch": 97,
+                "id": "com.dsh.skin.deep-ocean-v2",
+                "scenes": 1,
+                "layers": 5,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2959,
+                  "jsEventListeners": 562
+                }
+              },
+              {
+                "switch": 98,
+                "id": "com.dsh.skin.aurora-v2",
+                "scenes": 1,
+                "layers": 3,
+                "canvases": 2,
+                "images": 0,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2957,
+                  "jsEventListeners": 560
+                }
+              },
+              {
+                "switch": 99,
+                "id": "com.dsh.skin.deep-ocean",
+                "scenes": 1,
+                "layers": 5,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2960,
+                  "jsEventListeners": 562
+                }
+              },
+              {
+                "switch": 100,
+                "id": "com.dsh.skin.aurora",
+                "scenes": 1,
+                "layers": 4,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2957,
+                  "jsEventListeners": 562
+                }
+              }
+            ]
+          },
+          "background": {
+            "source": "Electron native minimize and hide",
+            "hidden": [
+              {
+                "elapsedMs": 11,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "lastHiddenPosition": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 60016,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "lastHiddenPosition": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 120011,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "lastHiddenPosition": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 180025,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "lastHiddenPosition": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 240010,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "lastHiddenPosition": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 300013,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "lastHiddenPosition": [
+                  982.7508759567269,
+                  92.98921754866818,
+                  1.1381692594334525
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              }
+            ],
+            "before": {
+              "visibility": "visible",
+              "changes": [],
+              "draws": 4,
+              "position": [
+                982.7508759567269,
+                92.98921754866818,
+                1.1381692594334525
+              ],
+              "viewport": [
+                1280,
+                860
+              ],
+              "canvas": [
+                1280,
+                860
+              ],
+              "sameCanvas": true,
+              "sameScene": true,
+              "aurora": 2,
+              "animations": [
+                "running",
+                "running"
+              ]
+            },
+            "resumed": {
+              "visibility": "visible",
+              "changes": [
+                "hidden",
+                "visible"
+              ],
+              "draws": 7,
+              "position": [
+                982.8034504339498,
+                92.81844036346443,
+                1.1381692594334525
+              ],
+              "lastHiddenPosition": [
+                982.7508759567269,
+                92.98921754866818,
+                1.1381692594334525
+              ],
+              "firstResumedPosition": [
+                982.7508759567269,
+                92.98921754866818,
+                1.1381692594334525
+              ],
+              "viewport": [
+                1280,
+                860
+              ],
+              "canvas": [
+                1280,
+                860
+              ],
+              "sameCanvas": true,
+              "sameScene": true,
+              "aurora": 2,
+              "animations": [
+                "running",
+                "running"
+              ]
+            },
+            "settled": {
+              "visibility": "visible",
+              "changes": [
+                "hidden",
+                "visible"
+              ],
+              "draws": 42,
+              "position": [
+                984.0483560812191,
+                87.98363202529774,
+                1.1381692594334525
+              ],
+              "lastHiddenPosition": [
+                982.7508759567269,
+                92.98921754866818,
+                1.1381692594334525
+              ],
+              "firstResumedPosition": [
+                982.7508759567269,
+                92.98921754866818,
+                1.1381692594334525
+              ],
+              "viewport": [
+                1280,
+                860
+              ],
+              "canvas": [
+                1280,
+                860
+              ],
+              "sameCanvas": true,
+              "sameScene": true,
+              "aurora": 2,
+              "animations": [
+                "running",
+                "running"
+              ]
+            }
+          },
+          "uninstalledAndClean": true
+        }
+      }
+    },
+    "web": {
+      "visual": {
+        "evidence": "web-bgRLay",
+        "rawSha256": "56b3d8a0ee3fe39b2434922733e4602f2bd010a867a53e34052a2a5dc65e969d",
+        "hostVersion": "0.2.2-rc.5",
+        "closed": true,
+        "pageErrors": [],
+        "steps": {
+          "catalogue": [
+            {
+              "id": "com.dsh.skin.deep-ocean",
+              "source": "built-in",
+              "version": "1.0.0",
+              "revision": "670ea7742ea03a6b17e59628575706ca21a5d3010e2b34123b279d84dcce6bfa"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "5dce09b048290f6d9a0b4a47cbb56eb65617ce32b146219cc221dd8b81a51dc4"
+            },
+            {
+              "id": "com.dsh.skin.aurora",
+              "source": "built-in",
+              "version": "1.1.0",
+              "revision": "e412ddb676f262c266939c1447e9b26a3dd53cdcafeae2a24d2d6c7a57522555"
+            },
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "276f59d72f3f4ef60739059a6999707b51d691645732f01c4da13ad34ce9c6b0"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "source": "local",
+              "version": "1.2.0",
+              "revision": "ecb45b323587d93de50655a9f724079491941f7eae384978dcab1e37cf737dee"
+            }
+          ],
+          "duplicateRejected": "com.dsh.skin.deep-ocean-v2",
+          "appliedAndRendered": [
+            "com.dsh.skin.deep-ocean",
+            "com.dsh.skin.deep-ocean-v2",
+            "com.dsh.skin.aurora",
+            "com.dsh.skin.aurora-v2",
+            "com.dsh.skin.deep-ocean-living-light"
+          ],
+          "readingAndPhases": true,
+          "favoritesIndependent": true,
+          "previewCancelled": {
+            "restored": "com.dsh.skin.deep-ocean",
+            "preview": "com.dsh.skin.deep-ocean-v2"
+          },
+          "previewExpired": {
+            "restored": "com.dsh.skin.aurora",
+            "preview": "com.dsh.skin.aurora-v2",
+            "elapsedMs": 31035,
+            "countdown": "Preview ends in 30s"
+          },
+          "restartPreserved": {
+            "active": "com.dsh.skin.deep-ocean-v2",
+            "favorites": [
+              "com.dsh.skin.deep-ocean",
+              "com.dsh.skin.deep-ocean-v2",
+              "com.dsh.skin.aurora",
+              "com.dsh.skin.aurora-v2",
+              "com.dsh.skin.deep-ocean-living-light"
+            ],
+            "transparency": {
+              "com.dsh.skin.deep-ocean": 19,
+              "com.dsh.skin.deep-ocean-v2": 1,
+              "com.dsh.skin.aurora": 1,
+              "com.dsh.skin.aurora-v2": 1
+            }
+          },
+          "uninstalledIndependently": {
+            "removed": [
+              "com.dsh.skin.deep-ocean-v2",
+              "com.dsh.skin.aurora-v2"
+            ],
+            "finalActive": "com.dsh.skin.deep-ocean-living-light"
+          }
+        }
+      },
+      "performance": {
+        "evidence": "web-UtRaYW",
+        "rawSha256": "8fcf5515dafa17965bac4fad5fefa9d98a19d144f2b7c52082bcbbace26d9dea",
+        "hostVersion": "0.2.2-rc.5",
+        "closed": true,
+        "pageErrors": [],
+        "steps": {
+          "catalogue": [
+            {
+              "id": "com.dsh.skin.deep-ocean",
+              "source": "built-in",
+              "version": "1.0.0",
+              "revision": "a2c65335f02f2a7e11f7571cd656a14cced51850d1f0a90378ac35ec76e0f06a"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "1030aa893f4cf0f775fbbac9c33384ea6ddff13657793dcd2507c55664c2f31c"
+            },
+            {
+              "id": "com.dsh.skin.aurora",
+              "source": "built-in",
+              "version": "1.1.0",
+              "revision": "e6622a1c879613ffbee01013c62e1c9437f251df4a90321803c5f2e453033546"
+            },
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "bd389ac8070ec4eca1918baa70fbf23e4aaa39d936f35fa7d0f56f7c01b0f57d"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "source": "local",
+              "version": "1.2.0",
+              "revision": "fc42cb9c140128e569661eea8f296a121d7db0adefddd21dd02a8c3ce580a40a"
+            }
+          ],
+          "performance": {
+            "samples": [
+              {
+                "skin": "default",
+                "mode": "default",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 2,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [
+                  {
+                    "start": 26008.70000000298,
+                    "ms": 55
+                  }
+                ],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 0,
+                "draws": 0,
+                "canvas": null,
+                "effectNodes": 0,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 28.8,
+                  "sidebar": 53.4
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              },
+              {
+                "skin": "com.dsh.skin.deep-ocean",
+                "mode": "p0",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 2,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [
+                  {
+                    "start": 40250.39999999106,
+                    "ms": 61
+                  },
+                  {
+                    "start": 42482.20000000298,
+                    "ms": 74
+                  },
+                  {
+                    "start": 43263,
+                    "ms": 63
+                  },
+                  {
+                    "start": 44054.59999999404,
+                    "ms": 57
+                  },
+                  {
+                    "start": 44772.79999999702,
+                    "ms": 64
+                  },
+                  {
+                    "start": 45533.89999999106,
+                    "ms": 51
+                  }
+                ],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 30.001280054615705,
+                "draws": 307,
+                "canvas": [
+                  1920,
+                  1290
+                ],
+                "effectNodes": 5,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 28.5,
+                  "sidebar": 67.5
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              },
+              {
+                "skin": "com.dsh.skin.deep-ocean-v2",
+                "mode": "p0",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 2,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [
+                  {
+                    "start": 54706.09999999404,
+                    "ms": 52
+                  },
+                  {
+                    "start": 55435.79999999702,
+                    "ms": 50
+                  },
+                  {
+                    "start": 56177.89999999106,
+                    "ms": 55
+                  },
+                  {
+                    "start": 56952.70000000298,
+                    "ms": 77
+                  },
+                  {
+                    "start": 57728.29999999702,
+                    "ms": 53
+                  },
+                  {
+                    "start": 58488.20000000298,
+                    "ms": 77
+                  },
+                  {
+                    "start": 59254.79999999702,
+                    "ms": 72
+                  },
+                  {
+                    "start": 60029.89999999106,
+                    "ms": 54
+                  }
+                ],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 30.001660091858465,
+                "draws": 313,
+                "canvas": [
+                  1920,
+                  1290
+                ],
+                "effectNodes": 5,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 29.5,
+                  "sidebar": 56.1
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              },
+              {
+                "skin": "com.dsh.skin.aurora",
+                "mode": "p0",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 2,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [
+                  {
+                    "start": 70652.89999999106,
+                    "ms": 56
+                  },
+                  {
+                    "start": 71437,
+                    "ms": 101
+                  },
+                  {
+                    "start": 72217.79999999702,
+                    "ms": 55
+                  },
+                  {
+                    "start": 72580.5,
+                    "ms": 63
+                  },
+                  {
+                    "start": 72974.09999999404,
+                    "ms": 61
+                  },
+                  {
+                    "start": 74450,
+                    "ms": 52
+                  }
+                ],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 30.00054000972014,
+                "draws": 314,
+                "canvas": [
+                  1920,
+                  1290
+                ],
+                "effectNodes": 4,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 29.9,
+                  "sidebar": 70.4
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              },
+              {
+                "skin": "com.dsh.skin.aurora-v2",
+                "mode": "p0",
+                "viewport": {
+                  "width": 1280,
+                  "height": 860,
+                  "dpr": 2,
+                  "focused": true,
+                  "visibility": "visible"
+                },
+                "longTasks": [
+                  {
+                    "start": 85962.59999999404,
+                    "ms": 54
+                  },
+                  {
+                    "start": 86722.29999999702,
+                    "ms": 55
+                  },
+                  {
+                    "start": 87483.39999999106,
+                    "ms": 56
+                  },
+                  {
+                    "start": 88262.39999999106,
+                    "ms": 53
+                  },
+                  {
+                    "start": 89028.79999999702,
+                    "ms": 66
+                  }
+                ],
+                "visibilityChanges": [],
+                "focusLost": false,
+                "focused": true,
+                "visibility": "visible",
+                "idleDrawFps": 29.99800013332433,
+                "draws": 330,
+                "canvas": [
+                  1920,
+                  1290
+                ],
+                "effectNodes": 3,
+                "p95": {
+                  "frames": 16.9,
+                  "input": 28.1,
+                  "sidebar": 62.6
+                },
+                "framesCount": 180,
+                "inputCount": 24,
+                "sidebarCount": 16
+              }
+            ],
+            "initial": []
+          }
+        }
+      },
+      "lifecycle": {
+        "evidence": "web-ylR62S",
+        "rawSha256": "9c0f570043e56b683acf8da337c055a160e0ef898995ba1878efcb05f96262ec",
+        "hostVersion": "0.2.2-rc.5",
+        "closed": true,
+        "pageErrors": [],
+        "steps": {
+          "catalogue": [
+            {
+              "id": "com.dsh.skin.deep-ocean",
+              "source": "built-in",
+              "version": "1.0.0",
+              "revision": "ab3f3faffe35404423079b26a085d19796763e609a0139302bb660339dc6acfe"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "5416eedb59c8014c815e0b90334ee9e22160ad185aafc406db49d581506675f1"
+            },
+            {
+              "id": "com.dsh.skin.aurora",
+              "source": "built-in",
+              "version": "1.1.0",
+              "revision": "a03899731a7cc00da12177acf09d13d7460a059cc7acbe73b2320214bd3adea3"
+            },
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "79817a6b436f06ecee143a47d96d0fbafefdb4676ee6d44364ee97bb5f6f1c48"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "source": "local",
+              "version": "1.2.0",
+              "revision": "00f02f730882a1f1673af0b5ae70185efb6d74a387eaae9b847c1b7658ce362f"
+            }
+          ],
+          "switching": {
+            "attempt": 100,
+            "id": "com.dsh.skin.aurora"
+          },
+          "switches": {
+            "total": 100,
+            "snapshots": [
+              {
+                "switch": 1,
+                "id": "com.dsh.skin.deep-ocean-v2",
+                "scenes": 1,
+                "layers": 5,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 4,
+                  "nodes": 2768,
+                  "jsEventListeners": 537
+                }
+              },
+              {
+                "switch": 2,
+                "id": "com.dsh.skin.aurora-v2",
+                "scenes": 1,
+                "layers": 3,
+                "canvases": 2,
+                "images": 0,
+                "counters": {
+                  "documents": 4,
+                  "nodes": 2766,
+                  "jsEventListeners": 536
+                }
+              },
+              {
+                "switch": 3,
+                "id": "com.dsh.skin.deep-ocean",
+                "scenes": 1,
+                "layers": 5,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 4,
+                  "nodes": 2769,
+                  "jsEventListeners": 538
+                }
+              },
+              {
+                "switch": 4,
+                "id": "com.dsh.skin.aurora",
+                "scenes": 1,
+                "layers": 4,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2814,
+                  "jsEventListeners": 538
+                }
+              },
+              {
+                "switch": 97,
+                "id": "com.dsh.skin.deep-ocean-v2",
+                "scenes": 1,
+                "layers": 5,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2816,
+                  "jsEventListeners": 538
+                }
+              },
+              {
+                "switch": 98,
+                "id": "com.dsh.skin.aurora-v2",
+                "scenes": 1,
+                "layers": 3,
+                "canvases": 2,
+                "images": 0,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2814,
+                  "jsEventListeners": 536
+                }
+              },
+              {
+                "switch": 99,
+                "id": "com.dsh.skin.deep-ocean",
+                "scenes": 1,
+                "layers": 5,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2817,
+                  "jsEventListeners": 538
+                }
+              },
+              {
+                "switch": 100,
+                "id": "com.dsh.skin.aurora",
+                "scenes": 1,
+                "layers": 4,
+                "canvases": 1,
+                "images": 2,
+                "counters": {
+                  "documents": 6,
+                  "nodes": 2814,
+                  "jsEventListeners": 538
+                }
+              }
+            ]
+          },
+          "background": {
+            "source": "Chrome native tab switch",
+            "hidden": [
+              {
+                "elapsedMs": 16,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "lastHiddenPosition": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 60016,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "lastHiddenPosition": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 120007,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "lastHiddenPosition": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 180017,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "lastHiddenPosition": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 240020,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "lastHiddenPosition": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              },
+              {
+                "elapsedMs": 300005,
+                "visibility": "hidden",
+                "changes": [
+                  "hidden"
+                ],
+                "draws": 4,
+                "position": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "lastHiddenPosition": [
+                  289.03521615584197,
+                  469.2271609828808,
+                  1.1954295869313167
+                ],
+                "viewport": [
+                  1280,
+                  860
+                ],
+                "canvas": [
+                  0,
+                  0
+                ],
+                "sameCanvas": true,
+                "sameScene": true,
+                "aurora": 0,
+                "animations": [
+                  "paused",
+                  "paused"
+                ]
+              }
+            ],
+            "before": {
+              "visibility": "visible",
+              "changes": [],
+              "draws": 4,
+              "position": [
+                289.03521615584197,
+                469.2271609828808,
+                1.1954295869313167
+              ],
+              "viewport": [
+                1280,
+                860
+              ],
+              "canvas": [
+                1280,
+                860
+              ],
+              "sameCanvas": true,
+              "sameScene": true,
+              "aurora": 2,
+              "animations": [
+                "running",
+                "running"
+              ]
+            },
+            "resumed": {
+              "visibility": "visible",
+              "changes": [
+                "hidden",
+                "visible"
+              ],
+              "draws": 6,
+              "position": [
+                289.03521615584197,
+                469.2271609828808,
+                1.1954295869313167
+              ],
+              "lastHiddenPosition": [
+                289.03521615584197,
+                469.2271609828808,
+                1.1954295869313167
+              ],
+              "firstResumedPosition": [
+                289.03521615584197,
+                469.2271609828808,
+                1.1954295869313167
+              ],
+              "viewport": [
+                1280,
+                860
+              ],
+              "canvas": [
+                1280,
+                860
+              ],
+              "sameCanvas": true,
+              "sameScene": true,
+              "aurora": 2,
+              "animations": [
+                "running",
+                "running"
+              ]
+            },
+            "settled": {
+              "visibility": "visible",
+              "changes": [
+                "hidden",
+                "visible"
+              ],
+              "draws": 42,
+              "position": [
+                290.5908427492676,
+                463.93416133894925,
+                1.1954295869313167
+              ],
+              "lastHiddenPosition": [
+                289.03521615584197,
+                469.2271609828808,
+                1.1954295869313167
+              ],
+              "firstResumedPosition": [
+                289.03521615584197,
+                469.2271609828808,
+                1.1954295869313167
+              ],
+              "viewport": [
+                1280,
+                860
+              ],
+              "canvas": [
+                1280,
+                860
+              ],
+              "sameCanvas": true,
+              "sameScene": true,
+              "aurora": 2,
+              "animations": [
+                "running",
+                "running"
+              ]
+            }
+          },
+          "uninstalledAndClean": true
+        }
+      }
+    }
+  }
+}
