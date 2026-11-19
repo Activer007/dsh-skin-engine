@@ -26,6 +26,12 @@ const noPreview = () => undefined
 
 export function SkinPanel({ controller, effects, packageOperations, preview, t = fallbackSettingsCopy(document.documentElement.lang) }: PanelProps) {
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
+  const diagnostic = useSyncExternalStore(effects.subscribe, effects.getDiagnostic)
+  const mode = useSyncExternalStore(effects.subscribe, effects.getMode)
+  const quality = useSyncExternalStore(effects.subscribe, effects.getEffectiveQuality)
+  const refraction = useSyncExternalStore(effects.subscribe, effects.getRefraction)
+  const renderers = [diagnostic?.css || refraction === 'css' ? 'CSS' : '', diagnostic?.canvas2d ? 'Canvas 2D' : '',
+    refraction === 'webgl' ? 'WebGL' : ''].filter(Boolean)
   const chatPreview = useSyncExternalStore(preview?.subscribe ?? noopSubscribe, preview?.getSnapshot ?? noPreview)
   const name = (id: string) => {
     const manifest = state.catalogue?.skins.find(choice => choice.manifest.id === id)?.manifest
@@ -87,6 +93,14 @@ export function SkinPanel({ controller, effects, packageOperations, preview, t =
     </section>
     <section className="dsh-skin-detail" aria-label={t('diagnostics')}>
       <h3>{t('diagnostics')}</h3>
+      <div data-skin-runtime-diagnostics="">
+        <p>{t('showing')} · {state.rendered ? name(state.rendered) : t('defaultSkin')}</p>
+        <p>{t('windowMode')} · {t(`mode.${mode}`)} · {t('effectiveQuality')} · {t(`quality.${quality}`)}</p>
+        <p>{t('renderers')} · {renderers.join(' + ') || t('noEffectRenderer')}</p>
+        {diagnostic?.reason ? <p>{t(diagnostic.reason)}</p> : null}
+        {diagnostic?.failure ? <p>{t('providerFailure', { effect: diagnostic.failure })}</p> : null}
+        {refraction === 'css' && !diagnostic?.reason ? <p>{t('refractionFallbackReason')}</p> : null}
+      </div>
       <p className="dsh-skin-muted">{t('clientVersion', { version: SKIN_ENGINE_VERSION })}</p>
       <div className="dsh-skin-actions">
         <SettingsButton disabled={hostStatus === null} onClick={() => void checkHost()}>{t('checkHost')}</SettingsButton>

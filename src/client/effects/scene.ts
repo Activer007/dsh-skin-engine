@@ -15,6 +15,14 @@ export type { EffectMode, RefractionStatus } from './providers/contract.js'
 
 declare const CSS_EFFECTS_STYLES: string
 
+export interface RenderDiagnostic {
+  css: boolean
+  canvas2d: boolean
+  reason?: 'windowEffectsOff' | 'backgroundReason' | 'surfaceReason' | 'reducedMotionReason' | 'staticReason'
+    | 'economyReason' | 'lowQualityReason' | 'transparencyReason' | 'stylesheetReason'
+  failure?: string
+}
+
 const SCENE = 'data-dsh-skin-effect-scene'
 const LAYER = 'data-dsh-skin-effect-layer'
 const PAUSED = 'data-dsh-skin-paused'
@@ -22,7 +30,7 @@ const INTERACTION_SETTLE_MS = 300
 
 export function mountEffectScene(document: Document, effects: readonly SkinEffect[], accent: string, initialMode: EffectMode,
   initialQuality: Quality, scheduler: ReturnType<typeof createFrameScheduler>, reportRefraction: (status: RefractionStatus) => void,
-  artwork?: PreparedArtwork, preset?: ScenePreset, initialSidebarEffects = false) {
+  artwork?: PreparedArtwork, preset?: ScenePreset, initialSidebarEffects = false, report?: (snapshot: RenderDiagnostic) => void) {
   if (!artwork && !effects.some(effect => effect.enabled)) return
   const view = document.defaultView!
   const transparency = view.matchMedia('(prefers-reduced-transparency: reduce)')
@@ -59,6 +67,8 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
   let sidebarSurface: Element | undefined
   let visible = false
   let dynamic = false
+  let artworkVisible = false
+  let failure: string | undefined
   let p1Motion = false
   let cssAnimating = false
   let interactionTimer: number | undefined
@@ -112,9 +122,32 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     queueMicrotask(() => { reconcileQueued = false; reconcile() })
   }
 
+  let sharedCanvasVisible = false
+  function publishDiagnostic() {
+    if (disposed || !layout) return
+    const reason = mode === 'off' ? 'windowEffectsOff'
+      : document.visibilityState !== 'visible' ? 'backgroundReason'
+        : !layout.canvas && !artworkVisible ? 'surfaceReason'
+          : reducedMotion.matches ? 'reducedMotionReason'
+            : mode === 'static' ? 'staticReason' : mode === 'economy' ? 'economyReason'
+              : layout.quality === 'low' ? 'lowQualityReason'
+                : transparency.matches ? 'transparencyReason' : undefined
+    report?.({
+      css: document.visibilityState === 'visible' && mode !== 'off' && (artworkVisible
+        || !!(glassLayer && !glassLayer.node.hidden) || providers.some(provider => provider.layerRenderer === 'css')),
+      canvas2d: visible && (providers.some(provider => provider.layerRenderer === 'canvas2d')
+        || sharedCanvasVisible),
+      reason, failure,
+    })
+  }
+
   function syncCanvas() {
-    canvas?.configure(effectQuality[layout.quality], visible && providers.some(provider => provider.drawsCanvas()),
-      dynamic && providers.some(provider => provider.animatesCanvas()))
+    const show = !!canvas && visible && providers.some(provider => provider.drawsCanvas())
+    canvas?.configure(effectQuality[layout.quality], show, dynamic && providers.some(provider => provider.animatesCanvas()))
+    if (sharedCanvasVisible !== show) {
+      sharedCanvasVisible = show
+      publishDiagnostic()
+    }
   }
 
   function updateCssPlayback() {
@@ -155,6 +188,7 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     const redraw = providers.map(provider => provider.update(state)).some(Boolean)
     art?.configureMotion?.(p1Motion && preset !== 'static' ? conversationSurface : undefined, preset === 'dynamic')
     syncCanvas()
+    publishDiagnostic()
     if (wasVisible && visible && (wasMotion !== p1Motion || redraw)) canvas?.redraw()
   }
 
@@ -186,6 +220,7 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     const providerVisible = providers.map(provider => provider.layout(layout)).some(Boolean)
     const showArtwork = art?.update(Boolean(hosts.chatCanvas && (!sceneArtwork || (!transparency.matches && !forcedColors.matches))),
       conversationContent, composer)
+    artworkVisible = Boolean(showArtwork)
     const showScene = Boolean(showArtwork || (layout.canvas && (providerVisible || canvas)))
     extensionGlass?.show(sidebarGrid && showScene)
     glassLayer?.node.toggleAttribute('data-dsh-skin-sidebar-effects', extendSidebar && sidebarGrid && showScene)
@@ -229,14 +264,19 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
   try {
     document.head.append(style)
     if (!style.sheet) {
+      report?.({ css: false, canvas2d: false, reason: 'stylesheetReason' })
       dispose()
       return
     }
     document.body.append(scene)
     if (artwork) art = mountArtwork(layer('artwork').node, artwork, reconcile, scheduler)
     providers = effectProviders.mount(effects, { scene, view, accent, frames: scheduler, layer, sidebarGlass, syncCanvas, reportRefraction },
-      requestReconcile, (id, stage) => view.console.warn('Skin Engine effect Provider failed', id, stage))
+      requestReconcile, (id, stage) => {
+        failure = `${id} (${stage})`
+        view.console.warn('Skin Engine effect Provider failed', id, stage)
+      })
     if (!art && !providers.some(provider => provider.mounted)) {
+      report?.({ css: false, canvas2d: false, failure })
       dispose()
       return
     }

@@ -1,0 +1,18 @@
+{
+  "platform": "web",
+  "cliVersion": "0.2.2-rc.5",
+  "artifact": {
+    "version": "1.12.0-beta.1",
+    "sha256": "a71df13f1687835ba3962cc4b3b72e85bfe03c3e57303c03296f05c22b0f94b9",
+    "hostSha256": "7012265056e746a84f3e6a0f46124b250f3cd3826b0d26d3a06b861a78ea8c82",
+    "clientSha256": "bcf9236051f75a17fd9c9a244ed46ae0e178d7a05e36ecaddc05f6e8d8d4a819"
+  },
+  "steps": {
+    "reduced": "Showing · Deep Ocean V2\n\nEffects in this window · Dynamic · Effective quality · balanced\n\nEffect renderers · CSS + Canvas 2D\n\nThe system’s reduced motion setting limits animations.",
+    "restored": "Showing · Deep Ocean V2\n\nEffects in this window · Dynamic · Effective quality · balanced\n\nEffect renderers · CSS + Canvas 2D",
+    "off": "Showing · Deep Ocean V2\n\nEffects in this window · Off · Effective quality · balanced\n\nEffect renderers · None active\n\nEffects are off in this window. Your saved skin and its colors are unchanged."
+  },
+  "pageErrors": [],
+  "passed": true,
+  "closed": true
+}

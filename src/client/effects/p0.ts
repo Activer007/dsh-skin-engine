@@ -5,7 +5,7 @@ import type { PreparedArtwork } from '../../shared/skins.js'
 import { effectiveScenePreset, sceneEffects, type ScenePreset } from '../scene/presets.js'
 import { createAutoQuality } from './auto-quality.js'
 import { createFrameScheduler } from './frame-scheduler.js'
-import { mountEffectScene, type EffectMode, type RefractionStatus } from './scene.js'
+import { mountEffectScene, type EffectMode, type RefractionStatus, type RenderDiagnostic } from './scene.js'
 
 export const SIDEBAR_EFFECTS_KEY = 'dsh-skin-engine.sidebar-effects.v1'
 
@@ -25,6 +25,7 @@ export function createEffectsRuntime(document: Document) {
   } catch { /* Privacy modes retain the setting only for this session. */ }
   let qualityOverride: QualityChoice | undefined
   let skinQuality: QualityChoice = 'balanced'
+  let diagnostic: RenderDiagnostic | undefined
   let refraction: RefractionStatus = 'off'
   let active: ReturnType<typeof mountEffectScene>
   let skin: { update: () => void; dispose: () => void; preset: () => ScenePreset | undefined } | undefined
@@ -45,6 +46,12 @@ export function createEffectsRuntime(document: Document) {
       for (const listener of listeners) listener()
     })
   }
+  function reportDiagnostic(next?: RenderDiagnostic) {
+    if (next === diagnostic || next && diagnostic && next.css === diagnostic.css && next.canvas2d === diagnostic.canvas2d
+      && next.reason === diagnostic.reason && next.failure === diagnostic.failure) return
+    diagnostic = next
+    notify()
+  }
   function reportRefraction(status: RefractionStatus) {
     if (refraction === status) return
     refraction = status
@@ -64,6 +71,7 @@ export function createEffectsRuntime(document: Document) {
     } : undefined)
   }
   return {
+    getDiagnostic: () => diagnostic,
     getMode: () => mode,
     getSidebarEffects: () => sidebarEffects,
     getSidebarEffectsPersistent: () => sidebarEffectsPersistent,
@@ -120,10 +128,11 @@ export function createEffectsRuntime(document: Document) {
         active?.dispose()
         active = undefined
         applied = next
+        reportDiagnostic()
         reportRefraction('off')
         resetAuto()
         const selected = presets && next ? sceneEffects(effects, presets, next) : effects
-        active = mountEffectScene(document, selected, accent, mode, quality(), scheduler, reportRefraction, artwork, next, sidebarEffects)
+        active = mountEffectScene(document, selected, accent, mode, quality(), scheduler, reportRefraction, artwork, next, sidebarEffects, reportDiagnostic)
         initialized = true
       }
       function onMotion() { update(); notify() }
@@ -135,6 +144,7 @@ export function createEffectsRuntime(document: Document) {
         active = undefined
         mounted?.dispose()
         scheduler.observe(undefined)
+        reportDiagnostic()
         reportRefraction('off')
         notify()
       }

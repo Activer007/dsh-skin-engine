@@ -198,3 +198,58 @@ test('write failure keeps the active choice and reports session-only persistence
   assert.equal(f.layers().length, 1)
   f.release()
 })
+
+test('render diagnostics retain identity until playback changes and clear on release', () => {
+  const f = fixture()
+  const active = f.runtime.getDiagnostic()
+  assert.equal(active.css, true)
+  assert.equal(active.canvas2d, false)
+  f.mutate()
+  assert.equal(f.runtime.getDiagnostic(), active)
+  f.changeMedia('(prefers-reduced-motion: reduce)', true)
+  assert.equal(f.runtime.getDiagnostic().reason, 'reducedMotionReason')
+  f.changeMedia('(prefers-reduced-motion: reduce)', false)
+  assert.deepEqual(f.runtime.getDiagnostic(), active)
+  f.runtime.setMode('off')
+  assert.equal(f.runtime.getDiagnostic().css, false)
+  assert.equal(f.runtime.getDiagnostic().reason, 'windowEffectsOff')
+  f.release()
+  assert.equal(f.runtime.getDiagnostic(), undefined)
+})
+
+test('an interactive-only canvas appears in diagnostics on click and clears after its last frame', () => {
+  const f = fixture()
+  f.release()
+  const view = f.document.defaultView
+  let nextFrame
+  let now = 0
+  view.requestAnimationFrame = fn => { nextFrame = fn; return 1 }
+  view.ResizeObserver = class { observe() {} disconnect() {} }
+  view.addEventListener = view.removeEventListener = () => {}
+  view.performance.now = () => now
+  view.Element = f.nodes.conversation.constructor
+  f.document.getSelection = () => null
+  const make = f.document.createElement
+  f.document.createElement = tag => {
+    const node = make()
+    node.clientWidth = node.clientHeight = 128
+    if (tag === 'canvas') node.getContext = () => ({
+      setTransform() {}, clearRect() {}, save() {}, restore() {}, beginPath() {}, arc() {}, stroke() {},
+    })
+    return node
+  }
+  const effects = parseSkinEffects({ schema: 'dsh.effects/v1', effects: [
+    { id: 'interaction.ripple', renderer: 'canvas2d', enabled: true, params: {} },
+  ] }, ['effects:canvas2d']).effects
+  const release = f.runtime.mount(effects)
+  try {
+    assert.equal(f.runtime.getDiagnostic().canvas2d, false)
+    const target = Object.values(f.nodes).find(node => node.listeners.has('click'))
+    target.closest = () => null
+    target.listeners.get('click')({ target, button: 0, detail: 1, isTrusted: true, clientX: 5, clientY: 8 })
+    assert.equal(f.runtime.getDiagnostic().canvas2d, true)
+    now = 1000
+    nextFrame(now)
+    assert.equal(f.runtime.getDiagnostic().canvas2d, false)
+  } finally { release() }
+})
