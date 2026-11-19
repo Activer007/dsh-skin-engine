@@ -1,0 +1,53 @@
+{
+  "schema": "dsh.effects/v1",
+  "effects": [
+    {
+      "id": "ambient.aurora",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "palette": "aurora",
+        "speed": 0.24,
+        "intensity": 0.23,
+        "movement": 0.28,
+        "blur": 64,
+        "direction": 14
+      }
+    },
+    {
+      "id": "particles.starfield",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "starCount": 88,
+        "twinkle": 0.28,
+        "parallax": 0,
+        "depthLayers": 2,
+        "brightness": 0.52
+      }
+    },
+    {
+      "id": "particles.dust",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "density": 0.22,
+        "speed": 0.14,
+        "sizeRange": [0.55, 1.3],
+        "opacity": 0.23,
+        "drift": 0.18
+      }
+    },
+    {
+      "id": "glass.liquid",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "blur": 12,
+        "tintAlpha": 0.18,
+        "saturation": 1.1,
+        "edgeLight": 0.21
+      }
+    }
+  ]
+}

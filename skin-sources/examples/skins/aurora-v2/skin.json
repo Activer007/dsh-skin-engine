@@ -1,0 +1,23 @@
+{
+  "schema": "dsh.skin/v1",
+  "id": "com.dsh.skin.aurora-v2",
+  "name": "Aurora V2 · 流光极幕",
+  "nameEn": "Aurora V2",
+  "description": "夜空上方的青绿极光带与靛紫副幕，星点在原位轻闪。独立 Alpha 皮肤。",
+  "author": "DSH Skin Engine",
+  "version": "0.1.0",
+  "engineApi": "^1.7.0",
+  "dshCompatibility": ">=0.2.2-rc.1",
+  "tags": ["dark", "aurora", "experimental"],
+  "colorScheme": "dark",
+  "entry": {
+    "tokens": "tokens.json",
+    "styles": "theme.css",
+    "effects": "effects.json"
+  },
+  "preview": {
+    "dark": "preview/dark.webp"
+  },
+  "assets": ["assets/aurora-ribbon.webp"],
+  "capabilities": ["tokens", "css", "assets", "effects:css", "effects:canvas2d"]
+}
