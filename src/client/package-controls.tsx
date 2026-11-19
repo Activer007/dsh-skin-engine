@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
 import type { PackageOperations } from './package-operations.js'
-import type { TranslateSettings } from './settings-copy.js'
+import { compatibilityMessage, type TranslateSettings } from './settings-copy.js'
 import { canActivate, type SkinChoice } from './skin-api.js'
 
 export function ImportSkin({ t, operations, disabled, onInstalled }: {
@@ -76,9 +75,7 @@ export function PackageActions({ t, choice, displayName, operations, disabled }:
       <p className="dsh-skin-muted">{t('skinVersion', { version: choice.manifest.version })}</p>
       {choice.previousVersion ? <p className="dsh-skin-muted">{t('package.previousVersion', { version: choice.previousVersion })}</p> : null}
     </header>
-    {choice.compatibility || !allowed ? <p>{choice.compatibility?.code === 'unsupported-host'
-      ? t('error.unsupportedHost', { version: MINIMUM_DSH_VERSION })
-      : t(choice.compatibility ? 'error.compatibility' : 'validatedRequired')}</p> : null}
+    {choice.compatibility || !allowed ? <p>{compatibilityMessage(t, choice.compatibility)}</p> : null}
     {allowed ? <>
       <label><input type="checkbox" checked={assets} disabled={disabled} onChange={event => includeAssets(event.currentTarget.checked)} />
         {t('package.assets')}</label>

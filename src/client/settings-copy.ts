@@ -1,3 +1,5 @@
+import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
+
 export const SETTINGS_LOCALE = 'dsh-skin-engine.settings'
 
 const en = {
@@ -100,6 +102,12 @@ const en = {
   allTags: "All tags",
   source: "Source",
   allSkins: "All skins",
+  "error.engineRange": "This skin needs a different Engine API. Update Skin Engine or choose a compatible skin ZIP.",
+  "error.hostRange": "This skin requires a different DSH version. Update DSH or install a compatible skin ZIP.",
+  "error.effectDeclaration": "This skin declares an unsupported effect or Engine API. Get a compatible ZIP from its author.",
+  "error.skippedEffect": "An unsupported effect was skipped. Update Skin Engine or choose a compatible version of this skin to see it.",
+  "error.brokenZip": "This skin ZIP could not be read. Download it again and import the original .dshskin.zip file.",
+  "error.assetFiles": "The ZIP contents do not match the skin manifest. Get a complete skin ZIP or ask its author to check the declared resource paths.",
   classicEdition: "Classic",
   imported: "Imported ZIP",
   requiresEngineApi: "Requires Engine API {range}",
@@ -396,6 +404,12 @@ const zh: Record<Key, string> = {
   allTags: "全部标签",
   source: "来源",
   allSkins: "全部皮肤",
+  "error.engineRange": "此皮肤需要不同的引擎 API。请更新 Skin Engine，或选择兼容的皮肤 ZIP。",
+  "error.hostRange": "此皮肤与当前 DSH 版本不兼容。请更新 DSH，或安装兼容的皮肤 ZIP。",
+  "error.effectDeclaration": "皮肤声明的特效或引擎 API 不受支持。请向作者获取兼容的 ZIP。",
+  "error.skippedEffect": "已跳过不受支持的特效。要显示该特效，请更新 Skin Engine，或选择此皮肤的兼容版本。",
+  "error.brokenZip": "无法读取皮肤 ZIP。请重新下载，并导入原始 .dshskin.zip 文件。",
+  "error.assetFiles": "ZIP 内容与皮肤清单不符。请获取完整的皮肤 ZIP，或请作者核对声明的资源路径。",
   classicEdition: "经典版",
   imported: "ZIP 导入",
   requiresEngineApi: "需要引擎 API {range}",
@@ -597,7 +611,18 @@ export function fallbackSettingsCopy(language: string): TranslateSettings {
     values && Object.hasOwn(values, name) ? String(values[name]) : match)
 }
 
+export function compatibilityMessage(t: TranslateSettings, issue: { code?: string } | null) {
+  return issue ? settingsError(t, issue.code ?? '', 'error.compatibility') : t('validatedRequired')
+}
+
 export function settingsError(t: TranslateSettings, detail: string, fallback: Key): string {
+  if (detail === 'unsupported-host') return t('error.unsupportedHost', { version: MINIMUM_DSH_VERSION })
+  if (detail === 'incompatible-engine') return t('error.engineRange')
+  if (detail === 'incompatible-dsh') return t('error.hostRange')
+  if (detail === 'unknown-effect') return t('error.skippedEffect')
+  if (detail.endsWith('-engine-api') || detail === 'undeclared-effect') return t('error.effectDeclaration')
+  if (['invalid-zip', 'invalid-zip-entry', 'missing-zip-manifest'].includes(detail)) return t('error.brokenZip')
+  if (['invalid-package-files', 'invalid-artwork-asset', 'asset-not-found'].includes(detail)) return t('error.assetFiles')
   if (detail === 'artwork-not-found') return t('artworkMissing')
   if (detail === 'duplicate-id') return t('error.duplicatePackage')
   if (detail === 'package-version-not-newer') return t('error.packageVersion')

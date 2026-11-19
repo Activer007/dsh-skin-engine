@@ -1,10 +1,9 @@
 import { useSyncExternalStore } from 'react'
-import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
 import { describeEffect, effectGroups } from '../core/effect-descriptors.js'
 import { effectControls, effectPreferenceFor, qualityLevels, type QualityChoice, type EffectPreference } from '../shared/preferences.js'
 import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
 import type { ScenePreset } from './scene/presets.js'
-import type { TranslateSettings } from './settings-copy.js'
+import { compatibilityMessage, type TranslateSettings } from './settings-copy.js'
 import { SettingsSwitch } from './settings-controls.js'
 import type { SkinChoice } from './skin-api.js'
 import { SkinEditorActions, type SkinEditor } from './skin-editor.js'
@@ -93,9 +92,7 @@ export function SkinEffects({ t, choice, editor, displayName }: {
       <p className="dsh-skin-muted">{t('skinEffectsScope')}</p>
     </header>
     <div className="dsh-skin-primary-actions"><SkinEditorActions t={t} editor={editor} appearance={appearance} canDiscard /></div>
-    {blocked ? <p>{choice.compatibility?.code === 'unsupported-host'
-      ? t('error.unsupportedHost', { version: MINIMUM_DSH_VERSION })
-      : t(choice.compatibility ? 'error.compatibility' : 'validatedRequired')}</p> : null}
+    {blocked ? <p>{compatibilityMessage(t, choice.compatibility)}</p> : null}
     {effects ? <>
       <fieldset disabled={disabled || packageChanged} className="dsh-skin-effect-fields">
         <div className="dsh-skin-fields">

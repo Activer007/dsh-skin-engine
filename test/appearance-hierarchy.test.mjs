@@ -75,3 +75,10 @@ test('U2 effect activation precedes fields without inventing controls', async t 
   assert.equal(children[1].props.className, 'dsh-skin-primary-actions')
   assert.equal(root.root.findAllByProps({ type: 'range' }).length, 0)
 })
+
+test('an unknown optional effect explains the partial appearance without blocking application', async t => {
+  const result = { data: { ...base.result.data, diagnostics: [{ code: 'unknown-effect' }] } }
+  const { root } = await render(t, SkinDetail, { result })
+  assert(root.root.findAllByProps({ role: 'status' }).some(node => node.children.includes('error.skippedEffect')))
+  assert.equal(root.root.findAllByType('button').find(node => node.children.includes('apply')).props.disabled, false)
+})

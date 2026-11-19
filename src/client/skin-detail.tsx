@@ -3,9 +3,8 @@ import { ArtworkEditor } from './artwork-editor.js'
 import { supportsUserArtwork } from '../shared/user-artwork.js'
 import { useState } from 'react'
 import type { ColorScheme } from '../core/tokens.js'
-import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
 import { defaultComposerTransparency, editableColors, resolveSkinColors, samePreferences } from '../shared/preferences.js'
-import type { TranslateSettings } from './settings-copy.js'
+import { compatibilityMessage, type TranslateSettings } from './settings-copy.js'
 import { SkinEditorActions, type SkinEditor } from './skin-editor.js'
 import type { SkinChoice } from './skin-api.js'
 import { SkinPreviewImage } from './skin-preview-image.js'
@@ -59,9 +58,9 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
         {manifest.description ? <p>{manifest.description}</p> : null}
       </header>
       <div className="dsh-skin-primary-actions"><SkinEditorActions t={t} editor={editor} appearance={appearance} canDiscard /></div>
-      {blocked ? <p>{compatibility?.code === 'unsupported-host'
-        ? t('error.unsupportedHost', { version: MINIMUM_DSH_VERSION })
-        : t(compatibility ? 'error.compatibility' : 'validatedRequired')}</p> : null}
+      {blocked ? <p>{compatibilityMessage(t, compatibility)}</p> : null}
+      {result?.data?.diagnostics?.some(issue => issue.code === 'unknown-effect')
+        ? <p role="status">{t('error.skippedEffect')}</p> : null}
       {compatibility ? <details>
         <summary>{t('error.diagnostics')}</summary>
         <p>{compatibility.code ? `${compatibility.code} · ` : ''}{compatibility.message}</p>

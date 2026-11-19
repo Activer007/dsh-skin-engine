@@ -39,10 +39,13 @@ export type SkinData = ReturnType<typeof parseSkinPackage> & {
 
 async function requireSuccess(response: Response) {
   if (response.ok) return response
-  const body: { error?: string; diagnostics?: { message: string }[] } = await response.json().catch(() => ({}))
+  const body: { error?: string; diagnostics?: { code: string; message: string }[] } = await response.json().catch(() => ({}))
+  const diagnostic = body.diagnostics?.[0]
+  const code = diagnostic?.code
+  const actionable = code?.endsWith('-engine-api') || code === 'undeclared-effect' || code === 'invalid-artwork-asset'
   throw new Error(body.error === 'selection-conflict'
     ? 'Another window saved a different selection or preferences.'
-    : body.diagnostics?.[0]?.message ?? body.error ?? `HTTP ${response.status}`)
+    : (actionable ? code : diagnostic?.message) ?? body.error ?? `HTTP ${response.status}`)
 }
 
 async function request<T>(path: string, signal: AbortSignal, payload?: object): Promise<T> {
