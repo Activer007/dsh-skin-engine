@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
 import { describeEffect, effectGroups } from '../core/effect-descriptors.js'
-import { effectControls, qualityLevels, type QualityChoice, type EffectPreference } from '../shared/preferences.js'
+import { effectControls, effectPreferenceFor, qualityLevels, type QualityChoice, type EffectPreference } from '../shared/preferences.js'
 import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
 import type { ScenePreset } from './scene/presets.js'
 import type { TranslateSettings } from './settings-copy.js'
@@ -115,7 +115,7 @@ export function SkinEffects({ t, choice, editor, displayName }: {
             <ul className="dsh-skin-effects">
               {declared.map(effect => {
                 const { id } = effect
-                const override = values.effects?.[id]
+                const override = effectPreferenceFor(choice.manifest.id, values.effects, id)
                 const control = effectControls(effect, override)
                 const { enabled, minimum, maximum } = control
                 const name = t(control.label)

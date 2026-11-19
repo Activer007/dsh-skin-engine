@@ -25,6 +25,12 @@ export function preferencesFor(values: Readonly<Record<string, SkinPreferences>>
   return values && Object.hasOwn(values, id) ? values[id] : undefined
 }
 
+export function effectPreferenceFor(skinId: string | undefined, effects: SkinPreferences['effects'], id: EditableEffect) {
+  // Keep the Alpha preference available when rolling Aurora V2 back to its original effect.
+  return effects?.[id] ?? (skinId === 'com.dsh.skin.aurora-v2' && id === 'ambient.aurora-curtain'
+    ? effects?.['ambient.aurora'] : undefined)
+}
+
 export function samePreferences(a?: SkinPreferences | null, b?: SkinPreferences | null) {
   return sameArtwork(a?.artwork, b?.artwork) && a?.quality === b?.quality
     && a?.composerTransparency === b?.composerTransparency
@@ -79,9 +85,8 @@ export function effectControls(effect: SkinEffect, preference?: EffectPreference
   }
 }
 
-function overrideEffect<T extends SkinEffect>(effect: T, overrides: SkinPreferences['effects']): T {
+function overrideEffect<T extends SkinEffect>(effect: T, preference?: EffectPreference): T {
   const descriptor = describeEffect(effect.id)
-  const preference = overrides?.[effect.id]
   if (!preference && !descriptor.optIn) return effect
   const params: Record<string, number> = {}
   if (preference?.strength !== undefined) {
@@ -100,7 +105,7 @@ export function resolveSkinColors(tokens: ReturnType<typeof parseSkinTokens>, sc
   return overrides ? { ...tokens.colors, ...overrides } : tokens.colors
 }
 
-export function applyPreferences<T extends { tokens: ReturnType<typeof parseSkinTokens>; effects: SkinEffect[] }>(
+export function applyPreferences<T extends { manifest?: { id: string }; tokens: ReturnType<typeof parseSkinTokens>; effects: SkinEffect[] }>(
   data: T, preferences: SkinPreferences | undefined, scheme?: ColorScheme,
 ): T {
   const colors = resolveSkinColors(data.tokens, scheme)
@@ -108,6 +113,6 @@ export function applyPreferences<T extends { tokens: ReturnType<typeof parseSkin
   return {
     ...data,
     tokens: { ...data.tokens, colors: { ...colors, ...preferences?.colors } },
-    effects: data.effects.map(effect => overrideEffect(effect, preferences?.effects)),
+    effects: data.effects.map(effect => overrideEffect(effect, effectPreferenceFor(data.manifest?.id, preferences?.effects, effect.id))),
   }
 }

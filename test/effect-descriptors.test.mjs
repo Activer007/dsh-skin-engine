@@ -7,7 +7,7 @@ const { outputFiles } = await build({ entryPoints: ['src/shared/preferences.ts']
   write: false, platform: 'node', format: 'cjs' })
 const module = { exports: {} }
 new Function('module', 'exports', outputFiles[0].text)(module, module.exports)
-const { applyPreferences, effectControls } = module.exports
+const { applyPreferences, effectControls, effectPreferenceFor } = module.exports
 
 const specs = [
   ['glass.liquid', 'css', 'blur', 16, 0, 24, {}],
@@ -71,4 +71,27 @@ test('controls preserve particle multipliers, fixed stars, artwork light, aurora
   assert.equal(refraction.enabled, false)
   assert.equal(refraction.hint, 'optionalWebgl')
   assert.equal(applyPreferences(parsed, undefined).effects.find(effect => effect.id === 'glass.refraction').enabled, false)
+})
+
+test('Aurora V2 reads Alpha curtain settings until the new effect has explicit preferences', () => {
+  const id = 'com.dsh.skin.aurora-v2'
+  const legacyId = 'ambient.aurora'
+  const curtainId = 'ambient.aurora-curtain'
+  const legacy = { enabled: false, strength: 0, speed: 0.31, movement: 0.64 }
+  const preferences = { effects: { [legacyId]: legacy } }
+  const raw = { id: curtainId, enabled: true, renderer: 'css', params: { intensity: 0.78, flowSpeed: 0.24, foldAmplitude: 0.52 } }
+  const data = { manifest: { id }, tokens: { colors: {} }, effects: [raw] }
+  const [curtain] = applyPreferences(data, preferences).effects
+  assert.equal(curtain.enabled, false)
+  assert.deepEqual(curtain.params, { intensity: 0, flowSpeed: 0.31, foldAmplitude: 0.64 })
+  const controls = effectControls(raw, effectPreferenceFor(id, preferences.effects, curtainId))
+  assert.equal(controls.enabled, false)
+  assert.equal(controls.percentage, 0)
+  assert.deepEqual(controls.additional.map(({ percentage }) => percentage), [64, 31])
+
+  const explicit = { effects: { [legacyId]: legacy, [curtainId]: { ...legacy, enabled: true, strength: 0.57 } } }
+  assert.equal(applyPreferences(data, explicit).effects[0].params.intensity, 0.57)
+  assert.equal(applyPreferences(data, explicit).effects[0].enabled, true)
+  assert.deepEqual(effectPreferenceFor(id, explicit.effects, legacyId), legacy)
+  assert.equal(applyPreferences({ ...data, manifest: { id: 'fixture.curtain' } }, preferences).effects[0], raw)
 })

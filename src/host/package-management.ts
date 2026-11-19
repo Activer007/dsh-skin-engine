@@ -6,7 +6,7 @@ import { ZipFile } from 'yazl'
 import { gt } from 'semver'
 import { parseSkinManifest, skinIdSchema, type SkinManifest } from '../core/manifest.js'
 import { SkinValidationError } from '../core/validation.js'
-import { preferencesFor } from '../shared/preferences.js'
+import { effectPreferenceFor, preferencesFor } from '../shared/preferences.js'
 import { EXPORT_SKIN_PATH, REMOVE_SKIN_PATH, ROLLBACK_SKIN_PATH, ZIP_BYTES, type PackageTarget } from '../shared/skins.js'
 import type { Register } from './catalogue-routes.js'
 import { BUNDLE_PREFERENCES, BUNDLE_PREFERENCES_SCHEMA, installedDirectory, INSTALLED_ROOT,
@@ -176,8 +176,10 @@ export function registerPackageRoutes(register: Register, profileDirectory: stri
     if (query.has('preferences')) {
       const values = await transact(signal, async ({ read }) => preferencesFor((await read()).preferences, id))
       if (values) {
-        const effects = Object.fromEntries(Object.entries(values.effects ?? {})
-          .filter(([effectId]) => parsed.effects.some(effect => effect.id === effectId)))
+        const effects = Object.fromEntries(parsed.effects.flatMap(({ id: effectId }) => {
+          const preference = effectPreferenceFor(id, values.effects, effectId)
+          return preference ? [[effectId, preference]] : []
+        }))
         output.set(BUNDLE_PREFERENCES, jsonBytes({
           schema: BUNDLE_PREFERENCES_SCHEMA, skinId: id,
           preferences: { quality: values.quality, colors: values.colors, effects: Object.keys(effects).length ? effects : undefined },
