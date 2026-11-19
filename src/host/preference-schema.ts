@@ -24,10 +24,11 @@ export const bundledSkinPreferencesSchema = z.strictObject({
     enabled: z.optional(z.boolean()),
     strength: z.optional(z.number().check(z.minimum(0), z.maximum(1))),
     speed: numericPreference(secondary.speed.bounds),
+    length: numericPreference(effectDescriptors['ambient.ocean-lightfield'].secondary.controls.length.bounds),
     movement: numericPreference(secondary.movement.bounds),
   })).check(z.refine(effects => Object.entries(effects).every(([id, effect]) =>
-    (effect.speed === undefined && effect.movement === undefined)
-      || (Object.hasOwn(effectDescriptors, id) && Boolean(describeEffect(id as EditableEffect).secondary)))))),
+    (['length', 'speed', 'movement'] as const).every(key => effect[key] === undefined
+      || Boolean(describeEffect(id as EditableEffect).secondary?.controls[key])))))),
   quality: z.optional(z.enum(qualityLevels)),
 })
 

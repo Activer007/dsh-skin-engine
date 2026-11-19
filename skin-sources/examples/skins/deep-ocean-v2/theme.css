@@ -1,5 +1,1 @@
-:root[data-dsh-skin-id="com.dsh.skin.deep-ocean-v2"] [data-dsh-skin-package-art] {
-  background-image: url("assets/underwater-light.webp");
-  background-size: cover;
-  opacity: 0.35;
-}
+/* Water color comes from theme tokens. The engine draws all sunbeams. */

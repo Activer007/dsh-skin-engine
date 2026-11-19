@@ -18,17 +18,21 @@
       "id": "ambient.light",
       "enabled": true,
       "renderer": "css",
-      "params": { "intensity": 0.11, "speed": 0.2 }
+      "params": {
+        "intensity": 0.11,
+        "speed": 0.2
+      }
     },
     {
-      "id": "light.flow",
+      "id": "ambient.ocean-lightfield",
       "enabled": true,
-      "renderer": "css",
+      "renderer": "canvas2d",
       "params": {
-        "speed": 0.16,
-        "intensity": 0.07,
-        "width": 28,
-        "colorStops": ["#67d9d000", "#67d9d040", "#8ce5da00"]
+        "intensity": 0.72,
+        "beamLength": 0.78,
+        "drift": 0.45,
+        "scatter": 0.42,
+        "beamCount": 4
       }
     },
     {
@@ -38,7 +42,10 @@
       "params": {
         "density": 0.56,
         "speed": 0.23,
-        "sizeRange": [0.55, 1.45],
+        "sizeRange": [
+          0.55,
+          1.45
+        ],
         "opacity": 0.36,
         "drift": 0.32
       }
@@ -47,13 +54,22 @@
       "id": "particles.bubbles",
       "enabled": true,
       "renderer": "canvas2d",
-      "params": { "density": 0.45, "speed": 0.32, "opacity": 0.46 }
+      "params": {
+        "density": 0.45,
+        "speed": 0.32,
+        "opacity": 0.46
+      }
     },
     {
       "id": "glass.liquid",
       "enabled": true,
       "renderer": "css",
-      "params": { "blur": 12, "tintAlpha": 0.18, "saturation": 1.08, "edgeLight": 0.22 }
+      "params": {
+        "blur": 12,
+        "tintAlpha": 0.18,
+        "saturation": 1.08,
+        "edgeLight": 0.22
+      }
     }
   ]
 }

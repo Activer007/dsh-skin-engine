@@ -2,11 +2,11 @@ export type Bounds = readonly [minimum: number, maximum: number, initial: number
 type Measure = 'blur' | 'radius' | 'intensity' | 'density' | 'brightness' | 'distortion'
 export const effectGroups = ['group.environment', 'group.materials', 'group.interaction'] as const
 type Group = (typeof effectGroups)[number]
-export type SecondaryEffectPreference = 'movement' | 'speed'
+export type SecondaryEffectPreference = 'movement' | 'speed' | 'length'
 export interface SecondaryEffectControl {
   parameter: string
   bounds: Bounds
-  label: `${'aurora' | 'curtain'}.${SecondaryEffectPreference}`
+  label: 'aurora.movement' | 'aurora.speed' | 'curtain.movement' | 'curtain.speed' | 'ocean.length' | 'ocean.drift'
 }
 
 interface EffectDescriptor {
@@ -27,7 +27,7 @@ interface EffectDescriptor {
   }
   secondary?: {
     whenDefined: string
-    controls: Record<SecondaryEffectPreference, SecondaryEffectControl>
+    controls: Partial<Record<SecondaryEffectPreference, SecondaryEffectControl>>
   }
   optIn?: true
   hint?: 'optionalWebgl'
@@ -50,6 +50,17 @@ export const effectDescriptors = {
       controls: {
         movement: { parameter: 'movement', bounds: [0, 1, 0], label: 'aurora.movement' },
         speed: { parameter: 'speed', bounds: [0.1, 1, 0.25], label: 'aurora.speed' },
+      },
+    },
+  },
+  'ambient.ocean-lightfield': {
+    group: 'group.environment',
+    strength: { parameter: 'intensity', bounds: [0, 1, 0.65], measure: 'intensity' },
+    secondary: {
+      whenDefined: 'beamLength',
+      controls: {
+        length: { parameter: 'beamLength', bounds: [0.5, 0.85, 0.72], label: 'ocean.length' },
+        movement: { parameter: 'drift', bounds: [0, 1, 0.38], label: 'ocean.drift' },
       },
     },
   },

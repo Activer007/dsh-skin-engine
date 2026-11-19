@@ -115,7 +115,7 @@ test('SceneSpec is opt-in and preserves the compatibility of API 1.0-only packag
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.7.0' }), dshVersion), undefined)
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '1.7.0' }), dshVersion), undefined)
   assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.8.0' }), dshVersion), undefined)
-  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.9.0' }), dshVersion).code, 'incompatible-engine')
+  assert.equal(checkSkinCompatibility(parseSkinManifest({ ...sceneManifest, engineApi: '^1.10.0' }), dshVersion).code, 'incompatible-engine')
   reject(() => parseSkinManifest({ ...sceneManifest, capabilities: manifest.capabilities }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: manifest.entry }), 'skin.json', 'capabilities', 'scene-capability-mismatch')
   reject(() => parseSkinManifest({ ...sceneManifest, entry: { ...manifest.entry, scene: '../scene.json' } }), 'skin.json', 'entry.scene')
@@ -325,4 +325,16 @@ test('an Aurora curtain requires Engine API 1.8 and bounded parameters', () => {
   reject(() => parseSkinPackage({
     ...pack, effects: { ...effects, effects: [{ ...curtain, params: { foldAmplitude: 1.01 } }] },
   }), 'effects.json', 'effects.0.params.foldAmplitude')
+})
+
+test('Ocean shafts require API 1.9, bounded length and spread, and two to five beams', () => {
+  const pool = params => ({ ...files, manifest: { ...manifest, engineApi: '^1.9.0' },
+    effects: { ...effects, effects: [{ id: 'ambient.ocean-lightfield', renderer: 'canvas2d', enabled: true, params }] } })
+  for (const beamCount of [2, 5]) assert.equal(parseSkinPackage(pool({ beamCount })).effects[0].params.beamCount, beamCount)
+  for (const [key, value] of [['beamCount', 6], ['beamCount', 2.5], ['beamLength', 0.49], ['scatter', 0.81], ['drift', -0.1]]) {
+    reject(() => parseSkinPackage(pool({ [key]: value })), 'effects.json', 'effects.0.params.' + key)
+  }
+  const old = pool({})
+  old.manifest.engineApi = '^1.8.0'
+  reject(() => parseSkinPackage(old), 'skin.json', 'engineApi', 'ocean-lightfield-engine-api')
 })
