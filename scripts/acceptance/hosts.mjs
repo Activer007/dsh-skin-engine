@@ -135,9 +135,11 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
   const profile = desktop ? 'desktop' : hostProfile
   const profileDir = join(home, 'profiles', profile)
   const userData = join(directory, 'electron-user-data')
-  const isolatedRenderer = ['catalogue-cache', 'character-samples'].includes(options.suite)
+  const preserveWebOrigin = !desktop && options.suite === 'v2-coexistence'
+  const isolatedRenderer = preserveWebOrigin || ['catalogue-cache', 'character-samples'].includes(options.suite)
+  let webPort = '0'
   const navigationSuite = ['navigation-release', 'navigation-visibility', 'navigation-reliability', 'navigation-performance', 'navigation-uninstall', 'navigation-restore', 'navigation-preview'].includes(options.suite)
-  const settingsSuite = options.suite.startsWith('settings-') || navigationSuite || ['gallery-preferences', 'release-upgrade'].includes(options.suite)
+  const settingsSuite = options.suite.startsWith('settings-') || navigationSuite || ['gallery-preferences', 'release-upgrade', 'v2-coexistence'].includes(options.suite)
 
   async function startDesktop(lifecycle, userDirectory = userData) {
     const cdp = await port()
@@ -254,7 +256,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
     }
     const signal = options.signal
     signal?.throwIfAborted()
-    const app = launch(executable, [...cli, '--profile', profile, '--host', loopback, '--port', '0', '--no-open'], env)
+    const app = launch(executable, [...cli, '--profile', profile, '--host', loopback, '--port', webPort, '--no-open'], env)
     const started = Date.now()
     const attempt = { pid: app.child.pid, stage: 'startup-url' }
     diagnostics?.launches.push(attempt)
@@ -268,6 +270,7 @@ export async function prepareHost(options, directory, artifact, diagnostics) {
       }, 'the Web launch URL', 90_000)
       attempt.announcedInMs = Date.now() - started
       attempt.origin = new URL(launchUrl).origin
+      if (preserveWebOrigin) webPort = new URL(launchUrl).port
       attempt.stage = 'browser'
       let page
       if ((lifecycle && options.suite !== 'navigation-release') || isolatedRenderer) {
