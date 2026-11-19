@@ -1,0 +1,59 @@
+{
+  "schema": "dsh.effects/v1",
+  "effects": [
+    {
+      "id": "ambient.aurora",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "palette": "ocean",
+        "intensity": 0.18,
+        "speed": 0.2,
+        "movement": 0.26,
+        "blur": 62,
+        "direction": 35
+      }
+    },
+    {
+      "id": "ambient.light",
+      "enabled": true,
+      "renderer": "css",
+      "params": { "intensity": 0.11, "speed": 0.2 }
+    },
+    {
+      "id": "light.flow",
+      "enabled": true,
+      "renderer": "css",
+      "params": {
+        "speed": 0.16,
+        "intensity": 0.07,
+        "width": 28,
+        "colorStops": ["#67d9d000", "#67d9d040", "#8ce5da00"]
+      }
+    },
+    {
+      "id": "particles.dust",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": {
+        "density": 0.56,
+        "speed": 0.23,
+        "sizeRange": [0.55, 1.45],
+        "opacity": 0.36,
+        "drift": 0.32
+      }
+    },
+    {
+      "id": "particles.bubbles",
+      "enabled": true,
+      "renderer": "canvas2d",
+      "params": { "density": 0.45, "speed": 0.32, "opacity": 0.46 }
+    },
+    {
+      "id": "glass.liquid",
+      "enabled": true,
+      "renderer": "css",
+      "params": { "blur": 12, "tintAlpha": 0.18, "saturation": 1.08, "edgeLight": 0.22 }
+    }
+  ]
+}
