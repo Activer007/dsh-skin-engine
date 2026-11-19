@@ -29,6 +29,7 @@ for (const flag of ['archive', 'host-version', 'zip-dir', ...(desktop ? ['deskto
   assert(options[flag], 'Missing --' + flag)
 }
 options.archive = resolve(options.archive)
+options.isolatePluginFiles = Boolean(beta)
 options.suite = ['performance', 'lifecycle'].includes(beta) ? 'settings-beta' : 'v2-coexistence'
 
 const ocean = { id: 'com.dsh.skin.deep-ocean', name: 'Deep Ocean', source: 'built-in' }
@@ -312,6 +313,11 @@ try {
   assert.deepEqual(report.pageErrors, [])
   report.passed = true
 } catch (error) {
+  if (session?.page && !session.page.isClosed()) {
+    await session.page.screenshot({ path: join(directory, 'failure.png'), timeout: 3000 }).catch(() => {})
+    report.lastPanel = await session.page.locator('[data-dsh-skin-appearance]').innerText({ timeout: 1500 })
+      .then(value => value.slice(0, 2800), () => undefined)
+  }
   report.failure = redact(error.stack ?? String(error))
   console.error(report.failure)
   process.exitCode = 1

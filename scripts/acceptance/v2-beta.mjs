@@ -45,7 +45,9 @@ export async function cycleBeta(host, session, [ocean, oceanV2, aurora, auroraV2
   const expected = new Map()
   for (let i = 0; i < 100; i++) {
     const skin = [oceanV2, auroraV2, ocean, aurora][i % 4]
+    evidence.switching = { attempt: i + 1, id: skin.id }
     await host.apply(skin)
+    if ((i + 1) % 20 === 0) console.log('Validated skin switch', i + 1)
     const value = await counts()
     assert.equal(value.scenes, 1)
     assert(value.canvases > 0)
