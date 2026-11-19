@@ -1,5 +1,1 @@
-:root[data-dsh-skin-id="com.dsh.skin.aurora-v2"] [data-dsh-skin-package-art] {
-  background-image: url("assets/aurora-ribbon.webp");
-  background-size: cover;
-  opacity: 0.35;
-}
+/* Aurora V2 uses the engine's managed curtain layer and the package's theme tokens. */

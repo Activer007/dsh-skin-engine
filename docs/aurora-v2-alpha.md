@@ -1,5 +1,7 @@
 # Aurora V2「流光极幕」Alpha
 
+本页记录 0.1.0 Alpha。复建此版 ZIP 时使用 [Alpha 源码提交](https://github.com/Activer007/dsh-skin-engine/tree/65b99bb3633c6f8e8324e77d83c58d34021207a9)。当前样例和实拍见 [Aurora V2 连续动态光幕](aurora-v2-curtain.md)。
+
 Aurora V2 是一份独立的深色皮肤包。夜空上方的青绿主幕和靛紫副幕来自静态底图，现有引擎负责柔光变化、星点微闪和少量浮尘。正文和输入区保留深靛蓝底。光幕褶皱的实时形变属于后续的 A-V2-02。
 
 - 皮肤 ID 为 `com.dsh.skin.aurora-v2`，包版本为 `0.1.0`（Alpha）。

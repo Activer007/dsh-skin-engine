@@ -1,0 +1,125 @@
+{
+  "baseCommit": "41a132909ec2eafbeeb4b8bb4708dca375332e66",
+  "hostVersion": "0.2.2-rc.5",
+  "artifact": {
+    "version": "1.12.0",
+    "sha256": "a32415c4517ec7fdc152819ad96e0dd46bcbb377688dd41692676d031b8bc870",
+    "hostSha256": "81ea8b75fc9f87e707d996471da2b25c4743d36d1875eb7e42de45c276db3a49",
+    "clientSha256": "123368c460173704553361c9e025288ce3bf224d244f04b4382c7e1ff20ceaf3"
+  },
+  "zip": {
+    "id": "com.dsh.skin.aurora-v2",
+    "version": "0.2.0",
+    "sha256": "749224b285ced1079674089612dbc6a3103ccdd6ce090e22123e16d4823d5a2f"
+  },
+  "platforms": [
+    {
+      "platform": "desktop",
+      "installedArtifactVerified": true,
+      "viewport": {
+        "width": 1280,
+        "height": 860,
+        "dpr": 1
+      },
+      "steps": {
+        "thumbnail": {
+          "width": 640,
+          "height": 430
+        },
+        "original": true,
+        "narrow": 760,
+        "staticFallbacks": [
+          "low",
+          "static",
+          "reduced-motion"
+        ],
+        "controls": {
+          "speed": 0.25,
+          "foldAmplitude": 0.51,
+          "zeroHidesCurtainKeepsStars": true
+        },
+        "switchBack": true
+      },
+      "frames": [
+        {
+          "name": "aurora-v2-phase-1",
+          "ms": 534,
+          "width": 392,
+          "height": 156,
+          "pixels": "4c6adf66bd38f800071ac6876e3ee4624cf039b0cc334318ad75a5f8e1f51101"
+        },
+        {
+          "name": "aurora-v2-phase-2",
+          "ms": 3426,
+          "width": 392,
+          "height": 156,
+          "pixels": "764c0320e622e0907a997965a0d4275caa5ee72b2d0b3110417fcb317f087880"
+        },
+        {
+          "name": "aurora-v2-phase-3",
+          "ms": 6249,
+          "width": 392,
+          "height": 156,
+          "pixels": "c7a808c36397b9481f0b0ce707f67072782f211d4b6664640f9c78b6b6235d46"
+        }
+      ],
+      "pageErrors": [],
+      "closed": true,
+      "passed": true
+    },
+    {
+      "platform": "web",
+      "installedArtifactVerified": true,
+      "viewport": {
+        "width": 1280,
+        "height": 860,
+        "dpr": 2
+      },
+      "steps": {
+        "upgradedAlphaWithPreferences": true,
+        "thumbnail": {
+          "width": 640,
+          "height": 430
+        },
+        "original": true,
+        "staticFallbacks": [
+          "low",
+          "static",
+          "reduced-motion"
+        ],
+        "controls": {
+          "speed": 0.25,
+          "foldAmplitude": 0.51,
+          "zeroHidesCurtainKeepsStars": true
+        },
+        "switchBack": true
+      },
+      "frames": [
+        {
+          "name": "aurora-v2-phase-1",
+          "ms": 125,
+          "width": 392,
+          "height": 156,
+          "pixels": "e09e9e286fa8c4a3fb0b64ddfcce6bccb49a8a3523008a0e4709dd7d53fd9236"
+        },
+        {
+          "name": "aurora-v2-phase-2",
+          "ms": 2643,
+          "width": 392,
+          "height": 156,
+          "pixels": "7cc77d5fe1df62c78a1b6e21a481dc26528230f5f65f6cb809f708eaeb8c5797"
+        },
+        {
+          "name": "aurora-v2-phase-3",
+          "ms": 5155,
+          "width": 392,
+          "height": 156,
+          "pixels": "6b63cbaef2cd41c26e306b96c44fec7840dd8909013285c270f79029c3a3a178"
+        }
+      ],
+      "pageErrors": [],
+      "closed": true,
+      "passed": true
+    }
+  ]
+}

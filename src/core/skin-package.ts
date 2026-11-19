@@ -1,6 +1,6 @@
 import { gte, minVersion } from 'semver'
 import { parseSkinEffects } from './effects.js'
-import { DUAL_APPEARANCE_API_VERSION, parseSkinManifest } from './manifest.js'
+import { AURORA_CURTAIN_API_VERSION, DUAL_APPEARANCE_API_VERSION, parseSkinManifest } from './manifest.js'
 import { parseScene } from './scene.js'
 import { parseSkinTokens } from './tokens.js'
 import { invalid } from './validation.js'
@@ -14,6 +14,12 @@ export function parseSkinPackage(files: { manifest: unknown; tokens: unknown; ef
   }
   const tokens = parseSkinTokens(files.tokens)
   const effects = parseSkinEffects(files.effects, manifest.capabilities)
+  if (effects.effects.some(effect => effect.id === 'ambient.aurora-curtain')) {
+    const minimum = minVersion(manifest.engineApi)
+    if (!minimum || !gte(minimum, AURORA_CURTAIN_API_VERSION)) {
+      invalid('skin.json', 'engineApi', 'aurora-curtain-engine-api', 'Aurora Curtain requires Engine API 1.8.0 or later')
+    }
+  }
   if (!manifest.entry.scene && files.scene !== undefined) {
     invalid('scene.json', '', 'undeclared-scene', 'Scene data requires entry.scene in skin.json')
   }

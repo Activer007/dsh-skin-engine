@@ -10,7 +10,8 @@ export const DUAL_APPEARANCE_API_VERSION = '1.3.0'
 export const ARTWORK_MOTION_API_VERSION = '1.4.0'
 const ARTWORK_LIGHT_API_VERSION = '1.5.0'
 const EFFECT_TUNING_API_VERSION = '1.6.0'
-export const ENGINE_API_VERSION = '1.7.0'
+export const AURORA_CURTAIN_API_VERSION = '1.8.0'
+export const ENGINE_API_VERSION = AURORA_CURTAIN_API_VERSION
 const PRIMARY_ARTWORK_API_VERSION = '1.7.0'
 
 const capabilities = ['tokens', 'css', 'assets', 'effects:css', 'effects:canvas2d', 'effects:webgl', 'scene'] as const
@@ -116,6 +117,7 @@ export function checkSkinCompatibility(manifest: SkinManifest, dshVersion: strin
     }
   }
   const compatible = satisfies(ENGINE_API_VERSION, manifest.engineApi)
+    || satisfies(PRIMARY_ARTWORK_API_VERSION, manifest.engineApi)
     || satisfies(EFFECT_TUNING_API_VERSION, manifest.engineApi)
     || satisfies(ARTWORK_LIGHT_API_VERSION, manifest.engineApi)
     || satisfies(ARTWORK_MOTION_API_VERSION, manifest.engineApi)
