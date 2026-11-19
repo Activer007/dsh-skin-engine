@@ -48,7 +48,7 @@ export function apply(ctx: ClientContext): void {
     blockReason: theme.blockReason,
     switchAppearance: theme.switchAppearance,
     mount({ data: original, preferences }, data, artwork) {
-      const releaseTheme = theme.mount(original, preferences?.colors)
+      const releaseTheme = theme.mount(original, preferences?.colors, preferences?.composerTransparency)
       let releaseEffects: (() => void) | undefined
       let appearance: { artwork?: PreparedArtwork; accent?: string } | undefined
       function update(data: SkinData, artwork?: PreparedArtwork) {

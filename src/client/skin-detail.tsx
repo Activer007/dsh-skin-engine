@@ -3,7 +3,7 @@ import { supportsUserArtwork } from '../shared/user-artwork.js'
 import { useState } from 'react'
 import type { ColorScheme } from '../core/tokens.js'
 import { MINIMUM_DSH_VERSION } from '../shared/compatibility.js'
-import { editableColors, resolveSkinColors, samePreferences } from '../shared/preferences.js'
+import { defaultComposerTransparency, editableColors, resolveSkinColors, samePreferences } from '../shared/preferences.js'
 import type { TranslateSettings } from './settings-copy.js'
 import { SkinEditorActions, type SkinEditor } from './skin-editor.js'
 import type { SkinChoice } from './skin-api.js'
@@ -33,6 +33,8 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
   const [previewScheme, setPreviewScheme] = useState<ColorScheme>()
   const { manifest, compatibility } = choice
   const { result, blocked, values, disabled, packageChanged, edit } = editor
+  const defaultTransparency = defaultComposerTransparency(manifest.id)
+  const transparency = values.composerTransparency ?? defaultTransparency
   const colors = result?.data && resolveSkinColors(result.data.tokens, scheme)
   const appearance = t(`appearance.${manifest.colorScheme ?? 'any'}`)
   const imageScheme = manifest.colorScheme === 'both' ? previewScheme ?? scheme : manifest.colorScheme ?? scheme
@@ -75,6 +77,15 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
                     onChange={event => edit({ ...values, colors: { ...values.colors, [key]: event.currentTarget.value } })} />
                 </label>
               ))}
+              <label>{t('composerTransparency')} · {transparency}%
+                <input type="range" min={0} max={100} step={1} value={transparency}
+                  aria-label={t('composerTransparency')} aria-valuetext={`${transparency}%`}
+                  onChange={event => {
+                    const next = event.currentTarget.valueAsNumber
+                    const { composerTransparency: _previous, ...remaining } = values
+                    edit(next === defaultTransparency ? remaining : { ...remaining, composerTransparency: next })
+                  }} />
+              </label>
             </div>
           </fieldset>
           <div className="dsh-skin-actions">

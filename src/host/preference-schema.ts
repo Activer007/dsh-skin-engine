@@ -17,7 +17,7 @@ export const artworkPreferenceSchema = z.strictObject({
   opacity: z.number().check(z.minimum(0), z.maximum(0.5)),
 })
 
-export const skinPreferencesSchema = z.strictObject({
+export const bundledSkinPreferencesSchema = z.strictObject({
   artwork: z.optional(artworkPreferenceSchema),
   colors: z.optional(z.partialRecord(z.enum(editableColors), hexColor)),
   effects: z.optional(z.partialRecord(z.enum(editableEffects), z.strictObject({
@@ -29,6 +29,11 @@ export const skinPreferencesSchema = z.strictObject({
     (effect.speed === undefined && effect.movement === undefined)
       || (Object.hasOwn(effectDescriptors, id) && Boolean(describeEffect(id as EditableEffect).secondary)))))),
   quality: z.optional(z.enum(qualityLevels)),
+})
+
+export const skinPreferencesSchema = z.strictObject({
+  ...bundledSkinPreferencesSchema.shape,
+  composerTransparency: z.optional(z.int().check(z.minimum(0), z.maximum(100))),
 })
 
 export const profilePreferencesSchema = z.record(skinIdSchema, skinPreferencesSchema)

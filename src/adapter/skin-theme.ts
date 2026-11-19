@@ -1,8 +1,8 @@
 import type { SkinChoice, SkinData } from '../client/skin-api.js'
 import type { ColorScheme } from '../core/tokens.js'
-import { resolveSkinColors, type SkinPreferences } from '../shared/preferences.js'
+import { defaultComposerTransparency, resolveSkinColors, type SkinPreferences } from '../shared/preferences.js'
 import { appearanceConflict } from './coexistence.js'
-import { auditedSurfaceMap } from './surface-map.js'
+import { auditedSurfaceMap, auditedSurfaceStyles } from './surface-map.js'
 
 type TokenOverrides = Record<string, Record<ColorScheme, string>>
 
@@ -44,7 +44,7 @@ export function createSkinTheme(theme: ThemeService, document: Document) {
     }
   }
 
-  function mount(data: SkinData, colors?: SkinPreferences['colors']): () => void {
+  function mount(data: SkinData, colors?: SkinPreferences['colors'], composerTransparency = defaultComposerTransparency(data.manifest.id)): () => void {
     if (root.hasAttribute(SKIN_ATTRIBUTE)) throw new Error('The skin scope is occupied.')
     const activation = { id: data.manifest.id }
     const tokens: TokenOverrides = {}
@@ -54,16 +54,24 @@ export function createSkinTheme(theme: ThemeService, document: Document) {
     if (light.surface && dark.surface) tokens[auditedSurfaceMap.surfaces['app.sidebar'].token] = { light: light.surface, dark: dark.surface }
     owner = activation
     let releaseTokens: (() => void) | undefined
+    let composerStyle: HTMLStyleElement | undefined
     function release() {
       if (owner !== activation) return
       owner = undefined
       try { releaseTokens?.() } finally {
+        composerStyle?.remove()
         if (root.getAttribute(SKIN_ATTRIBUTE) === activation.id) root.removeAttribute(SKIN_ATTRIBUTE)
       }
     }
     try {
       root.setAttribute(SKIN_ATTRIBUTE, activation.id)
       releaseTokens = theme.overrideTokens(SOURCE, tokens)
+      if (composerTransparency > 0) {
+        composerStyle = document.createElement('style')
+        composerStyle.setAttribute('data-dsh-skin-composer-style', '')
+        composerStyle.textContent = auditedSurfaceStyles.composer(composerTransparency)
+        document.head.append(composerStyle)
+      }
       return release
     } catch (error) {
       release()

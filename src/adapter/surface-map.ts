@@ -28,15 +28,16 @@ const dockedChatComposer = `
 
 export const auditedSurfaceStyles = {
   // The native composer card owns the fill. The editor, attachments, and menus retain their styles.
-  composer: `
+  composer(transparency: number) { return `
 @media (prefers-reduced-transparency: no-preference) and (forced-colors: none) {
-  html:is([data-dsh-skin-id="com.dsh.skin.deep-ocean"], [data-dsh-skin-id="com.dsh.skin.deep-ocean.sample"])
+  html[data-dsh-skin-id]
     [data-slot="main"] > [data-slot="main.conversation"] > [data-phase]
     > [data-conversation-content][data-conversation-region="chat"]
-    [data-composer-seat][data-conversation-region="composer"] [data-composer-card]:has([data-composer-input]) {
-    background-color: color-mix(in srgb, var(--dsw-specific-input-major) 82%, transparent);
+    [data-conversation-scroll]:not(:has([data-conversation-composer-overlay]))
+    > [data-composer-seat][data-conversation-region="composer"] [data-composer-card]:has([data-composer-input]) {
+    background-color: color-mix(in srgb, var(--dsw-specific-input-major) ${100 - transparency}%, transparent);
   }
-}`,
+}` },
   // Soften transcript text under the sticky seat while letting the scene through the edges.
   composerBackdrop: `
 @media (prefers-reduced-transparency: no-preference) and (forced-colors: none) {

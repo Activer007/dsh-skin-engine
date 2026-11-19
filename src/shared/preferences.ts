@@ -15,6 +15,7 @@ export interface EffectPreference { enabled?: boolean; strength?: number; speed?
 
 export interface SkinPreferences {
   artwork?: ArtworkPreference
+  composerTransparency?: number
   quality?: QualityChoice
   colors?: Partial<Record<(typeof editableColors)[number], string>>
   effects?: Partial<Record<EditableEffect, EffectPreference>>
@@ -26,8 +27,13 @@ export function preferencesFor(values: Readonly<Record<string, SkinPreferences>>
 
 export function samePreferences(a?: SkinPreferences | null, b?: SkinPreferences | null) {
   return sameArtwork(a?.artwork, b?.artwork) && a?.quality === b?.quality
+    && a?.composerTransparency === b?.composerTransparency
     && editableColors.every(key => a?.colors?.[key] === b?.colors?.[key])
     && editableEffects.every(key => sameEffectPreference(a?.effects?.[key], b?.effects?.[key]))
+}
+
+export function defaultComposerTransparency(skinId: string) {
+  return skinId === 'com.dsh.skin.deep-ocean' || skinId === 'com.dsh.skin.deep-ocean.sample' ? 18 : 0
 }
 
 export function sameEffectPreference(a?: EffectPreference, b?: EffectPreference) {

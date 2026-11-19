@@ -4,7 +4,7 @@ import { performance } from 'node:perf_hooks'
 export const deepOcean = { name: 'Deep Ocean', id: 'com.dsh.skin.deep-ocean' }
 const aurora = { name: 'Aurora', id: 'com.dsh.skin.aurora' }
 const canvas = 'canvas[data-dsh-skin-effect-layer="canvas"]'
-export const resources = '[data-dsh-skin-id],[data-dsh-skin-effect-scene],[data-dsh-skin-effect-layer],[data-dsh-skin-effect-surface],style[data-dsh-skin-effects-style]'
+export const resources = '[data-dsh-skin-id],[data-dsh-skin-effect-scene],[data-dsh-skin-effect-layer],[data-dsh-skin-effect-surface],style[data-dsh-skin-effects-style],style[data-dsh-skin-composer-style]'
 const appearanceNames = { light: /^(浅色|Light)$/, dark: /^(深色|Dark)$/, system: /^(跟随系统|System)$/ }
 
 export async function settings(page, desktop, initialAppearance = 'dark', beforeOpen, systemOnly = false) {
