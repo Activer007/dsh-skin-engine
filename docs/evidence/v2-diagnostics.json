@@ -8,9 +8,9 @@
     "clientSha256": "9c73d4fa0c642ac80d798c964874232dac36f56179c173d561573f402020f30a"
   },
   "steps": {
-    "reduced": "Showing \u8def Deep Ocean V2\n\nEffects in this window \u8def Dynamic \u8def Effective quality \u8def balanced\n\nEffect renderers \u8def CSS + Canvas 2D\n\nThe system\u9225\u6a9a reduced motion setting limits animations.",
-    "restored": "Showing \u8def Deep Ocean V2\n\nEffects in this window \u8def Dynamic \u8def Effective quality \u8def balanced\n\nEffect renderers \u8def CSS + Canvas 2D",
-    "off": "Showing \u8def Deep Ocean V2\n\nEffects in this window \u8def Off \u8def Effective quality \u8def balanced\n\nEffect renderers \u8def None active\n\nEffects are off in this window. Your saved skin and its colors are unchanged."
+    "reduced": "Showing · Deep Ocean V2\n\nEffects in this window · Dynamic · Effective quality · balanced\n\nEffect renderers · CSS + Canvas 2D\n\nThe system’s reduced motion setting limits animations.",
+    "restored": "Showing · Deep Ocean V2\n\nEffects in this window · Dynamic · Effective quality · balanced\n\nEffect renderers · CSS + Canvas 2D",
+    "off": "Showing · Deep Ocean V2\n\nEffects in this window · Off · Effective quality · balanced\n\nEffect renderers · None active\n\nEffects are off in this window. Your saved skin and its colors are unchanged."
   },
   "pageErrors": [],
   "passed": true,
