@@ -33,7 +33,7 @@ export function mountEffectScene(document: Document, effects: readonly SkinEffec
     && (view.CSS.supports('backdrop-filter', 'blur(1px)') || view.CSS.supports('-webkit-backdrop-filter', 'blur(1px)'))
   const style = document.createElement('style')
   style.setAttribute('data-dsh-skin-effects-style', '')
-  style.textContent = auditedSurfaceStyles.composer + auditedSurfaceStyles.composerBackdrop + CSS_EFFECTS_STYLES
+  style.textContent = auditedSurfaceStyles.composerBackdrop + CSS_EFFECTS_STYLES
   const scene = document.createElement('div')
   scene.setAttribute('aria-hidden', 'true')
   if (artwork?.kind === 'legacy'

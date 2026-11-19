@@ -5,7 +5,7 @@ import { parseSkinPackage } from '../core/skin-package.js'
 import type { SkinPreferences } from '../shared/preferences.js'
 import { FILE_LIMIT, MANIFEST_LIMIT, PackageFileError, parseJson, readPackageFile, utf8,
   type PackageLocation } from './package-files.js'
-import { skinPreferencesSchema } from './preference-schema.js'
+import { bundledSkinPreferencesSchema } from './preference-schema.js'
 import { resourceType } from './resource-type.js'
 import { validateSkinCss } from './skin-css.js'
 
@@ -16,7 +16,7 @@ export const BUNDLE_PREFERENCES_SCHEMA = 'dsh.skin-preferences/v1'
 export const installedDirectory = /^skin-[0-9a-f-]{36}$/
 
 const preferenceFile = z.strictObject({
-  schema: z.literal(BUNDLE_PREFERENCES_SCHEMA), skinId: skinIdSchema, preferences: skinPreferencesSchema,
+  schema: z.literal(BUNDLE_PREFERENCES_SCHEMA), skinId: skinIdSchema, preferences: bundledSkinPreferencesSchema,
 })
 
 export function packageResources(manifest: SkinManifest) {

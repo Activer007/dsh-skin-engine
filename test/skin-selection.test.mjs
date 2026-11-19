@@ -99,10 +99,19 @@ test('profile preferences migrate from selection-only state and share its compar
   assert.deepEqual(await (await second.read()).json(), { skinId: 'a', revision: 4, preferences: { a: preferences } })
   assert.equal((await first.save('a', 4, { preferences })).status, 200)
   assert.equal(fixture.writes(), 1)
-  assert.deepEqual(await (await second.save('b', 4)).json(), { skinId: 'b', revision: 5, preferences: { a: preferences } })
+  for (const composerTransparency of [-1, 101, 33.5, '50']) {
+    assert.equal((await first.save('a', 4, { preferences: { ...preferences, composerTransparency } })).status, 400)
+  }
+  const withTransparency = { ...preferences, composerTransparency: 65 }
+  assert.deepEqual(await (await first.save('a', 4, { preferences: withTransparency })).json(), {
+    skinId: 'a', revision: 5, preferences: { a: withTransparency },
+  })
+  assert.deepEqual(await (await second.save('b', 5)).json(), {
+    skinId: 'b', revision: 6, preferences: { a: withTransparency },
+  })
   fixture.fail('after')
-  assert.deepEqual(await (await first.save('a', 5, { preferences: null })).json(), { skinId: 'a', revision: 6 })
-  assert.deepEqual(await (await second.read()).json(), { skinId: 'a', revision: 6 })
+  assert.deepEqual(await (await first.save('a', 6, { preferences: null })).json(), { skinId: 'a', revision: 7 })
+  assert.deepEqual(await (await second.read()).json(), { skinId: 'a', revision: 7 })
 })
 
 test('a rejected write is reconciled from a newly opened domain while the profile lock is held', async t => {
