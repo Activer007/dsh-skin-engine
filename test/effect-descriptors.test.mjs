@@ -95,3 +95,17 @@ test('Aurora V2 reads Alpha curtain settings until the new effect has explicit p
   assert.deepEqual(effectPreferenceFor(id, explicit.effects, legacyId), legacy)
   assert.equal(applyPreferences({ ...data, manifest: { id: 'fixture.curtain' } }, preferences).effects[0], raw)
 })
+
+
+test('Ocean V2 inherits only its Alpha light flow until a lightfield preference exists', () => {
+  const id = 'com.dsh.skin.deep-ocean-v2'
+  const key = 'ambient.ocean-lightfield'
+  const legacy = { enabled: false, strength: 0 }
+  const preferences = { 'light.flow': legacy, 'particles.dust': { strength: 0.72 } }
+  assert.deepEqual(effectPreferenceFor(id, preferences, key), legacy)
+  const next = { ...preferences, [key]: { enabled: true, strength: 0.41, length: 0.81, movement: 0.2 } }
+  assert.deepEqual(effectPreferenceFor(id, next, key), next[key])
+  assert.deepEqual(effectPreferenceFor(id, next, 'light.flow'), legacy)
+  assert.equal(effectPreferenceFor('com.dsh.skin.deep-ocean', preferences, key), undefined)
+  assert.equal(effectPreferenceFor('com.dsh.skin.deep-ocean-living-light', preferences, key), undefined)
+})

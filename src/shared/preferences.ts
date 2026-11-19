@@ -26,9 +26,12 @@ export function preferencesFor(values: Readonly<Record<string, SkinPreferences>>
 }
 
 export function effectPreferenceFor(skinId: string | undefined, effects: SkinPreferences['effects'], id: EditableEffect) {
-  // Keep the Alpha preference available when rolling Aurora V2 back to its original effect.
-  return effects?.[id] ?? (skinId === 'com.dsh.skin.aurora-v2' && id === 'ambient.aurora-curtain'
-    ? effects?.['ambient.aurora'] : undefined)
+  const current = effects?.[id]
+  if (current) return current
+  // Read Alpha settings without rewriting them. The former effect key is still used on rollback.
+  if (skinId === 'com.dsh.skin.aurora-v2' && id === 'ambient.aurora-curtain') return effects?.['ambient.aurora']
+  if (skinId === 'com.dsh.skin.deep-ocean-v2' && id === 'ambient.ocean-lightfield') return effects?.['light.flow']
+  return undefined
 }
 
 export function samePreferences(a?: SkinPreferences | null, b?: SkinPreferences | null) {

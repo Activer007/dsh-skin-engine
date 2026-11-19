@@ -1,0 +1,54 @@
+{
+  "platform": "web",
+  "version": "0.2.2-rc.5",
+  "artifact": {
+    "version": "1.12.0-beta.1",
+    "sha256": "1d8a04077f8c45ea9929e58ca5841282fc9fbfd14e8b5aa287f48b06c6935d57",
+    "hostSha256": "7012265056e746a84f3e6a0f46124b250f3cd3826b0d26d3a06b861a78ea8c82",
+    "clientSha256": "c5dc8f2381f5d70233686835a62a987ba8d35cc23d5be4c7a8c59379a476a23d"
+  },
+  "zip": {
+    "id": "com.dsh.skin.deep-ocean-v2",
+    "version": "0.2.0",
+    "sha256": "12c0e5a2c8f2311bcca3d72b4abea5bef12e93ad890092dd4baad1fa287612ac"
+  },
+  "steps": {
+    "alphaUpgradeEditExportAndRollback": {
+      "oldPrefs": {
+        "light.flow": {
+          "enabled": false,
+          "strength": 0
+        },
+        "particles.dust": {
+          "strength": 0.57
+        }
+      },
+      "exported": {
+        "ambient.ocean-lightfield": {
+          "enabled": false,
+          "strength": 0
+        },
+        "particles.dust": {
+          "strength": 0.57
+        }
+      },
+      "edited": {
+        "light.flow": {
+          "enabled": false,
+          "strength": 0
+        },
+        "particles.dust": {
+          "strength": 0.57
+        },
+        "ambient.ocean-lightfield": {
+          "enabled": true,
+          "strength": 0.01
+        }
+      }
+    }
+  },
+  "installedArtifactVerified": true,
+  "passed": true,
+  "closed": true,
+  "pageErrors": []
+}

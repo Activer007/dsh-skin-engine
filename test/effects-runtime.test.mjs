@@ -7,6 +7,7 @@ const root = fileURLToPath(new URL('../', import.meta.url))
 const { outputFiles: [module] } = await build({
   stdin: {
     contents: `
+      export { oceanLightfield } from './src/client/effects/providers/ocean-lightfield.ts';
       export { mountAuroraPaint } from './src/client/effects/aurora.ts';
       export { createFrameScheduler } from './src/client/effects/frame-scheduler.ts';
       export { mountCanvas } from './src/client/effects/canvas.ts';
@@ -31,7 +32,7 @@ const { outputFiles: [module] } = await build({
   },
   write: false, bundle: true, format: 'esm',
 })
-const { mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createBubbles, createStarfield, createRipples, createHolographic, mountRefraction,
+const { oceanLightfield, mountAuroraPaint, createFrameScheduler, mountCanvas, createDust, createBubbles, createStarfield, createRipples, createHolographic, mountRefraction,
   createAutoQuality, effectQuality, applyPreferences, layoutArtwork, mountArtwork, limitArtworkTravel, mountArtworkMotion,
   effectiveScenePreset, sceneEffects, effectDefinitions, parseSkinEffects, EFFECT_PROVIDER_API, defineProvider, createProviderRegistry,
   createEffectsRuntime } = await import(
@@ -723,4 +724,30 @@ test('pack declarations require a user preference before enabling WebGL', () => 
   assert.equal(enabled.effects[0].enabled, true)
   assert.equal(enabled.effects[0].params.distortion, 0.8)
   assert.equal(effect.params.distortion, 0.25)
+})
+
+
+test('ocean lightfield budgets and static states share the scene clock and release the shaft texture', () => {
+  const tile = { getContext: () => ({ createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), putImageData() {} }) }
+  const release = []
+  const context = { scene: { ownerDocument: { createElement: () => tile } }, own: clean => release.push(clean) }
+  const declaration = { id: oceanLightfield.id, renderer: 'canvas2d', enabled: true, params: { beamCount: 5 } }
+  const instance = oceanLightfield.mount(context, declaration)
+  let beams = 0
+  const draw = { save() {}, restore() {}, transform() {}, drawImage() { beams++ } }
+  for (const [quality, count] of [['low', 2], ['balanced', 4], ['high', 5]]) {
+    instance.update({ canvas: true, dynamic: true, quality }, quality)
+    assert.equal(instance.canvas.animated(), quality !== 'low')
+    beams = 0
+    instance.canvas.draw(draw, 1280, 860, 0.03)
+    assert.equal(beams, count)
+  }
+  instance.update({ canvas: true, dynamic: false, quality: 'high' }, 'high')
+  assert.equal(instance.canvas.animated(), false)
+  assert.equal(instance.canvas.visible(), true)
+  instance.update({ canvas: false, dynamic: false, quality: 'high' }, 'high')
+  assert.equal(instance.canvas.visible(), false)
+  assert.equal(oceanLightfield.mount(context, { ...declaration, params: { intensity: 0 } }), undefined)
+  release.forEach(clean => clean())
+  assert.deepEqual([tile.width, tile.height], [0, 0])
 })
