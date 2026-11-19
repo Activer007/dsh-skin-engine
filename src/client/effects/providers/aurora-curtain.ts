@@ -46,6 +46,7 @@ export const auroraCurtain = defineProvider(effectDefinitions.auroraCurtain, {
     }
 
     return {
+      layerRenderer: 'canvas2d',
       layout: state => showOnCanvas(container, state),
       update(state, next) {
         if (budget !== next) {

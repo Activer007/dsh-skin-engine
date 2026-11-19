@@ -129,6 +129,7 @@ function mountProvider(provider: RegisteredProvider, effect: SkinEffect, base: S
 
   start()
   return {
+    get layerRenderer() { return visible && instance ? instance.layerRenderer ?? (fallback ? 'css' : provider.renderer) : undefined },
     get mounted() { return !!instance },
     get canvas() { return !!instance?.canvas },
     get hasCssMotion() { return provider.cssMotion },

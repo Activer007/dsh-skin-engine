@@ -51,6 +51,7 @@ export interface EffectInstance<Budget> {
   pause?(): void
   resume?(): void
   dispose?(): void
+  readonly layerRenderer?: EffectRenderer
   readonly canvas?: CanvasContribution
 }
 
@@ -80,7 +81,7 @@ export function defineProvider<Definition extends EffectDefinition, Budget>(defi
       layout: instance.layout && ((state, quality) => instance.layout!(state, provider.budget(quality))),
       update: instance.update && ((state, quality) => instance.update!(state, provider.budget(quality))),
       pause: instance.pause?.bind(instance), resume: instance.resume?.bind(instance), dispose: instance.dispose?.bind(instance),
-      canvas: instance.canvas,
+      layerRenderer: instance.layerRenderer, canvas: instance.canvas,
     }
   }
   function params(effect: SkinEffect) {
