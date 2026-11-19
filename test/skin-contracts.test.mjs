@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { readFile, readdir } from 'node:fs/promises'
 import test from 'node:test'
 import { checkSkinCompatibility, parseSkinManifest, parseSkinPackage, readBuiltInSkins } from '../lib/host.js'
 
@@ -67,6 +68,28 @@ test('the exact Host artifact reads and validates the packaged examples', async 
     assert.deepEqual(example.diagnostics, [])
     assert.equal(checkSkinCompatibility(example.manifest, dshVersion), undefined)
     assert(!Object.hasOwn(example, 'scene'))
+  }
+})
+
+test('the original Deep Ocean and Aurora preserve released files and parsed defaults', async () => {
+  const baseline = JSON.parse(await readFile(new URL('./fixtures/original-skins-v1.json', import.meta.url), 'utf8'))
+  const installed = await readBuiltInSkins()
+  for (const [name, expected] of Object.entries(baseline.skins)) {
+    for (const directory of ['skin-sources/examples/skins', 'lib/skins']) {
+      const root = new URL(`../${directory}/${name}/`, import.meta.url)
+      const files = (await readdir(root, { recursive: true, withFileTypes: true }))
+        .filter(entry => entry.isFile())
+      assert.equal(files.length, Object.keys(expected.files).length, `${directory}/${name}`)
+      for (const [file, sha256] of Object.entries(expected.files)) {
+        const bytes = await readFile(new URL(file, root))
+        const canonical = /\.(css|json)$/.test(file) ? bytes.toString('utf8').replaceAll('\r\n', '\n') : bytes
+        assert.equal(createHash('sha256').update(canonical).digest('hex'), sha256, `${directory}/${name}/${file}`)
+      }
+    }
+    const skin = installed.find(entry => entry.manifest.id === expected.id)
+    assert(skin, expected.id)
+    assert.equal(skin.manifest.version, expected.version)
+    assert.deepEqual(skin.effects, expected.effects)
   }
 })
 
