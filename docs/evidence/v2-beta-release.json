@@ -1,0 +1,286 @@
+{
+  "source": "7413c20ca5030804257b70d802e0d8a9cfd13f94",
+  "releaseArtifacts": {
+    "dsh-plugin-skin-engine-1.12.0-beta.1.tgz": "232fb8cc9281c0182fd8a7a209af1f0cf32d04d9bd204bbd727bc1f2e525ace9",
+    "com.dsh.skin.deep-ocean-v2.dshskin.zip": "12c0e5a2c8f2311bcca3d72b4abea5bef12e93ad890092dd4baad1fa287612ac",
+    "com.dsh.skin.aurora-v2.dshskin.zip": "407c79693780557c5a2de90b041e338b6e877fe5269f7d321593aa8446a81108"
+  },
+  "hosts": {
+    "web": {
+      "visual": {
+        "hostVersion": "0.2.2-rc.5",
+        "run": "web-jucWDW",
+        "rawSha256": "2304a1c8e5ad622ccf76d62f4e441e97c27d8bdf7b8c857d50ba0de365b198ce",
+        "closed": true,
+        "steps": {
+          "catalogue": [
+            {
+              "id": "com.dsh.skin.deep-ocean",
+              "source": "built-in",
+              "version": "1.0.0",
+              "revision": "a123b358bed6c417cf8b62f3e3fec6504210df4862f8a508d3b805c2e3e581cc"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "a384182b072d41b50d0a8dcab892b5c986d32c1e81f621734a40c173dfa62908"
+            },
+            {
+              "id": "com.dsh.skin.aurora",
+              "source": "built-in",
+              "version": "1.1.0",
+              "revision": "9fed263c3a8b07befde565f6aaa0c2ed4ea26a3c4ce7edeee1c004373fadc10a"
+            },
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "0e556eb9755fc926b8a98e9e18362b640fbbb6205857b90fe26f739366721045"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "source": "local",
+              "version": "1.2.0",
+              "revision": "cceb6febb8bb7718b5501d09360ee10ba83b8fd023b71fe85e7094273b4c5a76"
+            }
+          ],
+          "duplicateRejected": "com.dsh.skin.deep-ocean-v2",
+          "appliedAndRendered": [
+            "com.dsh.skin.deep-ocean",
+            "com.dsh.skin.deep-ocean-v2",
+            "com.dsh.skin.aurora",
+            "com.dsh.skin.aurora-v2",
+            "com.dsh.skin.deep-ocean-living-light"
+          ],
+          "readingAndPhases": true,
+          "favoritesIndependent": true,
+          "previewCancelled": {
+            "restored": "com.dsh.skin.deep-ocean",
+            "preview": "com.dsh.skin.deep-ocean-v2"
+          },
+          "previewExpired": {
+            "restored": "com.dsh.skin.aurora",
+            "preview": "com.dsh.skin.aurora-v2",
+            "elapsedMs": 30654,
+            "countdown": "Preview ends in 30s"
+          },
+          "restartPreserved": {
+            "active": "com.dsh.skin.deep-ocean-v2",
+            "favorites": [
+              "com.dsh.skin.deep-ocean",
+              "com.dsh.skin.deep-ocean-v2",
+              "com.dsh.skin.aurora",
+              "com.dsh.skin.aurora-v2",
+              "com.dsh.skin.deep-ocean-living-light"
+            ],
+            "transparency": {
+              "com.dsh.skin.deep-ocean": 19,
+              "com.dsh.skin.deep-ocean-v2": 1,
+              "com.dsh.skin.aurora": 1,
+              "com.dsh.skin.aurora-v2": 1
+            }
+          },
+          "uninstalledIndependently": {
+            "removed": [
+              "com.dsh.skin.deep-ocean-v2",
+              "com.dsh.skin.aurora-v2"
+            ],
+            "finalActive": "com.dsh.skin.deep-ocean-living-light"
+          }
+        }
+      },
+      "diagnostics": {
+        "hostVersion": "0.2.2-rc.5",
+        "run": "web-dTsYzv",
+        "rawSha256": "5bfc5f45e14c734408727fc2eb749a12db68eef1ce3dc9a5f5695a272846affe",
+        "closed": true,
+        "steps": {
+          "errors-en": [
+            {
+              "code": "incompatible-engine",
+              "message": "This skin needs a different Engine API. Update Skin Engine or choose a compatible skin ZIP."
+            },
+            {
+              "code": "incompatible-dsh",
+              "message": "This skin requires a different DSH version. Update DSH or install a compatible skin ZIP."
+            },
+            {
+              "code": "ocean-lightfield-engine-api",
+              "message": "This skin declares an unsupported effect or Engine API. Get a compatible ZIP from its author."
+            },
+            {
+              "code": "invalid-package-files",
+              "message": "The ZIP contents do not match the skin manifest. Get a complete skin ZIP or ask its author to check the declared resource paths."
+            },
+            {
+              "code": "invalid-zip",
+              "message": "This skin ZIP could not be read. Download it again and import the original .dshskin.zip file."
+            }
+          ],
+          "errors-zh": [
+            {
+              "code": "incompatible-engine",
+              "message": "此皮肤需要不同的引擎 API。请更新 Skin Engine，或选择兼容的皮肤 ZIP。"
+            },
+            {
+              "code": "incompatible-dsh",
+              "message": "此皮肤与当前 DSH 版本不兼容。请更新 DSH，或安装兼容的皮肤 ZIP。"
+            },
+            {
+              "code": "ocean-lightfield-engine-api",
+              "message": "皮肤声明的特效或引擎 API 不受支持。请向作者获取兼容的 ZIP。"
+            },
+            {
+              "code": "invalid-package-files",
+              "message": "ZIP 内容与皮肤清单不符。请获取完整的皮肤 ZIP，或请作者核对声明的资源路径。"
+            },
+            {
+              "code": "invalid-zip",
+              "message": "无法读取皮肤 ZIP。请重新下载，并导入原始 .dshskin.zip 文件。"
+            }
+          ],
+          "optionalEffect": "An unsupported effect was skipped. Update Skin Engine or choose a compatible version of this skin to see it."
+        }
+      }
+    },
+    "desktop": {
+      "visual": {
+        "hostVersion": "0.2.2-rc.5",
+        "run": "desktop-laHshM",
+        "rawSha256": "4b59ea16d7156a041e16d0945534ad8c2d6fce45077296c43158b7189b67db44",
+        "closed": true,
+        "steps": {
+          "catalogue": [
+            {
+              "id": "com.dsh.skin.deep-ocean",
+              "source": "built-in",
+              "version": "1.0.0",
+              "revision": "d315cfe5d91fb1bc7be2c9b66ad19a91eda9e720ddc8157827dad9b4c802abf9"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "16895866cc5b1c181d4cba5c1b4c17a01a3d1da1ec8922e45a0a7f4fb2199819"
+            },
+            {
+              "id": "com.dsh.skin.aurora",
+              "source": "built-in",
+              "version": "1.1.0",
+              "revision": "34cdbc173adf284bf58c2733e95f9f5023e6f52fa7f4ee200da955fb526c4b6a"
+            },
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "source": "local",
+              "version": "0.2.0",
+              "revision": "f4dc9b4f045b5f315ba29436e8ff82bc60765a6cfe87d4548473022ec1187261"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "source": "local",
+              "version": "1.2.0",
+              "revision": "6580902a98a701e8d595819101fcda71e8581240fbb24e5a904a25f43df660d6"
+            }
+          ],
+          "duplicateRejected": "com.dsh.skin.deep-ocean-v2",
+          "appliedAndRendered": [
+            "com.dsh.skin.deep-ocean",
+            "com.dsh.skin.deep-ocean-v2",
+            "com.dsh.skin.aurora",
+            "com.dsh.skin.aurora-v2",
+            "com.dsh.skin.deep-ocean-living-light"
+          ],
+          "readingAndPhases": true,
+          "favoritesIndependent": true,
+          "previewCancelled": {
+            "restored": "com.dsh.skin.deep-ocean",
+            "preview": "com.dsh.skin.deep-ocean-v2"
+          },
+          "previewExpired": {
+            "restored": "com.dsh.skin.aurora",
+            "preview": "com.dsh.skin.aurora-v2",
+            "elapsedMs": 30521,
+            "countdown": "Preview ends in 30s"
+          },
+          "restartPreserved": {
+            "active": "com.dsh.skin.deep-ocean-v2",
+            "favorites": [
+              "com.dsh.skin.deep-ocean",
+              "com.dsh.skin.deep-ocean-v2",
+              "com.dsh.skin.aurora",
+              "com.dsh.skin.aurora-v2",
+              "com.dsh.skin.deep-ocean-living-light"
+            ],
+            "transparency": {
+              "com.dsh.skin.deep-ocean": 19,
+              "com.dsh.skin.deep-ocean-v2": 1,
+              "com.dsh.skin.aurora": 1,
+              "com.dsh.skin.aurora-v2": 1
+            }
+          },
+          "uninstalledIndependently": {
+            "removed": [
+              "com.dsh.skin.deep-ocean-v2",
+              "com.dsh.skin.aurora-v2"
+            ],
+            "finalActive": "com.dsh.skin.deep-ocean-living-light"
+          }
+        }
+      },
+      "diagnostics": {
+        "hostVersion": "0.2.2-rc.5",
+        "run": "desktop-uP1bf4",
+        "rawSha256": "ed2b1414bc5dd806d78c2a0fbdcabb89b85a048ac73662a36e16c507ce8d591b",
+        "closed": true,
+        "steps": {
+          "errors-en": [
+            {
+              "code": "incompatible-engine",
+              "message": "This skin needs a different Engine API. Update Skin Engine or choose a compatible skin ZIP."
+            },
+            {
+              "code": "incompatible-dsh",
+              "message": "This skin requires a different DSH version. Update DSH or install a compatible skin ZIP."
+            },
+            {
+              "code": "ocean-lightfield-engine-api",
+              "message": "This skin declares an unsupported effect or Engine API. Get a compatible ZIP from its author."
+            },
+            {
+              "code": "invalid-package-files",
+              "message": "The ZIP contents do not match the skin manifest. Get a complete skin ZIP or ask its author to check the declared resource paths."
+            },
+            {
+              "code": "invalid-zip",
+              "message": "This skin ZIP could not be read. Download it again and import the original .dshskin.zip file."
+            }
+          ],
+          "errors-zh": [
+            {
+              "code": "incompatible-engine",
+              "message": "此皮肤需要不同的引擎 API。请更新 Skin Engine，或选择兼容的皮肤 ZIP。"
+            },
+            {
+              "code": "incompatible-dsh",
+              "message": "此皮肤与当前 DSH 版本不兼容。请更新 DSH，或安装兼容的皮肤 ZIP。"
+            },
+            {
+              "code": "ocean-lightfield-engine-api",
+              "message": "皮肤声明的特效或引擎 API 不受支持。请向作者获取兼容的 ZIP。"
+            },
+            {
+              "code": "invalid-package-files",
+              "message": "ZIP 内容与皮肤清单不符。请获取完整的皮肤 ZIP，或请作者核对声明的资源路径。"
+            },
+            {
+              "code": "invalid-zip",
+              "message": "无法读取皮肤 ZIP。请重新下载，并导入原始 .dshskin.zip 文件。"
+            }
+          ],
+          "optionalEffect": "An unsupported effect was skipped. Update Skin Engine or choose a compatible version of this skin to see it."
+        }
+      }
+    }
+  }
+}
