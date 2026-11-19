@@ -1,0 +1,5 @@
+:root[data-dsh-skin-id="com.dsh.skin.aurora-v2"] [data-dsh-skin-package-art] {
+  background-image: url("assets/aurora-ribbon.webp");
+  background-size: cover;
+  opacity: 0.35;
+}
