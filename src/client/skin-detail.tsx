@@ -1,12 +1,13 @@
 import { packageLabel } from './skin-package-label.js'
 import { ArtworkEditor } from './artwork-editor.js'
 import { supportsUserArtwork } from '../shared/user-artwork.js'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { ColorScheme } from '../core/tokens.js'
 import { defaultComposerTransparency, editableColors, resolveSkinColors, samePreferences } from '../shared/preferences.js'
 import { compatibilityMessage, type TranslateSettings } from './settings-copy.js'
 import { SkinEditorActions, type SkinEditor } from './skin-editor.js'
 import type { SkinChoice } from './skin-api.js'
+import { SkinEffectControls } from './skin-effect-controls.js'
 import { SkinPreviewImage } from './skin-preview-image.js'
 
 function pickerColor(color: string | undefined) {
@@ -39,6 +40,30 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
   const appearance = t(`appearance.${manifest.colorScheme ?? 'any'}`)
   const imageScheme = manifest.colorScheme === 'both' ? previewScheme ?? scheme : manifest.colorScheme ?? scheme
 
+  const quickEffect = result?.data?.effects.find(effect =>
+    (manifest.id === 'com.dsh.skin.deep-ocean-v2' && effect.id === 'ambient.ocean-lightfield') ||
+    (manifest.id === 'com.dsh.skin.aurora-v2' && effect.id === 'ambient.aurora-curtain'))
+  const hintId = useId()
+  const highTransparency = transparency >= 75
+  function setTransparency(next: number) {
+    const { composerTransparency: _previous, ...remaining } = values
+    edit(next === defaultTransparency ? remaining : { ...remaining, composerTransparency: next })
+  }
+  const composerControl = <div className="dsh-skin-transparency">
+    <label>{t('composerTransparency')} · {transparency}%
+      <input type="range" min={0} max={100} step={1} value={transparency}
+        aria-label={t('composerTransparency')} aria-valuetext={`${transparency}%`}
+        aria-describedby={highTransparency ? hintId : undefined}
+        onChange={event => setTransparency(event.currentTarget.valueAsNumber)} />
+    </label>
+    {highTransparency ? <>
+      <small id={hintId}>{t('transparencyReadingHint')}</small>
+      <button type="button" onClick={() => setTransparency(defaultTransparency)}>
+        {t('resetTransparency', { value: defaultTransparency })}
+      </button>
+    </> : null}
+  </div>
+
   return (
     <section id={id} tabIndex={-1} className="dsh-skin-detail" data-skin-detail={manifest.id} aria-label={t('details', { name: displayName })}>
       <div className="dsh-skin-preview-art">
@@ -65,6 +90,13 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
         <summary>{t('error.diagnostics')}</summary>
         <p>{compatibility.code ? `${compatibility.code} · ` : ''}{compatibility.message}</p>
       </details> : null}
+      {quickEffect ? <fieldset className="dsh-skin-quick-controls" data-skin-quick-controls disabled={disabled || packageChanged}>
+        <legend>{t('quickControls')}</legend>
+        <div className="dsh-skin-quick-fields">
+          <SkinEffectControls t={t} effect={quickEffect} skinId={manifest.id} editor={editor} quick />
+          {composerControl}
+        </div>
+      </fieldset> : null}
       {result?.data ? (
         <details className="dsh-skin-disclosure" data-skin-customization>
           <summary>{t('customize')}</summary>
@@ -78,15 +110,7 @@ export function SkinDetail({ t, id, displayName, choice, scheme, placeholder, ar
                     onChange={event => edit({ ...values, colors: { ...values.colors, [key]: event.currentTarget.value } })} />
                 </label>
               ))}
-              <label>{t('composerTransparency')} · {transparency}%
-                <input type="range" min={0} max={100} step={1} value={transparency}
-                  aria-label={t('composerTransparency')} aria-valuetext={`${transparency}%`}
-                  onChange={event => {
-                    const next = event.currentTarget.valueAsNumber
-                    const { composerTransparency: _previous, ...remaining } = values
-                    edit(next === defaultTransparency ? remaining : { ...remaining, composerTransparency: next })
-                  }} />
-              </label>
+              {!quickEffect && composerControl}
             </div>
           </fieldset>
           <div className="dsh-skin-actions">
