@@ -21,13 +21,13 @@ const choice = { manifest: { id: 'com.dsh.skin.night-navigator', name: 'Navigato
   source: 'built-in', previews: { dark: '/dark.png', light: '/light.png' } }
 const base = { values: {}, result: { data: { tokens: { color: {} }, effects: [], diagnostics: [] } },
   disabled: false, blocked: false, packageChanged: false, busy: false, applied: false, edit() {}, apply() {}, discard() {}, preview() {}, chatPreview() {} }
-async function render(t, component, extra = {}) {
+async function render(t, component, extra = {}, selected = choice) {
   const oldDocument = globalThis.document
   const oldAct = globalThis.IS_REACT_ACT_ENVIRONMENT
   globalThis.document = { baseURI: 'https://dsh.test/' }
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
   let root
-  const props = { t: key => key, id: 'detail', displayName: 'Navigator', choice, scheme: 'dark', artworkEditorVisible: true,
+  const props = { t: key => key, id: 'detail', displayName: 'Navigator', choice: selected, scheme: 'dark', artworkEditorVisible: true,
     onOpenEffects() {}, onOpenManagement() {}, editor: { ...base, ...extra } }
   await act(async () => { root = create(React.createElement(component, props)) })
   t.after(async () => {
@@ -81,4 +81,44 @@ test('an unknown optional effect explains the partial appearance without blockin
   const { root } = await render(t, SkinDetail, { result })
   assert(root.root.findAllByProps({ role: 'status' }).some(node => node.children.includes('error.skippedEffect')))
   assert.equal(root.root.findAllByType('button').find(node => node.children.includes('apply')).props.disabled, false)
+})
+
+test('V2 quick controls use declared effects and retain Alpha overrides on first edit', async t => {
+  const selected = { ...choice, manifest: { ...choice.manifest, id: 'com.dsh.skin.deep-ocean-v2' } }
+  const effect = { id: 'ambient.ocean-lightfield', enabled: true, params: { intensity: 0.72, beamLength: 0.78, drift: 0.45 } }
+  const effects = { 'light.flow': { enabled: false, strength: 0 } }
+  let draft
+  const { root } = await render(t, SkinDetail, {
+    result: { data: { ...base.result.data, effects: [effect] } }, values: { effects },
+    edit(value) { draft = value },
+  }, selected)
+  const quick = root.root.findByProps({ 'data-skin-quick-controls': true })
+  const ranges = quick.findAllByProps({ type: 'range' })
+  assert.deepEqual(ranges.map(n => n.props.value), [0, 78, 45, 0])
+  assert(ranges.slice(0, 3).every(n => n.props.disabled))
+  quick.findByProps({ type: 'checkbox' }).props.onChange({ currentTarget: { checked: true } })
+  assert.deepEqual(draft.effects, { ...effects, [effect.id]: { enabled: true, strength: 0 } })
+})
+
+test('only declared Aurora V2 strength and speed are promoted, with a separate transparency reset', async t => {
+  const selected = { ...choice, manifest: { ...choice.manifest, id: 'com.dsh.skin.aurora-v2' } }
+  const effect = { id: 'ambient.aurora-curtain', enabled: true, params: { intensity: 0.78, flowSpeed: 0.24, foldAmplitude: 0.52 } }
+  const result = { data: { ...base.result.data, effects: [effect] } }
+  let draft
+  const { root, props } = await render(t, SkinDetail, { result, values: { composerTransparency: 75, quality: 'low' },
+    edit(value) { draft = value } }, selected)
+  const quick = root.root.findByProps({ 'data-skin-quick-controls': true })
+  const ranges = quick.findAllByProps({ type: 'range' })
+  assert.deepEqual(ranges.map(n => n.props.value), [78, 24, 75])
+  assert.equal(quick.findByProps({ id: ranges[2].props['aria-describedby'] }).children[0], 'transparencyReadingHint')
+  quick.findAllByType('button').find(n => n.children.includes('resetTransparency')).props.onClick()
+  assert.deepEqual(draft, { quality: 'low' })
+  for (const [id, percentage] of [['com.dsh.skin.aurora', 0], ['com.dsh.skin.deep-ocean', 18]]) {
+    await act(async () => root.update(React.createElement(SkinDetail, { ...props,
+      choice: { ...selected, manifest: { ...selected.manifest, id } }, editor: { ...base, result } })))
+    assert.equal(root.root.findAllByProps({ 'data-skin-quick-controls': true }).length, 0)
+    const input = root.root.findByProps({ 'aria-label': 'composerTransparency' })
+    assert.equal(input.props.value, percentage)
+    assert.equal(input.props['aria-describedby'], undefined)
+  }
 })

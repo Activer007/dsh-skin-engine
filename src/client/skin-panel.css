@@ -266,6 +266,22 @@
 }
 [data-dsh-skin-workspace] .dsh-skin-disclosure summary { cursor: pointer; font-weight: 600; }
 [data-dsh-skin-workspace] .dsh-skin-artwork-editor { display: grid; gap: 8px; min-inline-size: 0; }
+[data-dsh-skin-workspace] .dsh-skin-detail .dsh-skin-quick-controls {
+  padding-block: 8px 12px;
+  border-bottom: 1px solid var(--dsw-alias-settings-card-stroke, GrayText);
+}
+[data-dsh-skin-workspace] .dsh-skin-quick-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(175px, 100%), 1fr));
+  gap: 10px 20px;
+  align-items: start;
+}
+[data-dsh-skin-workspace] .dsh-skin-quick-fields > .dsh-skin-setting-toggle,
+[data-dsh-skin-workspace] .dsh-skin-quick-fields > label:has(input[type="checkbox"]) { grid-column: 1 / -1; }
+[data-dsh-skin-workspace] .dsh-skin-quick-fields label:has(input[type="range"]),
+[data-dsh-skin-workspace] .dsh-skin-transparency { display: grid; gap: 4px; min-width: 0; }
+[data-dsh-skin-workspace] .dsh-skin-quick-fields input[type="range"] { width: 100%; margin-inline: 0; }
+[data-dsh-skin-workspace] .dsh-skin-transparency button { justify-self: start; }
 [data-dsh-skin-workspace] .dsh-skin-primary-actions { display: grid; gap: 8px; }
 [data-dsh-skin-workspace] .dsh-skin-primary-actions button { min-block-size: 40px; }
 [data-dsh-skin-workspace] [data-skin-customization] .dsh-skin-artwork-editor { margin-block-end: 16px; }

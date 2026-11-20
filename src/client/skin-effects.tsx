@@ -1,9 +1,10 @@
 import { useSyncExternalStore } from 'react'
 import { describeEffect, effectGroups } from '../core/effect-descriptors.js'
-import { effectControls, effectPreferenceFor, qualityLevels, type QualityChoice, type EffectPreference } from '../shared/preferences.js'
+import { qualityLevels, type QualityChoice } from '../shared/preferences.js'
 import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
 import type { ScenePreset } from './scene/presets.js'
 import { compatibilityMessage, type TranslateSettings } from './settings-copy.js'
+import { SkinEffectControls } from './skin-effect-controls.js'
 import { SettingsSwitch } from './settings-controls.js'
 import type { SkinChoice } from './skin-api.js'
 import { SkinEditorActions, type SkinEditor } from './skin-editor.js'
@@ -110,33 +111,9 @@ export function SkinEffects({ t, choice, editor, displayName }: {
           return <fieldset key={group}>
             <legend>{t(group)}</legend>
             <ul className="dsh-skin-effects">
-              {declared.map(effect => {
-                const { id } = effect
-                const override = effectPreferenceFor(choice.manifest.id, values.effects, id)
-                const control = effectControls(effect, override)
-                const { enabled, minimum, maximum } = control
-                const name = t(control.label)
-                const magnitude = t(control.measure) + ' ' + control.percentage + '%'
-                function update(change: EffectPreference) {
-                  edit({ ...values, effects: { ...values.effects, [id]: { ...override, ...change } } })
-                }
-                return <li key={id}>
-                  <SettingsSwitch checked={enabled} label={name} onChange={enabled => update({ enabled })} />
-                  <label>
-                    {magnitude}
-                    <input type="range" aria-label={t('strength', { name })} aria-valuetext={magnitude}
-                      min={minimum} max={maximum} step={1} value={control.percentage}
-                      disabled={!enabled} onChange={event => update({ strength: (event.currentTarget.valueAsNumber - minimum) / (maximum - minimum) })} />
-                  </label>
-                  {control.additional.map(option => <label key={option.key}>
-                    {t(option.label)} {option.percentage}%
-                    <input type="range" aria-label={t(option.label)} aria-valuetext={option.percentage + '%'}
-                      min={option.minimum} max={option.maximum} step={1} value={option.percentage} disabled={!enabled}
-                      onChange={event => update({ [option.key]: event.currentTarget.valueAsNumber / 100 })} />
-                  </label>)}
-                  {control.hint ? <small>{t(control.hint)}</small> : null}
-                </li>
-              })}
+              {declared.map(effect => <li key={effect.id}>
+                <SkinEffectControls t={t} effect={effect} skinId={choice.manifest.id} editor={editor} />
+              </li>)}
             </ul>
           </fieldset>
         })}
