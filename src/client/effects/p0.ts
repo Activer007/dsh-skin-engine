@@ -9,11 +9,20 @@ import { mountEffectScene, type EffectMode, type RefractionStatus, type RenderDi
 
 export const SIDEBAR_EFFECTS_KEY = 'dsh-skin-engine.sidebar-effects.v1'
 
+const windowExperiences = {
+  follow: { mode: 'dynamic', quality: undefined },
+  focus: { mode: 'static', quality: 'low' },
+  balanced: { mode: 'dynamic', quality: 'auto' },
+  immersive: { mode: 'dynamic', quality: 'high' },
+} as const satisfies Record<string, { mode: EffectMode; quality: QualityChoice | undefined }>
+export type WindowExperience = keyof typeof windowExperiences
+
 export type { EffectMode } from './scene.js'
 
 export function createEffectsRuntime(document: Document) {
   const scheduler = createFrameScheduler(document.defaultView!)
   const auto = createAutoQuality()
+  let experience: WindowExperience | 'custom' = 'follow'
   let mode: EffectMode = 'dynamic'
   let sidebarEffects = false
   let sidebarEffectsPersistent = false
@@ -70,7 +79,23 @@ export function createEffectsRuntime(document: Document) {
       },
     } : undefined)
   }
+  function configureWindow(nextMode: EffectMode, nextQuality: QualityChoice | undefined, nextExperience: typeof experience) {
+    const qualityChanged = qualityOverride !== nextQuality
+    const modeChanged = mode !== nextMode
+    if (!qualityChanged && !modeChanged && experience === nextExperience) return
+    mode = nextMode
+    qualityOverride = nextQuality
+    experience = nextExperience
+    if (qualityChanged) resetAuto()
+    if (modeChanged || qualityChanged) skin?.update()
+    notify()
+  }
   return {
+    getExperience: () => experience,
+    setExperience(next: WindowExperience) {
+      const preset = windowExperiences[next]
+      configureWindow(preset.mode, preset.quality, next)
+    },
     getDiagnostic: () => diagnostic,
     getMode: () => mode,
     getSidebarEffects: () => sidebarEffects,
@@ -93,10 +118,7 @@ export function createEffectsRuntime(document: Document) {
     getRefraction: () => refraction,
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener) } },
     setMode(next: EffectMode) {
-      if (mode === next) return
-      mode = next
-      skin?.update()
-      notify()
+      if (mode !== next) configureWindow(next, qualityOverride, 'custom')
     },
     setScenePreset(next: ScenePreset) {
       if (scenePreset === next || !skin?.preset()) return
@@ -105,11 +127,7 @@ export function createEffectsRuntime(document: Document) {
       notify()
     },
     setQuality(next: QualityChoice | undefined) {
-      if (qualityOverride === next) return
-      qualityOverride = next
-      resetAuto()
-      active?.configure(mode, quality(), sidebarEffects)
-      notify()
+      if (qualityOverride !== next) configureWindow(mode, next, 'custom')
     },
     mount(effects: readonly SkinEffect[], accent = '#b9dcff', preferredQuality: QualityChoice = 'balanced', artwork?: PreparedArtwork,
       presets?: SceneSpec['presets']) {
