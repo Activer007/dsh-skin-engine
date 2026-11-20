@@ -1,5 +1,11 @@
 # DSH Skin Engine v1 安装与验收
 
+## v1.12.0-beta.2 常用调节
+
+主线候选包含 UX-04。进入「外观中心 → 皮肤库」，在两款 V2 皮肤的详情页可直接调整光效与输入框透明度。达到 75% 时会显示阅读提示。选择「恢复默认透明度」再「应用并保存」，其他皮肤偏好会保留；需要整套重置时可展开「自定义皮肤」。经典 Deep Ocean 默认透明度为 18%，经典 Aurora 为 0%。[两款皮肤的实拍对照](ux-04-reading.md)
+
+Beta 2 目前从源码构建。Engine API 为 1.9.0，可沿用 Beta 1 的两份 0.2.0 ZIP。首次试用时安装引擎，再从皮肤库导入所需 ZIP。已有 Beta 1 引擎和皮肤时，备份配置后原地更新引擎即可。[构建与校验](#构建与校验) · [Beta 1 下载](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.12.0-beta.1) · [兼容表与回退](v2-compatibility.md)
+
 ## v1.11.4 输入框透明度与回退
 
 在「外观中心 → 皮肤库 → 自定义皮肤 → 偏好设置」调节输入框透明度。应用后按皮肤保存。Engine API 为 1.7.0，最低支持 DSH 0.2.2-rc.1。 [输入框透明度](effects-runtime.md#输入框透明度)
@@ -212,7 +218,7 @@ Get-ChildItem $output -File | Where-Object { $_.Name -match '\.(tgz|zip)$' } |
 **Web** 使用 DSH CLI 在目标 profile 安装预构建的 `.tgz`。`web` 可替换成已存在且包含 Web 应用的自定义 profile 名称。将示例的绝对路径替换为实际产物路径。
 
 ```powershell
-dsh plugin --profile web add -w file:E:/path/to/dsh-plugin-skin-engine-1.1.0.tgz
+dsh plugin --profile web add -w file:E:/path/to/dsh-plugin-skin-engine-1.11.4.tgz
 dsh --profile web
 ```
 
@@ -223,10 +229,10 @@ dsh --profile web
 **Windows Desktop 原地升级** 从「应用 → 退出」完全退出 Desktop，然后调用该安装自带的 CLI。用本机 Desktop 安装路径及目标 tarball 的绝对路径替换示例。命令完成后重新打开应用，在「插件」详情核对 `dsh-plugin-skin-engine` 的版本及启用状态。外观中心标题旁显示客户端引擎版本，皮肤包版本可在详情的「包与技术信息」里查看。 [DSH 内置命令](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.2-rc.1/apps/desktop/README.zh.md#bundled-command-runtime)
 
 ```powershell
-& '<local-path>/deepseek-harness/resources/runtime/cli/bin/dsh.cmd' plugin --profile desktop add 'file:E:/path/to/dsh-plugin-skin-engine-1.1.0.tgz'
+& '<local-path>/deepseek-harness/resources/runtime/cli/bin/dsh.cmd' plugin --profile desktop add 'file:E:/path/to/dsh-plugin-skin-engine-1.11.4.tgz'
 ```
 
-**皮肤样板** 在「设置 → Skin Engine → Import ZIP」选择[六套样例](#v11-样例与本地更新)中的一个 ZIP。纸白使用浅色模式，其余五套使用深色模式。内置皮肤对应的导入样例卡片带 `(ZIP Sample)`，静墨与暖暮直接显示其名称。点击 `Preview` 或 `Apply`。颜色模式不匹配时采用 DSH 原生外观并保留已保存选择。卸载时打开 `Package actions` 并确认 `Uninstall…`，卸载活动样例后回到 Default。
+**皮肤 ZIP** 在「外观中心 → 皮肤库 → 导入 ZIP」中选择文件，再从详情页进入聊天预览或应用并保存。更新、回滚和卸载已导入的包可从「皮肤管理」操作。[样例与打包说明](../skin-sources/examples/README.md)
 
 ## 回滚
 
