@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { describeEffect, effectGroups } from '../core/effect-descriptors.js'
 import { qualityLevels, type QualityChoice } from '../shared/preferences.js'
-import type { createEffectsRuntime, EffectMode } from './effects/p0.js'
+import type { createEffectsRuntime, EffectMode, WindowExperience } from './effects/p0.js'
 import type { ScenePreset } from './scene/presets.js'
 import { compatibilityMessage, type TranslateSettings } from './settings-copy.js'
 import { SkinEffectControls } from './skin-effect-controls.js'
@@ -24,6 +24,7 @@ export function WindowEffects({ t, runtime, showing }: {
   runtime: ReturnType<typeof createEffectsRuntime>
   showing?: string
 }) {
+  const experience = useSyncExternalStore(runtime.subscribe, runtime.getExperience)
   const mode = useSyncExternalStore(runtime.subscribe, runtime.getMode)
   const sidebarEffects = useSyncExternalStore(runtime.subscribe, runtime.getSidebarEffects)
   const sidebarPersistent = useSyncExternalStore(runtime.subscribe, runtime.getSidebarEffectsPersistent)
@@ -41,6 +42,13 @@ export function WindowEffects({ t, runtime, showing }: {
       <p className="dsh-skin-muted">{t('windowEffectsScope')}</p>
     </header>
     <div className="dsh-skin-fields">
+      <label>{t('windowExperience')}
+        <select value={experience} onChange={event => runtime.setExperience(event.currentTarget.value as WindowExperience)}>
+          {(['follow', 'focus', 'balanced', 'immersive'] as const).map(key =>
+            <option key={key} value={key}>{t(`experience.${key}`)}</option>)}
+          {experience === 'custom' && <option value="custom" disabled>{t('experience.custom')}</option>}
+        </select>
+      </label>
       <label>{t('windowMode')}
         <select value={mode} onChange={event => runtime.setMode(event.currentTarget.value as EffectMode)}>
           {windowModes.map(value => <option key={value} value={value}>{t(`mode.${value}`)}</option>)}

@@ -311,6 +311,45 @@ test('partial mount, draw and frame failures release owned resources and leave s
     ['particles.dust', 'draw'], 'released ambient.light', ['ambient.light', 'frame'], 'released CSS fallback', 'released ambient.aurora'])
 })
 
+test('window experiences apply mode and quality together without changing skin preferences', async () => {
+  const { clock } = frameClock()
+  const window = () => createEffectsRuntime({ defaultView: clock })
+  const runtime = window()
+  const other = window()
+  const snapshot = () => [runtime.getExperience(), runtime.getMode(), runtime.getQuality(), runtime.getEffectiveQuality()]
+  runtime.mount([], undefined, 'low')
+  assert.deepEqual(snapshot(), ['follow', 'dynamic', undefined, 'low'])
+  const observations = []
+  runtime.subscribe(() => observations.push(snapshot()))
+  for (const expected of [
+    ['focus', 'static', 'low', 'low'],
+    ['balanced', 'dynamic', 'auto', 'balanced'],
+    ['immersive', 'dynamic', 'high', 'high'],
+  ]) {
+    runtime.setExperience(expected[0])
+    await Promise.resolve()
+    assert.deepEqual(observations.at(-1), expected)
+  }
+  assert.equal(observations.length, 3)
+  runtime.setMode('static')
+  runtime.setMode('dynamic')
+  assert.equal(runtime.getExperience(), 'custom')
+  runtime.setExperience('immersive')
+  runtime.setQuality('low')
+  runtime.setQuality('high')
+  assert.deepEqual(snapshot(), ['custom', 'dynamic', 'high', 'high'])
+  runtime.setExperience('follow')
+  assert.deepEqual(snapshot(), ['follow', 'dynamic', undefined, 'low'])
+  runtime.setExperience('focus')
+  const release = runtime.mount([], undefined, 'high')
+  assert.deepEqual(snapshot(), ['focus', 'static', 'low', 'low'])
+  runtime.setExperience('follow')
+  assert.deepEqual(snapshot(), ['follow', 'dynamic', undefined, 'high'])
+  assert.equal(other.getExperience(), 'follow')
+  assert.equal(other.getEffectiveQuality(), 'balanced')
+  release()
+})
+
 test('a new window owner replaces the previous owner before subscribers can select again', async () => {
   const { clock } = frameClock()
   const motionListeners = new Set()

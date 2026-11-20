@@ -39,11 +39,13 @@ Living Light VI 1.2.0 is a separate skin. Download `com.dsh.skin.deep-ocean-livi
 
 ![Appearance Center with large gallery cards and Dawn Station's preview and apply controls](docs/images/v1.10.0/appearance-center.png)
 
-## On main · 1.12.0-beta.2
+## On main · 1.12.0-beta.3
 
-Build Beta 2 from source and open a skin in **Appearance Center → Skin gallery**. In Deep Ocean V2, adjust light intensity, beam length and drift. In Aurora V2, adjust curtain intensity and flow speed. Both 0.2.0 skin ZIPs from Beta 1 work with this build.
+Build Beta 3 from source and open **Settings → Skin Engine → Window effects**. Choose Focus for static reading, Balanced for adaptive quality, or Immersive for high quality. Choose Follow skin to restore the skin’s quality preference. The preset applies to this window only.
 
-At 75% input box transparency or higher, the slider shows a readability tip. **Use default transparency** resets just the input box and keeps your lighting adjustments. [Release notes (Chinese)](docs/release-v1.md#v1120-beta2-常用调节) · [Before and after screenshots](docs/ux-04-reading.md)
+Open a skin in **Appearance Center → Skin gallery**. In Deep Ocean V2, adjust light intensity, beam length and drift. In Aurora V2, adjust curtain intensity and flow speed. Both 0.2.0 skin ZIPs from Beta 1 work with this build.
+
+At 75% input box transparency or higher, the slider shows a readability tip. **Use default transparency** resets just the input box and keeps your lighting adjustments. [Release notes (Chinese)](docs/release-v1.md#v1120-beta3-窗口体验预设) · [Before and after screenshots](docs/ux-04-reading.md)
 
 ![Deep Ocean V2 quick controls with the readability tip and reset button at 85% input box transparency](docs/images/ux-04/deep-ocean-v2-settings-after.webp)
 
