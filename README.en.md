@@ -6,13 +6,13 @@
 
 Open **Appearance Center** from the sidebar to find a quiet background for writing, a dark theme with drifting auroras, or a workspace with an illustrated character on the right.
 
-[Download v1.11.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.3) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用) · [Release notes (Chinese)](docs/release-v1.md#v1113-发行与兼容)
+[Download stable v1.11.4](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.4) · [Download V2 Beta 1 and skin ZIPs](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.12.0-beta.1) · [Installation and upgrades (Chinese)](docs/release-v1.md#安装与启用)
 
 https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
 **Underwater effects demo.** The first three seconds show Living Light VI with underwater light shafts, rising bubbles, and sidebar effects. Deep Ocean follows with floating dust at 2× speed and liquid refraction at normal speed. [HD MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
-Living Light VI 1.2.0 is a separate skin. Download `com.dsh.skin.deep-ocean-living-light.dshskin.zip` and import it under **Appearance Center → Skin gallery → Import ZIP**. [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [Skin packaging guide (Chinese)](skin-sources/examples/README.md)
+Living Light VI 1.2.0 is a separate skin. Download `com.dsh.skin.deep-ocean-living-light.dshskin.zip` and import it under **Appearance Center → Skin gallery → Import ZIP**. [Living Light VI skin ZIP](https://github.com/Activer007/dsh-skin-engine/releases/download/v1.11.3/com.dsh.skin.deep-ocean-living-light.dshskin.zip) · [Skin packaging guide (Chinese)](skin-sources/examples/README.md)
 
 ## Find a skin that suits you
 
@@ -38,6 +38,14 @@ Living Light VI 1.2.0 is a separate skin. Download `com.dsh.skin.deep-ocean-livi
 **Dawn Station** pairs a pale cabin with early morning light.
 
 ![Appearance Center with large gallery cards and Dawn Station's preview and apply controls](docs/images/v1.10.0/appearance-center.png)
+
+## On main · 1.12.0-beta.2
+
+Build Beta 2 from source and open a skin in **Appearance Center → Skin gallery**. In Deep Ocean V2, adjust light intensity, beam length and drift. In Aurora V2, adjust curtain intensity and flow speed. Both 0.2.0 skin ZIPs from Beta 1 work with this build.
+
+At 75% input box transparency or higher, the slider shows a readability tip. **Use default transparency** resets just the input box and keeps your lighting adjustments. [Release notes (Chinese)](docs/release-v1.md#v1120-beta2-常用调节) · [Before and after screenshots](docs/ux-04-reading.md)
+
+![Deep Ocean V2 quick controls with the readability tip and reset button at 85% input box transparency](docs/images/ux-04/deep-ocean-v2-settings-after.webp)
 
 ## Install and get started
 

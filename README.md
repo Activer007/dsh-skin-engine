@@ -6,13 +6,13 @@
 
 从左侧打开「外观中心」，挑一款喜欢的皮肤。想要安静的写作背景、带极光的深色界面，或右侧带人物插画的工作空间，都可以先看看实际效果。
 
-[下载 v1.11.3](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.3) · [安装与升级](docs/release-v1.md#安装与启用) · [版本说明](docs/release-v1.md#v1113-发行与兼容)
+[下载正式版 v1.11.4](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.11.4) · [下载 V2 预发行版 Beta 1 与皮肤 ZIP](https://github.com/Activer007/dsh-skin-engine/releases/tag/v1.12.0-beta.1) · [安装与升级](docs/release-v1.md#安装与启用)
 
 https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 
 **深海动效演示。** 前 3 秒展示「浮光深境 VI」的深海光束、上浮气泡和侧栏动效，随后是 Deep Ocean 的 2 倍速浮尘和原速液态折射。 [高清 MP4](docs/images/showcase/deep-ocean-effects.mp4)
 
-「浮光深境 VI」1.2.0 是独立皮肤。下载 `com.dsh.skin.deep-ocean-living-light.dshskin.zip`，再在 **外观中心 → 皮肤库 → 导入 ZIP** 中导入。 [GitHub Releases](https://github.com/Activer007/dsh-skin-engine/releases) · [皮肤打包说明](skin-sources/examples/README.md)
+「浮光深境 VI」1.2.0 是独立皮肤。下载 `com.dsh.skin.deep-ocean-living-light.dshskin.zip`，再在 **外观中心 → 皮肤库 → 导入 ZIP** 中导入。 [浮光深境 VI 皮肤 ZIP](https://github.com/Activer007/dsh-skin-engine/releases/download/v1.11.3/com.dsh.skin.deep-ocean-living-light.dshskin.zip) · [皮肤打包说明](skin-sources/examples/README.md)
 
 ## 找到适合你的外观
 
@@ -38,6 +38,14 @@ https://github.com/user-attachments/assets/9020aa7b-329e-4af7-a1d6-0049cfcdc728
 **曙光航站** · 银灰舷窗映着晨光，适合喜欢浅色外观的人。
 
 ![新版外观中心，左侧是大卡片皮肤库，右侧是曙光航站详情与预览、应用按钮](docs/images/v1.10.0/appearance-center.png)
+
+## 主线预览 · 1.12.0-beta.2
+
+从源码构建 Beta 2 后，打开「外观中心 → 皮肤库」，选中「深海光境」即可调节光强、光束长度和漂移；选中「流光极幕」可调节光幕强度和流动速度。已安装 Beta 1 的两款 0.2.0 皮肤包可直接沿用。
+
+输入框透明度达到 75% 时，滑块旁会出现阅读提示。「恢复默认透明度」只调整输入框，刚调好的光效会保留。[版本说明](docs/release-v1.md#v1120-beta2-常用调节) · [实拍前后对照](docs/ux-04-reading.md)
+
+![深海光境详情中的常用调节、85% 输入框透明度提示和恢复按钮](docs/images/ux-04/deep-ocean-v2-settings-after.webp)
 
 ## 安装与上手
 
