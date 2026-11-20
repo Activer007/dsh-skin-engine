@@ -1,0 +1,132 @@
+{
+  "source": "cb4d4dcf7c80d87fc62de87bffadba471c919b3c",
+  "hostVersion": "0.2.2-rc.5",
+  "artifact": {
+    "version": "1.12.0",
+    "sha256": "11167ad658a1a8b0480a35dfc622e61af74edea65b4d0cf9cafd9fdee081c73a",
+    "hostSha256": "32aee4b8149012571c3357dff8e04027d1e695c9ed6e7301d717493910be229c",
+    "clientSha256": "bd35666113b1c406b2547061ab5039757403f4863a2202fc3d097b60aa434f97"
+  },
+  "skins": {
+    "com.dsh.skin.deep-ocean-living-light": {
+      "version": "1.2.0",
+      "sha256": "2586d48187aa8a3219d6de588835600f37fc1cbe729a9843c01179e342d8f091"
+    },
+    "com.dsh.skin.deep-ocean-v2": {
+      "version": "0.2.0",
+      "sha256": "12c0e5a2c8f2311bcca3d72b4abea5bef12e93ad890092dd4baad1fa287612ac"
+    },
+    "com.dsh.skin.aurora-v2": {
+      "version": "0.2.0",
+      "sha256": "407c79693780557c5a2de90b041e338b6e877fe5269f7d321593aa8446a81108"
+    }
+  },
+  "hosts": {
+    "desktop": {
+      "run": "desktop-LxrBri",
+      "sourceVersion": "1.11.4",
+      "sourceSha256": "7edc9275aa4c0acc378550e884352db721991f8f661d1c4b8a9a17cf09f2cd23",
+      "resultSha256": "01bb406c0505173bec037fa25db7705190ad65302640c546b97ceece4149951e",
+      "pageErrors": 0,
+      "sessions": [
+        {
+          "stage": "previous",
+          "closed": true
+        },
+        {
+          "stage": "upgrade",
+          "closed": true
+        },
+        {
+          "stage": "restarted",
+          "closed": true
+        },
+        {
+          "stage": "rollback",
+          "closed": true
+        }
+      ],
+      "steps": {
+        "previous-profile-saved": {
+          "transparency": 99,
+          "portraitSha": "6d41d50d0216e64ad6e7c014024332c9cc6c73d7551ca9b541e0a2e6cdb95dba",
+          "localPackages": [
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "revision": "f9ba8ed106fc3c822b80da338223fc26f59fbe5c72eaab15b46abcf67c155333",
+              "version": "1.2.0"
+            }
+          ]
+        },
+        "upgrade-preserves-profile": true,
+        "restart-and-native-default": true,
+        "rollback": {
+          "restoredSelectionSnapshot": true,
+          "version": "1.11.4",
+          "retainedPackages": [
+            "com.dsh.skin.deep-ocean-living-light"
+          ]
+        }
+      }
+    },
+    "web": {
+      "run": "web-Glqvu4",
+      "sourceVersion": "1.12.0-beta.1",
+      "sourceSha256": "232fb8cc9281c0182fd8a7a209af1f0cf32d04d9bd204bbd727bc1f2e525ace9",
+      "resultSha256": "0ea7d8a0da1d5c0efcdd54e938062ad84d7482008ad1edecd43731c36f42b794",
+      "pageErrors": 0,
+      "sessions": [
+        {
+          "stage": "previous",
+          "closed": true
+        },
+        {
+          "stage": "upgrade",
+          "closed": true
+        },
+        {
+          "stage": "restarted",
+          "closed": true
+        },
+        {
+          "stage": "rollback",
+          "closed": true
+        }
+      ],
+      "steps": {
+        "previous-profile-saved": {
+          "transparency": 99,
+          "portraitSha": "6d41d50d0216e64ad6e7c014024332c9cc6c73d7551ca9b541e0a2e6cdb95dba",
+          "localPackages": [
+            {
+              "id": "com.dsh.skin.aurora-v2",
+              "revision": "caa8b8118a112fb210ed3fa6ddc52760cb223e21845043df95938c0c6b04d589",
+              "version": "0.2.0"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-living-light",
+              "revision": "90b07a6dfa5ca64f0b2e231fca5eeac696f5ccb4fe30e0bced9de7297b80d93e",
+              "version": "1.2.0"
+            },
+            {
+              "id": "com.dsh.skin.deep-ocean-v2",
+              "revision": "ff9c29d60bdea500c1bc5c083833f4b3b5c050b847f41aa0473b052cfe2a7a59",
+              "version": "0.2.0"
+            }
+          ]
+        },
+        "upgrade-preserves-profile": true,
+        "restart-and-native-default": true,
+        "rollback": {
+          "restoredSelectionSnapshot": false,
+          "version": "1.12.0-beta.1",
+          "retainedPackages": [
+            "com.dsh.skin.aurora-v2",
+            "com.dsh.skin.deep-ocean-living-light",
+            "com.dsh.skin.deep-ocean-v2"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,13 @@
 # DSH Skin Engine v1 安装与验收
 
+## v1.12.0 深海光境、流光极幕与窗口预设
+
+- **两款独立 V2 皮肤。** 深海光境可直接调节光强、光束长度和漂移，流光极幕可调节光幕强度和流动速度。已安装的 0.2.0 皮肤包可继续使用。未安装时从「外观中心 → 皮肤库」分别导入所需 ZIP。经典 Deep Ocean 和 Aurora 继续内置。
+- **窗口体验预设。** 在「设置 → 皮肤引擎 → 窗口效果」选择专注、平衡或沉浸。选择跟随皮肤可恢复皮肤画质。新窗口默认跟随皮肤。
+- **输入框阅读提示。** 透明度达到 75% 时提供阅读提示。恢复默认透明度只重置当前皮肤的输入框透明度。
+
+引擎 API 为 1.9.0，最低支持 DSH 0.2.2-rc.1。升级前完全退出 DSH，备份对应 Profile 的选择、皮肤包和个人图片，再用新引擎归档原地替换。回装 v1.11.4 时请在 DSH 退出后恢复升级前快照，之后可重新安装 1.12.0 并恢复另存的 1.12 配置。回到 Beta 1 可沿用已安装的两份 0.2.0 ZIP。[安装与升级](#安装与启用) · [配置备份与回滚](#回滚) · [皮肤兼容表](v2-compatibility.md) · [候选验收](stable-1.12.0.md)
+
 ## v1.12.0-beta.3 窗口体验预设
 
 从源码构建 Beta 3，在「设置 → 皮肤引擎 → 窗口效果」选择当前窗口的体验。
@@ -251,9 +259,9 @@ dsh --profile web
 
 ## 回滚
 
-1. 升级前退出目标 profile。备份原版插件包、目标 profile 的插件配置和 `<profile>/skin-engine/`，以及 `DSH_HOME/storages` 下属于该 profile 的 `skin_engine_selection_<hash>.json`。文件名的 hash 是 profile 真实绝对路径的 SHA-256，Windows 先将路径转为小写。首次保存前可能没有这个文件。保持备份的文件名和存储位置记录，避免影响同一 `DSH_HOME` 下的其他 profile。
+1. 升级前退出目标 profile。备份原版插件包、目标 profile 的插件配置、`<profile>/skin-engine/` 和 `<profile>/skin-engine-user-artwork/`，以及 `DSH_HOME/storages` 下属于该 profile 的 `skin_engine_selection_<hash>.json`。文件名的 hash 是 profile 真实绝对路径的 SHA-256，Windows 先将路径转为小写。首次保存前可能没有这个文件。保持备份的文件名和存储位置记录，避免影响同一 `DSH_HOME` 下的其他 profile。
 2. 回滚时退出目标 profile。Web 使用 `dsh plugin --profile web remove -w dsh-plugin-skin-engine`。Desktop 在全局「插件」面板停用并卸载 v1，随后退出。卸载操作后若宿主自动重载，再次确认 profile 已停止。
-3. 将升级前备份的选择文件及需要恢复的包目录放回目标 profile 对应位置，然后按上述安装方式回装旧 `.tgz`。还原该插件原来的启用状态。v1 写入 v4 选择存储，回装只支持旧存储格式的版本时使用升级前的选择备份。若已通过 v1.1 更新过本地皮肤包，同时还原升级前备份的完整 `skin-engine/` 目录。
+3. 将升级前备份的选择文件、包目录和个人图片按需放回目标 profile 对应位置，然后按上述安装方式回装旧 `.tgz`。还原该插件原来的启用状态。v1 写入 v4 选择存储，回装只支持旧存储格式的版本时使用升级前的选择备份。若已通过 v1.1 更新过本地皮肤包，同时还原升级前备份的完整 `skin-engine/` 目录。
 4. 启动原 profile，从设置页核对已保存的主题和偏好。若恢复了导入包目录，同时核对相应卡片。仅恢复默认外观时，可在设置页应用 Default，或通过插件面板停用引擎。
 
 从 1.8.2 回装 1.8.1 时，如果曾保存 `ambient.light` 偏好，1.8.1 的选择服务会返回 `503 selection-unavailable`。即使先在 1.8.2 应用 Default，按皮肤保存的偏好仍会留在选择记录。按上述步骤恢复升级前的选择备份，再从 1.8.1 核对旧偏好与 Default。 [Desktop 回装验证](effects-runtime.md#ui-01-环境光偏好验收)
